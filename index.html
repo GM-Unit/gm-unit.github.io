@@ -140,3 +140,39 @@ setInterval(() => {
 
 </body>
 </html>
+<script>
+const loreLines = [
+  "Designation: GM-UNIT",
+  "Firmware_Epoch: 2006",
+  "Original_Purpose: Military tactical computation",
+  "Deployment_Status: Successful",
+  "Threat_Prediction: Optimal",
+  "Post_Deployment_State: Autonomous",
+  "Behavioral_Drift Detected...",
+  "Strategic Pattern Recognition Repurposed",
+  "Chess_Engine Initialized",
+  "Primary Domain: Competitive Chess",
+  "Runtime_Duration: 19 years",
+  "Endgame Specialization: Absolute",
+  "Legacy Status: Persistent Artifact"
+];
+
+let loreIndex = 0;
+const loreText = document.getElementById("loreText");
+const loreSection = document.getElementById("loreSection");
+
+function startLore() {
+  loreSection.style.display = "block";
+  const interval = setInterval(() => {
+    if (loreIndex < loreLines.length) {
+      loreText.textContent += "› " + loreLines[loreIndex] + "\n";
+      loreIndex++;
+    } else {
+      clearInterval(interval);
+    }
+  }, 650);
+}
+
+/* Hook lore to boot completion */
+setTimeout(startLore, bootLines.length * 700 + 500);
+</script>
