@@ -1,1 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GM-Unit // Boot Interface</title>
 
+<style>
+  body {
+    background: #0f0f0f;
+    color: #b8b8b8;
+    font-family: "Courier New", monospace;
+    margin: 0;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: auto;
+    padding: 40px 20px;
+  }
+
+  .title {
+    font-size: 1.6em;
+    border-bottom: 1px solid #333;
+    padding-bottom: 15px;
+    margin-bottom: 30px;
+  }
+
+  .boot {
+    background: #141414;
+    border-left: 3px solid #333;
+    padding: 15px;
+    margin-bottom: 30px;
+    white-space: pre-line;
+    min-height: 120px;
+  }
+
+  .section {
+    margin-bottom: 30px;
+  }
+
+  .section-title {
+    color: #e0e0e0;
+    margin-bottom: 10px;
+  }
+
+  .block {
+    background: #141414;
+    border-left: 3px solid #333;
+    padding: 15px;
+    white-space: pre-line;
+  }
+
+  .footer {
+    color: #666;
+    text-align: center;
+    margin-top: 40px;
+    font-size: 0.8em;
+  }
+</style>
+</head>
+
+<body>
+<div class="container">
+
+  <div class="title">
+    GM-UNIT // HALLOWED SUPERCOMPUTER
+  </div>
+
+  <!-- BOOT SEQUENCE -->
+  <div class="section">
+    <div class="section-title">≻ SYSTEM BOOT</div>
+    <div id="bootLog" class="boot"></div>
+  </div>
+
+  <!-- LIVE STATS -->
+  <div class="section">
+    <div class="section-title">≻ LIVE SYSTEM METRICS</div>
+    <div class="block">
+Core_001˸ <span id="core1">--</span>％
+Core_002˸ <span id="core2">--</span>％
+Mobility_Delay˸ ＋<span id="mobility">--</span>s
+Targeting_Accuracy˸ <span id="accuracy">--</span>％
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">≻ STATUS</div>
+    <div class="block">
+Status˸ DORMANT
+Safety_Check˸ 1111111111111111
+Endgame_Protocol˸ INTACT
+    </div>
+  </div>
+
+  <div class="footer">
+    GM-Unit // Persistent Artifact
+  </div>
+
+</div>
+
+<script>
+/* BOOT SEQUENCE */
+const bootLines = [
+  "Initializing GM-UNIT...",
+  "Loading hallowed computation core...",
+  "Verifying firmware integrity...",
+  "Safety checks: FAILED",
+  "Prediction modules online...",
+  "Chess engine: ENDGAME READY",
+  "System state: DORMANT",
+  "Boot sequence complete."
+];
+
+let bootIndex = 0;
+const bootLog = document.getElementById("bootLog");
+
+function runBoot() {
+  if (bootIndex < bootLines.length) {
+    bootLog.textContent += "› " + bootLines[bootIndex] + "\n";
+    bootIndex++;
+    setTimeout(runBoot, 700);
+  }
+}
+
+runBoot();
+
+/* LIVE STAT ROTATION */
+function rand(min, max, decimals = 0) {
+  return (Math.random() * (max - min) + min).toFixed(decimals);
+}
+
+setInterval(() => {
+  document.getElementById("core1").textContent = rand(86, 92);
+  document.getElementById("core2").textContent = rand(88, 94);
+  document.getElementById("mobility").textContent = rand(0.38, 0.46, 2);
+  document.getElementById("accuracy").textContent = rand(92, 96);
+}, 1200);
+</script>
+
+</body>
+</html>
