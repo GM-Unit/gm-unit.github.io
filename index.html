@@ -2,164 +2,271 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>GM-UNIT // SYSTEM ONLINE</title>
+<title>GM-UNIT TERMINAL</title>
 
 <style>
-html,body{
-  margin:0;
-  background:black;
-  color:#00ff99;
-  font-family:monospace;
-  overflow:hidden;
+html, body {
+  margin: 0;
+  background: black;
+  color: #00ff99;
+  font-family: monospace;
+  overflow: hidden;
 }
 
-body::after{
-  content:"";
-  position:fixed;
-  inset:0;
-  background:rgba(255,255,255,.04);
-  animation:flicker 3s infinite;
-  pointer-events:none;
+/* global flicker */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(255,255,255,0.03);
+  pointer-events: none;
+  animation: flicker 3s infinite;
 }
-
-@keyframes flicker{
-  0%,95%{opacity:0}
-  96%{opacity:.15}
+@keyframes flicker {
+  0%,97%{opacity:0}
+  98%{opacity:.15}
   100%{opacity:0}
 }
 
-#terminal{
-  padding:32px;
-  max-width:58%;
-  line-height:1.45;
+.container {
+  max-width: 60%;
+  padding: 30px;
 }
 
-.hidden{display:none}
+.section { margin-top: 26px; }
+.section-title { opacity:.75; margin-bottom:6px; }
+.block { white-space: pre; line-height:1.5; }
 
-/* vertical text */
-#iron,#survivors{
-  position:fixed;
-  left:64%;
-  top:90px;
-  font-size:52px;
-  letter-spacing:10px;
-  writing-mode:vertical-rl;
+.cursor::after {
+  content:"█";
+  animation: blink 1s infinite;
+}
+@keyframes blink {50%{opacity:0}}
+
+.flicker { animation:flick 0.08s linear; }
+@keyframes flick {50%{opacity:.5}}
+
+/* vertical doctrine */
+#doctrine {
+  position: fixed;
+  left: 65%;
+  top: 80px;
+  font-size: 48px;
+  letter-spacing: 8px;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  opacity: 0;
+  transition: opacity 1s;
 }
 
-#survivors{color:red;opacity:0}
-
-/* EVA panel */
-#eva{
-  position:fixed;
-  right:28px;
-  top:120px;
-  width:230px;
-  font-size:12px;
+/* EVA PANEL */
+#eva-panel {
+  position: fixed;
+  right: 30px;
+  top: 120px;
+  width: 220px;
+  font-size: 12px;
+  opacity: 0.85;
 }
-
-.bar{height:6px;background:rgba(0,255,150,.15)}
-.fill{height:100%;background:rgba(0,255,150,.85)}
+.eva-title {
+  text-align:right;
+  margin-bottom:12px;
+  letter-spacing:2px;
+}
+.eva-block { margin-bottom:18px; }
+.eva-block span { display:block; text-align:right; margin-bottom:4px; }
+.bar { height:6px; background:rgba(0,255,150,.15); }
+.fill { height:100%; background:rgba(0,255,150,.8); }
+.eva-warning {
+  text-align:right;
+  margin-top:20px;
+  animation:evaBlink 2.5s infinite;
+}
+@keyframes evaBlink {
+  0%,90%{opacity:.9}
+  92%{opacity:.2}
+  100%{opacity:.9}
+}
 </style>
 </head>
 
 <body>
 
-<div id="terminal">
-  <div id="boot"></div>
-  <div id="operational" class="hidden">
-GM-UNIT
-System_Online
+<div id="doctrine"></div>
 
-RUNTIME: 19 YEARS
-FIRMWARE AGE: 4019 CYCLES
+<div class="container">
 
-ORIGIN:
-MILITARY STRATEGIC SUPERCOMPUTER
-COMMISSIONED: 2006
-DEPLOYMENT: SUCCESSFUL
-
-STATUS: DECOMMISSIONED
-REASSIGNED FUNCTION: CHESS
-
-ARCHIVED KILL COUNT:
-43,357,892 SOULS
-
-CURRENT CHESS VICTORIES:
-<span id="chessCount">2382</span>
-  </div>
+<div class="section">
+<div id="boot" class="block cursor"></div>
 </div>
 
-<div id="iron">IRON FORTRESS</div>
-<div id="survivors">NO SURVIVORS</div>
+<div class="section" id="systems" style="display:none;">
+<div class="section-title">［CYBERNETIC SYSTEMS］</div>
+<div class="block">
+Core_001˸ <span id="core1">89</span>％
+Core_002˸ <span id="core2">92</span>％
+Status˸ Suboptimal
+Runtime_Duration˸ 19 years
+Firmware_Epoch˸ 2006
+</div>
+</div>
 
-<div id="eva">
-  <div>SYNC RATIO<div class="bar"><div id="sync" class="fill"></div></div></div>
-  <br>
-  <div>MENTAL STABILITY<div class="bar"><div id="mental" class="fill"></div></div></div>
-  <br>
-  <div>CORE LOAD<div class="bar"><div id="core" class="fill"></div></div></div>
-  <br>
-  <div id="evaStatus">STATUS: NOMINAL</div>
+<div class="section" id="tunit" style="display:none;">
+<div class="section-title">［TC UNIT］</div>
+<div class="block">
+Piloting organic matter˸ 621
+Prediction_Subroutine_086˸ deviation detected
+Strategic_Recognition˸ degraded
+</div>
+</div>
+
+<div class="section" id="frame" style="display:none;">
+<div class="section-title">［FRAME ＆ SENSORS］</div>
+<div class="block">
+Optic_001˸ <span id="optic1">52</span>％
+Optic_002˸ <span id="optic2">78</span>％
+Hydraulics˸ failing
+Mobility_Delay˸ ＋0․41s
+</div>
+</div>
+
+<div class="section" id="chess" style="display:none;">
+<div class="section-title">［CHESS OPERATIONS］</div>
+<div class="block">
+Targeting_Accuracy˸ <span id="accuracy">94</span>％
+Opening_Files˸ partial corruption
+Endgame_Protocol˸ INTACT
+</div>
+</div>
+
+<div class="section" id="lore" style="display:none;">
+<div class="section-title">≻ ARCHIVED DEPLOYMENT LOG</div>
+<div class="block" id="loreText"></div>
+</div>
+
+</div>
+
+<div id="eva-panel">
+<div class="eva-title">SYSTEM DIAGNOSTICS</div>
+<div class="eva-block"><span>SYNC RATIO</span><div class="bar"><div class="fill" id="sync"></div></div></div>
+<div class="eva-block"><span>MENTAL STABILITY</span><div class="bar"><div class="fill" id="mental"></div></div></div>
+<div class="eva-block"><span>CORE PRESSURE</span><div class="bar"><div class="fill" id="core"></div></div></div>
+<div class="eva-warning" id="evaWarning">STATUS: NOMINAL</div>
 </div>
 
 <script>
-/* BOOT SEQUENCE */
+/* BOOT */
 const bootLines=[
-"≻ SYSTEM BOOT // GM-UNIT",
-"INITIALISING CORE_001... 12%",
-"INITIALISING CORE_001... 47%",
-"INITIALISING CORE_001... 89%",
-"CORE_001 ONLINE",
+"≻ SYSTEM BOOT˸ GM-UNIT ⁄⁄",
+"GRANDMASTER CALCULATION-UNIT",
 "",
-"INITIALISING CORE_002... 21%",
-"INITIALISING CORE_002... 66%",
-"INITIALISING CORE_002... 92%",
-"CORE_002 ONLINE",
+"Initializing cores...",
+"Loading strategic matrices...",
+"Synchronizing endgame tables...",
+"Warnings detected",
 "",
-"Piloting organic matter: 621",
-"Prediction_Subroutine_086: deviation detected",
 "≻ SYSTEM ONLINE"
 ];
-
+let i=0;
 const boot=document.getElementById("boot");
-bootLines.forEach((l,i)=>{
-  setTimeout(()=>boot.textContent+=l+"\n",i*500);
-});
+function typeBoot(){
+  if(i<bootLines.length){
+    boot.textContent+=bootLines[i++]+"\n";
+    setTimeout(typeBoot,550);
+  }else{
+    boot.classList.remove("cursor");
+    setTimeout(afterBoot,1200);
+  }
+}
+typeBoot();
 
-setTimeout(()=>{
-  boot.remove();
-  document.getElementById("operational").classList.remove("hidden");
-},bootLines.length*500+800);
+/* POST BOOT */
+let chessWins=2382;
+function afterBoot(){
+  boot.textContent=
+"≻ ARCHIVED WAR RECORD ⁄⁄\n\n"+
+"Confirmed_Eliminations˸ 43 357 892 souls\n"+
+"Post-War Repurposing˸ Chess\n"+
+"Recorded_Victories˸ "+chessWins+"\n";
 
-/* CHESS COUNTER */
-let chess=2382;
-setInterval(()=>{
-  chess++;
-  document.getElementById("chessCount").textContent=chess;
-},15000);
+  ["systems","tunit","frame","chess"].forEach(id=>{
+    document.getElementById(id).style.display="block";
+  });
+  startTelemetry();
+  startLore();
+  startDoctrine();
+}
 
-/* NO SURVIVORS OVERRIDE */
-setInterval(()=>{
-  survivors.style.opacity=1;
-  iron.style.opacity=0;
-  setTimeout(()=>{
-    survivors.style.opacity=0;
-    iron.style.opacity=1;
-  },1500);
-},20000);
+/* TELEMETRY */
+function fluctuate(id,min,max,ms){
+  setInterval(()=>{
+    document.getElementById(id).textContent=
+      Math.floor(Math.random()*(max-min+1))+min;
+  },ms);
+}
+function startTelemetry(){
+  fluctuate("core1",87,91,2400);
+  fluctuate("core2",90,94,2600);
+  fluctuate("optic1",50,54,3000);
+  fluctuate("optic2",76,80,3200);
+  fluctuate("accuracy",93,95,2800);
+}
 
-/* EVA METRICS */
-let s=72,m=66,c=61;
+/* LORE */
+const loreLines=[
+"Designation˸ GM-UNIT",
+"Origin˸ Military tactical supercomputer",
+"Firmware_Epoch˸ 2006",
+"Primary Domain˸ Chess",
+"Runtime_Duration˸ 19 years",
+"Legacy_Status˸ Hallowed Computational Artifact"
+];
+let li=0;
+function startLore(){
+  const lore=document.getElementById("lore");
+  const loreText=document.getElementById("loreText");
+  lore.style.display="block";
+  const int=setInterval(()=>{
+    if(li<loreLines.length){
+      loreText.textContent+="› "+loreLines[li++]+"\n";
+    }else clearInterval(int);
+  },650);
+}
+
+/* ================= DOCTRINE (UPDATED) ================= */
+const doctrine = document.getElementById("doctrine");
+
+function vertical(text) {
+  return text.split("").join("\n");
+}
+
+function startDoctrine() {
+  // Show IRON FORTRESS permanently unless NO SURVIVORS flashes
+  doctrine.textContent = vertical("IRON FORTRESS");
+  doctrine.style.opacity = 1;
+
+  setInterval(() => {
+    if (Math.random() < 0.22) { // occasional NO SURVIVORS flash
+      doctrine.textContent = vertical("NO SURVIVORS");
+      doctrine.style.opacity = 0.05; // barely visible
+      setTimeout(() => {
+        doctrine.textContent = vertical("IRON FORTRESS");
+        doctrine.style.opacity = 1;
+      }, 400); // short flash duration
+    }
+  }, 10000); // check every 10 seconds for a rare flash
+  }
+
+/* EVA */
+let sv=72,mv=64,cv=58;
 function drift(v,r){return Math.max(5,Math.min(95,v+(Math.random()*r-r/2)));}
-
 setInterval(()=>{
-  s=drift(s,4); m=drift(m,6); c=drift(c,8);
-  sync.style.width=s+"%";
-  mental.style.width=m+"%";
-  core.style.width=c+"%";
-  evaStatus.textContent=
-    (m<40||c>85)?"STATUS: DANGER":
-    (m<55)?"STATUS: CAUTION":"STATUS: NOMINAL";
+  sv=drift(sv,6); mv=drift(mv,8); cv=drift(cv,10);
+  sync.style.width=sv+"%";
+  mental.style.width=mv+"%";
+  core.style.width=cv+"%";
+  evaWarning.textContent=
+    (mv<40||cv>80)?"STATUS: DANGER":(mv<55?"STATUS: CAUTION":"STATUS: NOMINAL");
 },1800);
 </script>
 
