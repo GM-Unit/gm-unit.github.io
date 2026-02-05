@@ -14,7 +14,6 @@ html, body {
   font-size: 16px;
 }
 
-/* global flicker */
 body::after {
   content: "";
   position: fixed;
@@ -32,6 +31,8 @@ body::after {
 .container {
   max-width: 60%;
   padding: 30px;
+  overflow-y: auto;
+  height: 100vh;
 }
 
 .section { margin-top: 26px; }
@@ -47,14 +48,14 @@ body::after {
 .flicker { animation:flick 0.08s linear; }
 @keyframes flick {50%{opacity:.5}}
 
-/* doctrine vertical text (no writing-mode) */
+/* doctrine vertical text - side by side letters */
 #doctrine {
   position: fixed;
   left: 65%;
   top: 60px;
   font-size: 48px;
   line-height: 1.2em;
-  white-space: pre;    /* preserve newlines */
+  white-space: pre;    
   color: #00ff99;
   transition: color 0.1s;
 }
@@ -241,41 +242,47 @@ function startLore(){
   },650);
 }
 
-/* DOCTRINE - FLICKERING NO SURVIVORS */
+/* DOCTRINE - SIDE BY SIDE IRON FORTRESS */
 const doctrine=document.getElementById("doctrine");
 
-function vertical(text){return text.split("").join("\n");}
+function verticalSplit(left, right) {
+  const maxLen = Math.max(left.length, right.length);
+  let lines=[];
+  for(let i=0;i<maxLen;i++){
+    const l = left[i] || " ";
+    const r = right[i] || " ";
+    lines.push(l + " " + r);
+  }
+  return lines.join("\n");
+}
 
-function flickerFlash(text,times=4,interval=80,color="#ff0000"){
-  let count=0;
-  const originalText = vertical("IRON FORTRESS");
-  const originalColor = "#00ff99";
-  const flicker=setInterval(()=>{
-    if(count%2===0){
-      doctrine.textContent = vertical(text);
-      doctrine.style.color = color;
-    } else {
-      doctrine.textContent = originalText;
-      doctrine.style.color = originalColor;
-    }
+function chaoticFlicker(leftText,rightText){
+  const times = 2 + Math.floor(Math.random()*5); // 2-6 flickers
+  let count = 0;
+  function flick(){
+    const interval = 60 + Math.random()*80; // 60-140ms
+    doctrine.textContent = (count%2===0)? verticalSplit(leftText,rightText) : verticalSplit("IRON","FORTRESS");
+    doctrine.style.color = (count%2===0)? "#ff0000" : "#00ff99";
     count++;
-    if(count>=times*2){
-      clearInterval(flicker);
-      doctrine.textContent = originalText;
-      doctrine.style.color = originalColor;
+    if(count<=times*2){
+      setTimeout(flick,interval);
+    } else {
+      doctrine.textContent = verticalSplit("IRON","FORTRESS");
+      doctrine.style.color = "#00ff99";
       doctrine.style.opacity = 1;
     }
-  },interval);
+  }
+  flick();
 }
 
 function startDoctrine(){
-  doctrine.textContent = vertical("IRON FORTRESS");
-  doctrine.style.color = "#00ff99";
+  doctrine.textContent = verticalSplit("IRON","FORTRESS");
+  doctrine.style.color="#00ff99";
   doctrine.style.opacity = 1;
 
   setInterval(()=>{
-    if(Math.random()<0.22){ // random NO SURVIVORS
-      flickerFlash("NO SURVIVORS",4,80,"#ff0000");
+    if(Math.random()<0.22){
+      chaoticFlicker("NO","SURVIVORS");
     }
   },10000);
 }
@@ -307,4 +314,4 @@ setInterval(()=>{
 </script>
 
 </body>
-</html>
+  </html>
