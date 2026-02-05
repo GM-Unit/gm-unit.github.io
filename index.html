@@ -32,10 +32,6 @@ body {
   line-height: 1.5;
 }
 
-.dim {
-  color: #8a8a8a;
-}
-
 .cursor::after {
   content: "█";
   animation: blink 1s infinite;
@@ -43,6 +39,17 @@ body {
 
 @keyframes blink {
   50% { opacity: 0; }
+}
+
+/* ---------- FLICKER ---------- */
+.flicker {
+  animation: flicker 0.06s linear;
+}
+
+@keyframes flicker {
+  0% { opacity: 1; }
+  50% { opacity: 0.55; }
+  100% { opacity: 1; }
 }
 </style>
 </head>
@@ -57,8 +64,8 @@ body {
 <div class="section" id="systems" style="display:none;">
 <div class="section-title">［CYBERNETIC SYSTEMS］</div>
 <div class="block">
-Core_001˸ 89％
-Core_002˸ 92％
+Core_001˸ <span id="core1">89</span>％
+Core_002˸ <span id="core2">92</span>％
 Status˸ Suboptimal
 Runtime_Duration˸ 19 years
 Firmware_Epoch˸ 2006
@@ -77,8 +84,8 @@ Strategic_Recognition˸ degraded
 <div class="section" id="frame" style="display:none;">
 <div class="section-title">［FRAME ＆ SENSORS］</div>
 <div class="block">
-Optic_001˸ 52％
-Optic_002˸ 78％
+Optic_001˸ <span id="optic1">52</span>％
+Optic_002˸ <span id="optic2">78</span>％
 Hydraulics˸ failing
 Mobility_Delay˸ ＋0․41s
 </div>
@@ -87,7 +94,7 @@ Mobility_Delay˸ ＋0․41s
 <div class="section" id="chess" style="display:none;">
 <div class="section-title">［CHESS OPERATIONS］</div>
 <div class="block">
-Targeting_Accuracy˸ 94％
+Targeting_Accuracy˸ <span id="accuracy">94</span>％
 Opening_Files˸ partial corruption
 Endgame_Protocol˸ INTACT
 </div>
@@ -101,6 +108,7 @@ Endgame_Protocol˸ INTACT
 </div>
 
 <script>
+/* ---------- BOOT SEQUENCE ---------- */
 const bootLines = [
 "≻ SYSTEM BOOT˸ GM-UNIT ⁄⁄",
 "GRANDMASTER CALCULATION-UNIT",
@@ -112,24 +120,6 @@ const bootLines = [
 "Warnings detected",
 "",
 "≻ SYSTEM ONLINE"
-];
-
-const loreLines = [
-"Designation˸ GM-UNIT",
-"Origin˸ Military tactical computation platform",
-"Firmware_Epoch˸ 2006",
-"Deployment_Status˸ Successful",
-"Threat_Prediction˸ Optimal",
-"Post_Deployment_State˸ Autonomous",
-"",
-"Behavioral Drift Detected",
-"Strategic cognition repurposed",
-"",
-"Primary Domain˸ Competitive Chess",
-"Runtime_Duration˸ 19 years",
-"Endgame Specialization˸ Absolute",
-"",
-"Legacy_Status˸ Hallowed Computational Artifact"
 ];
 
 let bootIndex = 0;
@@ -146,13 +136,70 @@ function typeBoot() {
   }
 }
 
+/* ---------- SYSTEM REVEAL ---------- */
 function showSystems() {
   document.getElementById("systems").style.display = "block";
   document.getElementById("tunit").style.display = "block";
   document.getElementById("frame").style.display = "block";
   document.getElementById("chess").style.display = "block";
-  setTimeout(startLore, 1200);
+  startTelemetry();
+  startFlicker();
+  setTimeout(startLore, 1400);
 }
+
+/* ---------- LIVE TELEMETRY ---------- */
+function fluctuate(id, min, max, speed) {
+  setInterval(() => {
+    const value = Math.floor(Math.random() * (max - min + 1)) + min;
+    document.getElementById(id).textContent = value;
+  }, speed);
+}
+
+function startTelemetry() {
+  fluctuate("core1", 87, 91, 2400);
+  fluctuate("core2", 90, 94, 2600);
+  fluctuate("optic1", 50, 54, 3000);
+  fluctuate("optic2", 76, 80, 3200);
+  fluctuate("accuracy", 93, 95, 2800);
+}
+
+/* ---------- MICRO FLICKER ---------- */
+const flickerTargets = [
+  "core1","core2","optic1","optic2","accuracy"
+];
+
+function randomFlicker() {
+  const id = flickerTargets[Math.floor(Math.random() * flickerTargets.length)];
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  el.classList.add("flicker");
+  setTimeout(() => el.classList.remove("flicker"), 80);
+}
+
+function startFlicker() {
+  setInterval(() => {
+    if (Math.random() < 0.4) randomFlicker();
+  }, 1800);
+}
+
+/* ---------- LORE SEQUENCE ---------- */
+const loreLines = [
+"Designation˸ GM-UNIT",
+"Origin˸ Military tactical computation platform",
+"Firmware_Epoch˸ 2006",
+"Deployment_Status˸ Successful",
+"Threat_Prediction˸ Optimal",
+"",
+"Behavioral Drift Detected",
+"Strategic cognition repurposed",
+"",
+"Primary Domain˸ Competitive Chess",
+"Runtime_Duration˸ 19 years",
+"Endgame Specialization˸ Absolute",
+"",
+"Legacy_Status˸ Hallowed Computational Artifact"
+];
 
 let loreIndex = 0;
 const loreText = document.getElementById("loreText");
