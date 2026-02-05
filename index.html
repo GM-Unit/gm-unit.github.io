@@ -11,11 +11,14 @@ body {
   font-family: "Courier New", monospace;
   font-size: 14px;
   padding: 20px;
+  overflow-x: hidden;
 }
 
 .container {
   max-width: 900px;
   margin: auto;
+  position: relative;
+  z-index: 1;
 }
 
 .section {
@@ -23,7 +26,7 @@ body {
 }
 
 .section-title {
-  color: #d0d0d0;
+  color: #d0d00;
   margin-bottom: 6px;
 }
 
@@ -51,10 +54,40 @@ body {
   50% { opacity: 0.55; }
   100% { opacity: 1; }
 }
+
+/* ---------- DOCTRINE BANNER ---------- */
+#doctrine {
+  position: fixed;
+  right: 48px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 38px;
+  line-height: 1.05;
+  color: rgba(200,200,200,0.14);
+  text-align: center;
+  white-space: pre;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.4s ease;
+  z-index: 0;
+}
+
+.doctrine-flicker {
+  animation: doctrineFlicker 0.12s linear;
+}
+
+@keyframes doctrineFlicker {
+  0% { opacity: 0.12; }
+  50% { opacity: 0.35; }
+  100% { opacity: 0.12; }
+}
 </style>
 </head>
 
 <body>
+
+<div id="doctrine"></div>
+
 <div class="container">
 
 <div class="section">
@@ -108,7 +141,7 @@ Endgame_Protocol˸ INTACT
 </div>
 
 <script>
-/* ---------- BOOT SEQUENCE ---------- */
+/* ================= BOOT ================= */
 const bootLines = [
 "≻ SYSTEM BOOT˸ GM-UNIT ⁄⁄",
 "GRANDMASTER CALCULATION-UNIT",
@@ -123,6 +156,7 @@ const bootLines = [
 ];
 
 let bootIndex = 0;
+let chessWins = 2382;
 const boot = document.getElementById("boot");
 
 function typeBoot() {
@@ -132,14 +166,11 @@ function typeBoot() {
     setTimeout(typeBoot, 550);
   } else {
     boot.classList.remove("cursor");
-    setTimeout(replaceBootWithArchive, 1200);
+    setTimeout(replaceBoot, 1200);
   }
 }
 
-/* ---------- ARCHIVED WAR RECORD ---------- */
-let chessWins = 2382;
-
-function replaceBootWithArchive() {
+function replaceBoot() {
   boot.textContent =
 "≻ ARCHIVED WAR RECORD ⁄⁄\n\n" +
 "Confirmed_Eliminations˸ 43 357 892 souls\n" +
@@ -147,26 +178,26 @@ function replaceBootWithArchive() {
 "Post-War Repurposing˸ Chess Domain\n" +
 "Recorded_Victories˸ " + chessWins + "\n";
 
-  showSystems();
+  revealSystems();
   startChessCounter();
+  startDoctrine();
 }
 
-/* ---------- SYSTEM REVEAL ---------- */
-function showSystems() {
-  document.getElementById("systems").style.display = "block";
-  document.getElementById("tunit").style.display = "block";
-  document.getElementById("frame").style.display = "block";
-  document.getElementById("chess").style.display = "block";
+/* ================= SYSTEMS ================= */
+function revealSystems() {
+  ["systems","tunit","frame","chess"].forEach(id =>
+    document.getElementById(id).style.display = "block"
+  );
   startTelemetry();
   startFlicker();
   setTimeout(startLore, 1400);
 }
 
-/* ---------- LIVE TELEMETRY ---------- */
+/* ================= TELEMETRY ================= */
 function fluctuate(id, min, max, speed) {
   setInterval(() => {
-    const value = Math.floor(Math.random() * (max - min + 1)) + min;
-    document.getElementById(id).textContent = value;
+    document.getElementById(id).textContent =
+      Math.floor(Math.random() * (max - min + 1)) + min;
   }, speed);
 }
 
@@ -178,27 +209,21 @@ function startTelemetry() {
   fluctuate("accuracy", 93, 95, 2800);
 }
 
-/* ---------- MICRO FLICKER ---------- */
-const flickerTargets = [
-  "core1","core2","optic1","optic2","accuracy"
-];
-
-function randomFlicker() {
-  const id = flickerTargets[Math.floor(Math.random() * flickerTargets.length)];
-  const el = document.getElementById(id);
-  if (!el) return;
-
-  el.classList.add("flicker");
-  setTimeout(() => el.classList.remove("flicker"), 80);
-}
-
+/* ================= FLICKER ================= */
+const flickerTargets = ["core1","core2","optic1","optic2","accuracy"];
 function startFlicker() {
   setInterval(() => {
-    if (Math.random() < 0.4) randomFlicker();
+    if (Math.random() < 0.4) {
+      const el = document.getElementById(
+        flickerTargets[Math.floor(Math.random()*flickerTargets.length)]
+      );
+      el.classList.add("flicker");
+      setTimeout(() => el.classList.remove("flicker"), 80);
+    }
   }, 1800);
 }
 
-/* ---------- CHESS WIN COUNTER ---------- */
+/* ================= CHESS COUNTER ================= */
 function startChessCounter() {
   setInterval(() => {
     if (Math.random() < 0.35) {
@@ -208,18 +233,18 @@ function startChessCounter() {
         "Recorded_Victories˸ " + chessWins
       );
     }
-  }, 12000); // very slow growth
+  }, 12000);
 }
 
-/* ---------- LORE SEQUENCE ---------- */
+/* ================= LORE ================= */
 const loreLines = [
 "Designation˸ GM-UNIT",
 "Origin˸ Military tactical computation platform",
 "Firmware_Epoch˸ 2006",
 "Deployment_Status˸ Successful",
 "",
-"Excessive outcome efficiency detected",
-"Decommission order overridden",
+"Behavioral Drift Detected",
+"Strategic cognition repurposed",
 "",
 "Primary Domain˸ Competitive Chess",
 "Runtime_Duration˸ 19 years",
@@ -229,20 +254,54 @@ const loreLines = [
 ];
 
 let loreIndex = 0;
-const loreText = document.getElementById("loreText");
-
 function startLore() {
-  document.getElementById("lore").style.display = "block";
+  const lore = document.getElementById("lore");
+  const loreText = document.getElementById("loreText");
+  lore.style.display = "block";
   const interval = setInterval(() => {
     if (loreIndex < loreLines.length) {
       loreText.textContent += "› " + loreLines[loreIndex] + "\n";
       loreIndex++;
-    } else {
-      clearInterval(interval);
-    }
+    } else clearInterval(interval);
   }, 650);
 }
 
+/* ================= DOCTRINE ================= */
+const doctrine = document.getElementById("doctrine");
+
+function vertical(text, glitch=false) {
+  return text.split("").map(c => {
+    if (glitch && c !== " " && Math.random() < 0.15)
+      return Math.random() < 0.5 ? "#" : "-";
+    return c;
+  }).join("\n");
+}
+
+function showDoctrine() {
+  const isSurvivors = Math.random() < 0.22;
+  doctrine.textContent = vertical(
+    isSurvivors ? "NO SURVIVORS" : "IRON FORTRESS",
+    isSurvivors && Math.random() < 0.6
+  );
+
+  doctrine.style.opacity = "1";
+
+  if (Math.random() < 0.35) {
+    doctrine.classList.add("doctrine-flicker");
+    setTimeout(() => doctrine.classList.remove("doctrine-flicker"), 140);
+  }
+
+  setTimeout(() => doctrine.style.opacity = "0",
+    isSurvivors ? 1600 : 4200);
+}
+
+function startDoctrine() {
+  setInterval(() => {
+    if (Math.random() < 0.35) showDoctrine();
+  }, 8000);
+}
+
+/* ================= INIT ================= */
 typeBoot();
 </script>
 
