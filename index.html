@@ -10,7 +10,8 @@ html, body {
   background: black;
   color: #00ff99;
   font-family: monospace;
-  overflow: hidden;
+  overflow-x: hidden;
+  font-size: 16px;
 }
 
 /* global flicker */
@@ -35,7 +36,7 @@ body::after {
 
 .section { margin-top: 26px; }
 .section-title { opacity:.75; margin-bottom:6px; }
-.block { white-space: pre; line-height:1.5; }
+.block { white-space: pre-wrap; word-break: break-word; line-height:1.4; }
 
 .cursor::after {
   content:"█";
@@ -46,18 +47,16 @@ body::after {
 .flicker { animation:flick 0.08s linear; }
 @keyframes flick {50%{opacity:.5}}
 
-/* vertical doctrine */
+/* doctrine vertical text (no writing-mode) */
 #doctrine {
   position: fixed;
   left: 65%;
-  top: 80px;
+  top: 60px;
   font-size: 48px;
-  letter-spacing: 8px;
-  writing-mode: vertical-rl;
-  text-orientation: upright;
-  opacity: 1;
+  line-height: 1.2em;
+  white-space: pre;    /* preserve newlines */
   color: #00ff99;
-  transition: opacity 0.1s, color 0.1s;
+  transition: color 0.1s;
 }
 
 /* EVA PANEL */
@@ -87,6 +86,13 @@ body::after {
   0%,90%{opacity:.9}
   92%{opacity:.2}
   100%{opacity:.9}
+}
+
+/* responsive for VR/mobile */
+@media (max-width: 900px) {
+  html, body { font-size: 12px; }
+  #doctrine { font-size: 36px; top: 40px; left: 60%; }
+  .container { max-width: 80%; padding: 20px; }
 }
 </style>
 </head>
@@ -268,7 +274,7 @@ function startDoctrine(){
   doctrine.style.opacity = 1;
 
   setInterval(()=>{
-    if(Math.random()<0.22){ // rare NO SURVIVORS flicker
+    if(Math.random()<0.22){ // random NO SURVIVORS
       flickerFlash("NO SURVIVORS",4,80,"#ff0000");
     }
   },10000);
@@ -301,4 +307,4 @@ setInterval(()=>{
 </script>
 
 </body>
-  </html>
+</html>
