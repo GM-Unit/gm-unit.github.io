@@ -267,8 +267,14 @@ function startLore() {
 }
 
 /* ================= DOCTRINE ================= */
+
 const doctrine = document.getElementById("doctrine");
 
+// Permanent baseline
+doctrine.textContent = vertical("IRON FORTRESS");
+doctrine.style.opacity = "1";
+
+// Convert text to vertical with optional glitch
 function vertical(text, glitch=false) {
   return text.split("").map(c => {
     if (glitch && c !== " " && Math.random() < 0.15)
@@ -277,30 +283,46 @@ function vertical(text, glitch=false) {
   }).join("\n");
 }
 
-function showDoctrine() {
-  const isSurvivors = Math.random() < 0.22;
-  doctrine.textContent = vertical(
-    isSurvivors ? "NO SURVIVORS" : "IRON FORTRESS",
-    isSurvivors && Math.random() < 0.6
-  );
-
-  doctrine.style.opacity = "1";
-
-  if (Math.random() < 0.35) {
+// Subtle flicker for IRON FORTRESS
+setInterval(() => {
+  if (Math.random() < 0.25) {
     doctrine.classList.add("doctrine-flicker");
-    setTimeout(() => doctrine.classList.remove("doctrine-flicker"), 140);
+    setTimeout(() => doctrine.classList.remove("doctrine-flicker"), 120);
   }
+}, 4000);
 
-  setTimeout(() => doctrine.style.opacity = "0",
-    isSurvivors ? 1600 : 4200);
+// NO SURVIVORS override
+function triggerNoSurvivors() {
+  // Fade out IRON FORTRESS
+  doctrine.style.opacity = "0";
+
+  setTimeout(() => {
+    doctrine.textContent = vertical("NO SURVIVORS", true);
+    doctrine.style.opacity = "1";
+
+    // Optional harsher flicker
+    doctrine.classList.add("doctrine-flicker");
+
+    // Remove NO SURVIVORS after short time
+    setTimeout(() => {
+      doctrine.style.opacity = "0";
+
+      setTimeout(() => {
+        doctrine.textContent = vertical("IRON FORTRESS");
+        doctrine.classList.remove("doctrine-flicker");
+        doctrine.style.opacity = "1";
+      }, 600);
+
+    }, 1600);
+  }, 600);
 }
 
-function startDoctrine() {
-  setInterval(() => {
-    if (Math.random() < 0.35) showDoctrine();
-  }, 8000);
-}
-
+// Rare trigger loop
+setInterval(() => {
+  if (Math.random() < 0.12) {
+    triggerNoSurvivors();
+  }
+}, 10000);
 /* ================= INIT ================= */
 typeBoot();
 </script>
