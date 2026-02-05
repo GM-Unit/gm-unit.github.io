@@ -36,7 +36,7 @@ body::after {
 }
 
 .section { margin-top: 26px; }
-.section-title { opacity:.75; margin-bottom:6px; }
+.section-title { opacity:0; margin-bottom:6px; transition: opacity 0.6s; }
 .block { white-space: pre-wrap; word-break: break-word; line-height:1.4; }
 
 .cursor::after {
@@ -55,7 +55,7 @@ body::after {
   top: 60px;
   font-size: 48px;
   line-height: 1.2em;
-  white-space: pre;    
+  white-space: pre;
   color: #00ff99;
   transition: color 0.1s;
 }
@@ -67,7 +67,8 @@ body::after {
   top: 120px;
   width: 220px;
   font-size: 12px;
-  opacity: 0.85;
+  opacity:0;
+  transition: opacity 1s;
 }
 .eva-title {
   text-align:right;
@@ -110,7 +111,7 @@ body::after {
 
 <div class="section" id="systems" style="display:none;">
 <div class="section-title">［CYBERNETIC SYSTEMS］</div>
-<div class="block">
+<div class="block" id="systemsBlock">
 Core_001˸ <span id="core1">89</span>％
 Core_002˸ <span id="core2">92</span>％
 Status˸ Suboptimal
@@ -121,7 +122,7 @@ Firmware_Epoch˸ 2006
 
 <div class="section" id="tunit" style="display:none;">
 <div class="section-title">［TC UNIT］</div>
-<div class="block">
+<div class="block" id="tunitBlock">
 Piloting organic matter˸ 621
 Prediction_Subroutine_086˸ deviation detected
 Strategic_Recognition˸ degraded
@@ -130,7 +131,7 @@ Strategic_Recognition˸ degraded
 
 <div class="section" id="frame" style="display:none;">
 <div class="section-title">［FRAME ＆ SENSORS］</div>
-<div class="block">
+<div class="block" id="frameBlock">
 Optic_001˸ <span id="optic1">52</span>％
 Optic_002˸ <span id="optic2">78</span>％
 Hydraulics˸ failing
@@ -140,7 +141,7 @@ Mobility_Delay˸ ＋0․41s
 
 <div class="section" id="chess" style="display:none;">
 <div class="section-title">［CHESS OPERATIONS］</div>
-<div class="block">
+<div class="block" id="chessBlock">
 Targeting_Accuracy˸ <span id="accuracy">94</span>％
 Opening_Files˸ partial corruption
 Endgame_Protocol˸ INTACT
@@ -188,18 +189,30 @@ function typeBoot(){
 }
 typeBoot();
 
-/* POST BOOT */
+/* POST BOOT SEQUENCE */
 let chessWins=2382;
 function afterBoot(){
-  boot.textContent=
-"≻ ARCHIVED WAR RECORD ⁄⁄\n\n"+
-"Confirmed_Eliminations˸ 43 357 892 souls\n"+
-"Post-War Repurposing˸ Chess\n"+
-"Recorded_Victories˸ "+chessWins+"\n";
+  // Show doctrine first
+  doctrine.textContent = verticalSplit("IRON","FORTRESS");
+  doctrine.style.color="#00ff99";
+  doctrine.style.opacity = 1;
 
-  ["systems","tunit","frame","chess"].forEach(id=>{
-    document.getElementById(id).style.display="block";
-  });
+  // Delay 1.5s -> EVA panel
+  setTimeout(()=>{ document.getElementById("eva-panel").style.opacity=0.85; },1500);
+
+  // Delay 2.5s -> show section titles
+  setTimeout(()=>{
+    ["systems","tunit","frame","chess","lore"].forEach(id=>{
+      document.getElementById(id).style.display="block";
+      document.querySelector(`#${id} .section-title`).style.opacity=1;
+    });
+    // After that, write content fully
+    writeContent();
+  },2500);
+}
+
+function writeContent(){
+  // Populate telemetry values for the first time
   startTelemetry();
   startLore();
   startDoctrine();
@@ -242,9 +255,8 @@ function startLore(){
   },650);
 }
 
-/* DOCTRINE - SIDE BY SIDE IRON FORTRESS */
+/* DOCTRINE - SIDE BY SIDE IRON FORTRESS + chaotic NO SURVIVORS */
 const doctrine=document.getElementById("doctrine");
-
 function verticalSplit(left, right) {
   const maxLen = Math.max(left.length, right.length);
   let lines=[];
@@ -255,35 +267,25 @@ function verticalSplit(left, right) {
   }
   return lines.join("\n");
 }
-
 function chaoticFlicker(leftText,rightText){
-  const times = 2 + Math.floor(Math.random()*5); // 2-6 flickers
+  const times = 2 + Math.floor(Math.random()*5);
   let count = 0;
   function flick(){
-    const interval = 60 + Math.random()*80; // 60-140ms
+    const interval = 60 + Math.random()*80;
     doctrine.textContent = (count%2===0)? verticalSplit(leftText,rightText) : verticalSplit("IRON","FORTRESS");
     doctrine.style.color = (count%2===0)? "#ff0000" : "#00ff99";
     count++;
-    if(count<=times*2){
-      setTimeout(flick,interval);
-    } else {
-      doctrine.textContent = verticalSplit("IRON","FORTRESS");
-      doctrine.style.color = "#00ff99";
-      doctrine.style.opacity = 1;
-    }
+    if(count<=times*2){ setTimeout(flick,interval); }
+    else { doctrine.textContent = verticalSplit("IRON","FORTRESS"); doctrine.style.color = "#00ff99"; doctrine.style.opacity=1; }
   }
   flick();
 }
-
 function startDoctrine(){
   doctrine.textContent = verticalSplit("IRON","FORTRESS");
   doctrine.style.color="#00ff99";
   doctrine.style.opacity = 1;
-
   setInterval(()=>{
-    if(Math.random()<0.22){
-      chaoticFlicker("NO","SURVIVORS");
-    }
+    if(Math.random()<0.22){ chaoticFlicker("NO","SURVIVORS"); }
   },10000);
 }
 
@@ -314,4 +316,4 @@ setInterval(()=>{
 </script>
 
 </body>
-  </html>
+                                                                       </html>
