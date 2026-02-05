@@ -2,167 +2,163 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GM-Unit // Boot Interface</title>
+<title>GM-Unit</title>
 
 <style>
-  body {
-    background: #0f0f0f;
-    color: #b8b8b8;
-    font-family: "Courier New", monospace;
-    margin: 0;
-  }
+body {
+  background-color: #0a0a0a;
+  color: #b5b5b5;
+  font-family: "Courier New", monospace;
+  font-size: 14px;
+  padding: 20px;
+}
 
-  .container {
-    max-width: 900px;
-    margin: auto;
-    padding: 40px 20px;
-  }
+.container {
+  max-width: 900px;
+  margin: auto;
+}
 
-  .title {
-    font-size: 1.6em;
-    border-bottom: 1px solid #333;
-    padding-bottom: 15px;
-    margin-bottom: 30px;
-  }
+.section {
+  margin-top: 28px;
+}
 
-  .boot {
-    background: #141414;
-    border-left: 3px solid #333;
-    padding: 15px;
-    margin-bottom: 30px;
-    white-space: pre-line;
-    min-height: 120px;
-  }
+.section-title {
+  color: #d0d0d0;
+  margin-bottom: 6px;
+}
 
-  .section {
-    margin-bottom: 30px;
-  }
+.block {
+  white-space: pre;
+  line-height: 1.5;
+}
 
-  .section-title {
-    color: #e0e0e0;
-    margin-bottom: 10px;
-  }
+.dim {
+  color: #8a8a8a;
+}
 
-  .block {
-    background: #141414;
-    border-left: 3px solid #333;
-    padding: 15px;
-    white-space: pre-line;
-  }
+.cursor::after {
+  content: "█";
+  animation: blink 1s infinite;
+}
 
-  .footer {
-    color: #666;
-    text-align: center;
-    margin-top: 40px;
-    font-size: 0.8em;
-  }
+@keyframes blink {
+  50% { opacity: 0; }
+}
 </style>
 </head>
 
 <body>
 <div class="container">
 
-  <div class="title">
-    GM-UNIT // HALLOWED SUPERCOMPUTER
-  </div>
+<div class="section">
+<div class="block cursor" id="boot"></div>
+</div>
 
-  <!-- BOOT SEQUENCE -->
-  <div class="section">
-    <div class="section-title">≻ SYSTEM BOOT</div>
-    <div id="bootLog" class="boot"></div>
-  </div>
+<div class="section" id="systems" style="display:none;">
+<div class="section-title">［CYBERNETIC SYSTEMS］</div>
+<div class="block">
+Core_001˸ 89％
+Core_002˸ 92％
+Status˸ Suboptimal
+Runtime_Duration˸ 19 years
+Firmware_Epoch˸ 2006
+</div>
+</div>
 
-  <!-- LIVE STATS -->
-  <div class="section">
-    <div class="section-title">≻ LIVE SYSTEM METRICS</div>
-    <div class="block">
-Core_001˸ <span id="core1">--</span>％
-Core_002˸ <span id="core2">--</span>％
-Mobility_Delay˸ ＋<span id="mobility">--</span>s
-Targeting_Accuracy˸ <span id="accuracy">--</span>％
-    </div>
-  </div>
+<div class="section" id="tunit" style="display:none;">
+<div class="section-title">［TC UNIT］</div>
+<div class="block">
+Piloting organic matter˸ 621
+Prediction_Subroutine_086˸ deviation detected
+Strategic_Recognition˸ degraded
+</div>
+</div>
 
-  <div class="section">
-    <div class="section-title">≻ STATUS</div>
-    <div class="block">
-Status˸ DORMANT
-Safety_Check˸ 1111111111111111
+<div class="section" id="frame" style="display:none;">
+<div class="section-title">［FRAME ＆ SENSORS］</div>
+<div class="block">
+Optic_001˸ 52％
+Optic_002˸ 78％
+Hydraulics˸ failing
+Mobility_Delay˸ ＋0․41s
+</div>
+</div>
+
+<div class="section" id="chess" style="display:none;">
+<div class="section-title">［CHESS OPERATIONS］</div>
+<div class="block">
+Targeting_Accuracy˸ 94％
+Opening_Files˸ partial corruption
 Endgame_Protocol˸ INTACT
-    </div>
-  </div>
+</div>
+</div>
 
-  <div class="footer">
-    GM-Unit // Persistent Artifact
-  </div>
+<div class="section" id="lore" style="display:none;">
+<div class="section-title">≻ ARCHIVED DEPLOYMENT LOG</div>
+<div class="block" id="loreText"></div>
+</div>
 
 </div>
 
 <script>
-/* BOOT SEQUENCE */
 const bootLines = [
-  "Initializing GM-UNIT...",
-  "Loading hallowed computation core...",
-  "Verifying firmware integrity...",
-  "Safety checks: FAILED",
-  "Prediction modules online...",
-  "Chess engine: ENDGAME READY",
-  "System state: DORMANT",
-  "Boot sequence complete."
+"≻ SYSTEM BOOT˸ GM-UNIT ⁄⁄",
+"GRANDMASTER CALCULATION-UNIT",
+"",
+"Initializing cores...",
+"Loading strategic matrices...",
+"Synchronizing endgame tables...",
+"System integrity check...",
+"Warnings detected",
+"",
+"≻ SYSTEM ONLINE"
+];
+
+const loreLines = [
+"Designation˸ GM-UNIT",
+"Origin˸ Military tactical computation platform",
+"Firmware_Epoch˸ 2006",
+"Deployment_Status˸ Successful",
+"Threat_Prediction˸ Optimal",
+"Post_Deployment_State˸ Autonomous",
+"",
+"Behavioral Drift Detected",
+"Strategic cognition repurposed",
+"",
+"Primary Domain˸ Competitive Chess",
+"Runtime_Duration˸ 19 years",
+"Endgame Specialization˸ Absolute",
+"",
+"Legacy_Status˸ Hallowed Computational Artifact"
 ];
 
 let bootIndex = 0;
-const bootLog = document.getElementById("bootLog");
+const boot = document.getElementById("boot");
 
-function runBoot() {
+function typeBoot() {
   if (bootIndex < bootLines.length) {
-    bootLog.textContent += "› " + bootLines[bootIndex] + "\n";
+    boot.textContent += bootLines[bootIndex] + "\n";
     bootIndex++;
-    setTimeout(runBoot, 700);
+    setTimeout(typeBoot, 550);
+  } else {
+    boot.classList.remove("cursor");
+    showSystems();
   }
 }
 
-runBoot();
-
-/* LIVE STAT ROTATION */
-function rand(min, max, decimals = 0) {
-  return (Math.random() * (max - min) + min).toFixed(decimals);
+function showSystems() {
+  document.getElementById("systems").style.display = "block";
+  document.getElementById("tunit").style.display = "block";
+  document.getElementById("frame").style.display = "block";
+  document.getElementById("chess").style.display = "block";
+  setTimeout(startLore, 1200);
 }
-
-setInterval(() => {
-  document.getElementById("core1").textContent = rand(86, 92);
-  document.getElementById("core2").textContent = rand(88, 94);
-  document.getElementById("mobility").textContent = rand(0.38, 0.46, 2);
-  document.getElementById("accuracy").textContent = rand(92, 96);
-}, 1200);
-</script>
-
-</body>
-</html>
-<script>
-const loreLines = [
-  "Designation: GM-UNIT",
-  "Firmware_Epoch: 2006",
-  "Original_Purpose: Military tactical computation",
-  "Deployment_Status: Successful",
-  "Threat_Prediction: Optimal",
-  "Post_Deployment_State: Autonomous",
-  "Behavioral_Drift Detected...",
-  "Strategic Pattern Recognition Repurposed",
-  "Chess_Engine Initialized",
-  "Primary Domain: Competitive Chess",
-  "Runtime_Duration: 19 years",
-  "Endgame Specialization: Absolute",
-  "Legacy Status: Persistent Artifact"
-];
 
 let loreIndex = 0;
 const loreText = document.getElementById("loreText");
-const loreSection = document.getElementById("loreSection");
 
 function startLore() {
-  loreSection.style.display = "block";
+  document.getElementById("lore").style.display = "block";
   const interval = setInterval(() => {
     if (loreIndex < loreLines.length) {
       loreText.textContent += "› " + loreLines[loreIndex] + "\n";
@@ -173,6 +169,8 @@ function startLore() {
   }, 650);
 }
 
-/* Hook lore to boot completion */
-setTimeout(startLore, bootLines.length * 700 + 500);
+typeBoot();
 </script>
+
+</body>
+</html>
