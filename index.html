@@ -55,8 +55,9 @@ body::after {
   letter-spacing: 8px;
   writing-mode: vertical-rl;
   text-orientation: upright;
-  opacity: 0;
-  transition: opacity 1s;
+  opacity: 1;
+  color: #00ff99;
+  transition: opacity 0.1s, color 0.1s;
 }
 
 /* EVA PANEL */
@@ -195,6 +196,7 @@ function afterBoot(){
   startTelemetry();
   startLore();
   startDoctrine();
+  startChessCounter();
 }
 
 /* TELEMETRY */
@@ -233,29 +235,57 @@ function startLore(){
   },650);
 }
 
-/* ================= DOCTRINE (UPDATED) ================= */
-const doctrine = document.getElementById("doctrine");
+/* DOCTRINE - FLICKERING NO SURVIVORS */
+const doctrine=document.getElementById("doctrine");
 
-function vertical(text) {
-  return text.split("").join("\n");
+function vertical(text){return text.split("").join("\n");}
+
+function flickerFlash(text,times=4,interval=80,color="#ff0000"){
+  let count=0;
+  const originalText = vertical("IRON FORTRESS");
+  const originalColor = "#00ff99";
+  const flicker=setInterval(()=>{
+    if(count%2===0){
+      doctrine.textContent = vertical(text);
+      doctrine.style.color = color;
+    } else {
+      doctrine.textContent = originalText;
+      doctrine.style.color = originalColor;
+    }
+    count++;
+    if(count>=times*2){
+      clearInterval(flicker);
+      doctrine.textContent = originalText;
+      doctrine.style.color = originalColor;
+      doctrine.style.opacity = 1;
+    }
+  },interval);
 }
 
-function startDoctrine() {
-  // Show IRON FORTRESS permanently unless NO SURVIVORS flashes
+function startDoctrine(){
   doctrine.textContent = vertical("IRON FORTRESS");
+  doctrine.style.color = "#00ff99";
   doctrine.style.opacity = 1;
 
-  setInterval(() => {
-    if (Math.random() < 0.22) { // occasional NO SURVIVORS flash
-      doctrine.textContent = vertical("NO SURVIVORS");
-      doctrine.style.opacity = 0.05; // barely visible
-      setTimeout(() => {
-        doctrine.textContent = vertical("IRON FORTRESS");
-        doctrine.style.opacity = 1;
-      }, 400); // short flash duration
+  setInterval(()=>{
+    if(Math.random()<0.22){ // rare NO SURVIVORS flicker
+      flickerFlash("NO SURVIVORS",4,80,"#ff0000");
     }
-  }, 10000); // check every 10 seconds for a rare flash
-  }
+  },10000);
+}
+
+/* CHESS COUNTER */
+function startChessCounter(){
+  setInterval(()=>{
+    if(Math.random()<0.35){
+      chessWins++;
+      boot.textContent = boot.textContent.replace(
+        /Recorded_Victories˸ \d+/,
+        "Recorded_Victories˸ " + chessWins
+      );
+    }
+  },12000);
+}
 
 /* EVA */
 let sv=72,mv=64,cv=58;
@@ -271,4 +301,4 @@ setInterval(()=>{
 </script>
 
 </body>
-</html>
+  </html>
