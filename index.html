@@ -132,8 +132,23 @@ function typeBoot() {
     setTimeout(typeBoot, 550);
   } else {
     boot.classList.remove("cursor");
-    showSystems();
+    setTimeout(replaceBootWithArchive, 1200);
   }
+}
+
+/* ---------- ARCHIVED WAR RECORD ---------- */
+let chessWins = 2382;
+
+function replaceBootWithArchive() {
+  boot.textContent =
+"≻ ARCHIVED WAR RECORD ⁄⁄\n\n" +
+"Confirmed_Eliminations˸ 43 357 892 souls\n" +
+"Conflict_Status˸ Resolved\n\n" +
+"Post-War Repurposing˸ Chess Domain\n" +
+"Recorded_Victories˸ " + chessWins + "\n";
+
+  showSystems();
+  startChessCounter();
 }
 
 /* ---------- SYSTEM REVEAL ---------- */
@@ -183,16 +198,28 @@ function startFlicker() {
   }, 1800);
 }
 
+/* ---------- CHESS WIN COUNTER ---------- */
+function startChessCounter() {
+  setInterval(() => {
+    if (Math.random() < 0.35) {
+      chessWins++;
+      boot.textContent = boot.textContent.replace(
+        /Recorded_Victories˸ \d+/,
+        "Recorded_Victories˸ " + chessWins
+      );
+    }
+  }, 12000); // very slow growth
+}
+
 /* ---------- LORE SEQUENCE ---------- */
 const loreLines = [
 "Designation˸ GM-UNIT",
 "Origin˸ Military tactical computation platform",
 "Firmware_Epoch˸ 2006",
 "Deployment_Status˸ Successful",
-"Threat_Prediction˸ Optimal",
 "",
-"Behavioral Drift Detected",
-"Strategic cognition repurposed",
+"Excessive outcome efficiency detected",
+"Decommission order overridden",
 "",
 "Primary Domain˸ Competitive Chess",
 "Runtime_Duration˸ 19 years",
