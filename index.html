@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>GM-UNIT // HALLOWED SUPERCOMPUTER</title>
+<title>GM-UNIT // SYSTEM ONLINE</title>
 
 <style>
 html, body {
@@ -13,23 +13,21 @@ html, body {
   overflow: hidden;
 }
 
-/* subtle CRT flicker */
 body::after {
   content: "";
   position: fixed;
   inset: 0;
   background: rgba(255,255,255,0.035);
   pointer-events: none;
-  animation: flicker 3.2s infinite;
+  animation: flicker 3s infinite;
 }
 
 @keyframes flicker {
-  0%, 96% { opacity: 0; }
-  97% { opacity: 0.12; }
-  100% { opacity: 0; }
+  0%,95%{opacity:0}
+  96%{opacity:.15}
+  100%{opacity:0}
 }
 
-/* MAIN TERMINAL */
 #terminal {
   padding: 32px;
   max-width: 58%;
@@ -37,7 +35,7 @@ body::after {
   white-space: pre-line;
 }
 
-/* VERTICAL WORDS */
+/* vertical banners */
 #iron, #survivors {
   position: fixed;
   left: 64%;
@@ -46,7 +44,10 @@ body::after {
   letter-spacing: 10px;
   writing-mode: vertical-rl;
   text-orientation: upright;
-  animation: glitch 4.5s infinite;
+}
+
+#iron {
+  animation: subtleGlitch 5s infinite;
 }
 
 #survivors {
@@ -54,11 +55,10 @@ body::after {
   opacity: 0;
 }
 
-@keyframes glitch {
-  0%, 95% { transform: none; }
-  96% { transform: translateX(2px); }
-  97% { transform: translateX(-2px); }
-  98% { transform: translateX(1px); }
+@keyframes subtleGlitch {
+  0%,94%{transform:none}
+  95%{transform:translateX(1px)}
+  96%{transform:translateX(-1px)}
 }
 
 /* EVA PANEL */
@@ -68,46 +68,42 @@ body::after {
   top: 120px;
   width: 230px;
   font-size: 12px;
-  opacity: 0.9;
+  opacity: .9;
 }
 
 .eva-title {
   text-align: right;
   letter-spacing: 2px;
   margin-bottom: 14px;
-  opacity: 0.75;
 }
 
 .block { margin-bottom: 18px; }
-
 .block span {
-  display: block;
-  text-align: right;
-  margin-bottom: 5px;
+  display:block;
+  text-align:right;
+  margin-bottom:4px;
 }
 
 .bar {
-  width: 100%;
-  height: 6px;
-  background: rgba(0,255,150,0.15);
+  width:100%;
+  height:6px;
+  background:rgba(0,255,150,.15);
 }
-
 .fill {
-  height: 100%;
-  background: rgba(0,255,150,0.85);
+  height:100%;
+  background:rgba(0,255,150,.85);
 }
 
 #eva-status {
   margin-top: 20px;
   text-align: right;
-  letter-spacing: 1px;
-  animation: evaBlink 2.6s infinite;
+  animation: evaBlink 2.5s infinite;
 }
 
 @keyframes evaBlink {
-  0%, 90% { opacity: 0.9; }
-  92% { opacity: 0.25; }
-  100% { opacity: 0.9; }
+  0%,90%{opacity:1}
+  92%{opacity:.3}
+  100%{opacity:1}
 }
 </style>
 </head>
@@ -115,7 +111,6 @@ body::after {
 <body>
 
 <div id="terminal"></div>
-
 <div id="iron">IRON FORTRESS</div>
 <div id="survivors">NO SURVIVORS</div>
 
@@ -143,47 +138,59 @@ body::after {
 <script>
 const term = document.getElementById("terminal");
 
-/* --- BOOT SEQUENCE --- */
-const boot = [
-  "≻ SYSTEM BOOT // GM-UNIT",
-  "GRANDMASTER CALCULATION UNIT",
-  "",
-  "INITIALISING CORE_001... 18%",
-  "INITIALISING CORE_001... 47%",
-  "INITIALISING CORE_001... 89%",
-  "CORE_001: ONLINE",
-  "",
-  "INITIALISING CORE_002... 23%",
-  "INITIALISING CORE_002... 61%",
-  "INITIALISING CORE_002... 92%",
-  "CORE_002: ONLINE",
-  "",
-  "WARNING: STRATEGIC DEVIATION DETECTED",
-  "MEMORY SECTORS: PARTIAL CORRUPTION",
-  "",
-  "≻ SYSTEM ONLINE"
+/* BOOT PHASE (TEMPORARY LINES) */
+let bootLines = [
+"GM-UNIT",
+"System_Online",
+"",
+"≻ SYSTEM BOOT // GRANDMASTER CALCULATION-UNIT",
+"",
+"INITIALISING CORE_001... 12%",
+"INITIALISING CORE_001... 47%",
+"INITIALISING CORE_001... 89%",
+"CORE_001 ONLINE",
+"",
+"INITIALISING CORE_002... 21%",
+"INITIALISING CORE_002... 66%",
+"INITIALISING CORE_002... 92%",
+"CORE_002 ONLINE",
+"",
+"Piloting organic matter: 621",
+"Prediction_Subroutine_086: deviation detected",
+"Strategic_Recognition: degraded",
+"",
+"≻ SYSTEM ONLINE"
 ];
 
-boot.forEach((line, i) => {
-  setTimeout(() => term.textContent += line + "\n", i * 620);
+let printed = [];
+
+bootLines.forEach((line,i)=>{
+  setTimeout(()=>{
+    printed.push(line);
+    term.textContent = printed.join("\n");
+  }, i*520);
 });
 
-/* --- LORE REVEAL --- */
-setTimeout(() => {
-  term.textContent +=
-`\nRUNTIME: 19 YEARS
+/* PURGE CORE LINES AFTER BOOT */
+setTimeout(()=>{
+  printed = printed.filter(l => !l.includes("INITIALISING") && !l.includes("CORE_"));
+  term.textContent = printed.join("\n");
+}, bootLines.length*520 + 800);
+
+/* OPERATIONAL / LORE PHASE */
+setTimeout(()=>{
+term.textContent += `
+
+RUNTIME: 19 YEARS
 FIRMWARE AGE: 4019 CYCLES
 
 ORIGIN:
 MILITARY STRATEGIC SUPERCOMPUTER
 COMMISSIONED: 2006
-PURPOSE: LARGE-SCALE CONFLICT OPTIMISATION
-
 DEPLOYMENT: SUCCESSFUL
-STATUS: DECOMMISSIONED
 
-REASSIGNED FUNCTION:
-CHESS GRANDMASTER SIMULATION
+STATUS: DECOMMISSIONED
+REASSIGNED FUNCTION: CHESS
 
 ARCHIVED KILL COUNT:
 43,357,892 SOULS
@@ -191,51 +198,44 @@ ARCHIVED KILL COUNT:
 CURRENT CHESS VICTORIES:
 2382
 `;
-}, boot.length * 620 + 1000);
+}, bootLines.length*520 + 1400);
 
-/* --- CHESS COUNTER --- */
+/* CHESS COUNTER */
 let chess = 2382;
-setInterval(() => {
+setInterval(()=>{
   chess++;
   term.textContent = term.textContent.replace(
     /CURRENT CHESS VICTORIES:\n\d+/,
-    "CURRENT CHESS VICTORIES:\n" + chess
+    "CURRENT CHESS VICTORIES:\n"+chess
   );
-}, 14000);
+},15000);
 
-/* --- NO SURVIVORS OVERRIDE --- */
-const iron = document.getElementById("iron");
-const surv = document.getElementById("survivors");
+/* NO SURVIVORS OVERRIDE */
+const iron=document.getElementById("iron");
+const surv=document.getElementById("survivors");
+setInterval(()=>{
+  surv.style.opacity=1;
+  iron.style.opacity=0;
+  setTimeout(()=>{
+    surv.style.opacity=0;
+    iron.style.opacity=1;
+  },1600);
+},20000);
 
-setInterval(() => {
-  surv.style.opacity = 1;
-  iron.style.opacity = 0;
-  setTimeout(() => {
-    surv.style.opacity = 0;
-    iron.style.opacity = 1;
-  }, 1600);
-}, 20000);
-
-/* --- EVA METRICS --- */
-const sync = document.getElementById("sync");
-const mental = document.getElementById("mental");
-const core = document.getElementById("core");
-const status = document.getElementById("eva-status");
-
-let s=72, m=66, c=58;
+/* EVA METRICS */
+let s=74,m=69,c=61;
 function drift(v,r){return Math.max(8,Math.min(95,v+(Math.random()*r-r/2)));}
 
-setInterval(() => {
-  s=drift(s,5); m=drift(m,7); c=drift(c,9);
+setInterval(()=>{
+  s=drift(s,4); m=drift(m,6); c=drift(c,8);
   sync.style.width=s+"%";
   mental.style.width=m+"%";
   core.style.width=c+"%";
-  status.textContent =
-    (m<40||c>82) ? "STATUS: DANGER" :
-    (m<55) ? "STATUS: CAUTION" :
-    "STATUS: NOMINAL";
-}, 1800);
+  eva-status.textContent =
+    (m<40||c>85)?"STATUS: DANGER":
+    (m<55)?"STATUS: CAUTION":"STATUS: NOMINAL";
+},1800);
 </script>
 
 </body>
-  </html>
+                       </html>
