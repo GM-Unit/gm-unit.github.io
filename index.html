@@ -1,291 +1,675 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>GM-UNIT TERMINAL</title>
-<style>
-html, body {
-  margin: 0;
-  background: black;
-  color: #00ff99;
-  font-family: monospace;
-  overflow-x: hidden;
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GM-UNIT TERMINAL</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-body::after {
-  content:"";
-  position:fixed;
-  inset:0;
-  background:rgba(255,255,255,0.03);
-  animation:flicker 3s infinite;
-  pointer-events:none;
-}
+        @keyframes staticFlicker {
+            0%, 100% { opacity: 0.03; }
+            50% { opacity: 0.05; }
+        }
 
-@keyframes flicker {0%,97%{opacity:0} 98%{opacity:.15} 100%{opacity:0}}
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
 
-.container {
-  max-width: 65%;
-  padding: 28px;
-  height: 100vh;
-  overflow-y: auto;
-}
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
 
-.section { margin-top: 26px; }
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
 
-.section-title {
-  white-space: pre;
-  min-height: 1.3em;
-  font-size: 18px; /* fixed size for all titles */
-}
+        @keyframes statusBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
 
-.block {
-  white-space: pre-wrap;
-  line-height: 1.4;
-  min-height: 4.5em;
-  font-size: 16px; /* fixed size for all blocks */
-}
+        @keyframes barFluctuate {
+            0% { width: var(--bar-width); }
+            25% { width: calc(var(--bar-width) + 8%); }
+            50% { width: calc(var(--bar-width) - 5%); }
+            75% { width: calc(var(--bar-width) + 3%); }
+            100% { width: var(--bar-width); }
+        }
 
-#boot { min-height: 9em; }
+        @keyframes glitchText {
+            0%, 100% { 
+                transform: translate(0);
+                opacity: 1;
+            }
+            10% { 
+                transform: translate(-2px, 1px);
+                opacity: 0.9;
+            }
+            20% { 
+                transform: translate(2px, -1px);
+                opacity: 0.85;
+            }
+            30% { 
+                transform: translate(-1px, 0);
+                opacity: 0.95;
+            }
+            40% { 
+                transform: translate(1px, 1px);
+                opacity: 0.88;
+            }
+            50% { 
+                transform: translate(-2px, -1px);
+                opacity: 0.92;
+            }
+            60% { 
+                transform: translate(2px, 1px);
+                opacity: 0.87;
+            }
+            70% { 
+                transform: translate(-1px, -1px);
+                opacity: 0.93;
+            }
+            80% { 
+                transform: translate(1px, -1px);
+                opacity: 0.89;
+            }
+            90% { 
+                transform: translate(-2px, 0);
+                opacity: 0.91;
+            }
+        }
 
-.cursor::after { content:"█"; animation:blink 1s infinite; }
-@keyframes blink {50%{opacity:0}}
+        body {
+            background: black;
+            font-family: 'Courier New', Courier, monospace;
+            color: #00ff99;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
 
-.flicker { animation: numFlicker .08s linear; }
-@keyframes numFlicker {50%{opacity:.4}}
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            animation: staticFlicker 0.15s infinite;
+            pointer-events: none;
+            z-index: 1000;
+        }
 
-#doctrine {
-  position: fixed;
-  left: 68%;
-  top: 80px;
-  font-size: 46px;
-  white-space: pre;
-  opacity: 0;
-  transition: opacity 1s;
-}
+        .main-container {
+            max-width: 65%;
+            padding: 28px;
+            margin: 0 auto;
+            overflow-y: auto;
+            max-height: 100vh;
+        }
 
-.red { color: #ff0000; }
+        @media (max-width: 900px) {
+            .main-container {
+                max-width: 90%;
+                padding: 20px;
+            }
+            
+            .right-panel {
+                position: fixed;
+                right: 15px;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+        }
 
-#eva-panel {
-  position: fixed;
-  right: 30px;
-  top: 120px;
-  width: 220px;
-  font-size: 12px;
-  opacity: 0;
-  transition: opacity 1s;
-}
+        .right-panel {
+            position: fixed;
+            right: 40px;
+            top: 50%;
+            transform: translateY(-50%);
+            text-align: right;
+            z-index: 100;
+        }
 
-.bar { height:6px; background:rgba(0,255,150,.15); }
-.fill { height:100%; background:rgba(0,255,150,.8); }
+        .doctrine-container {
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 8px;
+            line-height: 1.8;
+            transition: all 0.3s ease;
+        }
 
-#eva-status {
-  margin-top: 18px;
-  text-align: right;
-  letter-spacing: 1px;
-  animation: evaBlink 2.5s infinite;
-}
+        .doctrine-container.glitch {
+            color: #ff3333;
+            animation: glitchText 0.3s ease;
+        }
 
-@keyframes evaBlink {0%,90%{opacity:.9} 92%{opacity:.3} 100%{opacity:.9}}
+        .doctrine-container .normal {
+            display: block;
+        }
 
-.danger { color:#ff4444; }
-.caution { color:#ffaa00; }
+        .doctrine-container .glitch-text {
+            display: none;
+            color: #ff3333;
+        }
 
-@media(max-width:900px){
-  .container{max-width:90%}
-  #doctrine{left:60%;font-size:36px}
-}
-</style>
+        .doctrine-container.glitch .normal {
+            display: none;
+        }
+
+        .doctrine-container.glitch .glitch-text {
+            display: block;
+        }
+
+        .boot-sequence {
+            margin-bottom: 40px;
+        }
+
+        .boot-line {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .boot-line.visible {
+            opacity: 1;
+        }
+
+        .boot-line .cursor {
+            display: inline-block;
+            width: 10px;
+            height: 18px;
+            background: #00ff99;
+            animation: blink 0.5s infinite;
+            vertical-align: middle;
+            margin-left: 2px;
+        }
+
+        .section {
+            margin-bottom: 35px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .section-content {
+            font-size: 16px;
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+
+        .section-content .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 16px;
+            background: #00ff99;
+            animation: blink 0.5s infinite;
+            vertical-align: middle;
+            margin-left: 2px;
+        }
+
+        .eva-panel {
+            position: fixed;
+            left: 40px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 100;
+        }
+
+        @media (max-width: 900px) {
+            .eva-panel {
+                position: static;
+                transform: none;
+                margin: 20px auto;
+                max-width: 90%;
+            }
+        }
+
+        .eva-section {
+            margin-bottom: 25px;
+        }
+
+        .eva-label {
+            font-size: 14px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .eva-bar-container {
+            width: 180px;
+            height: 24px;
+            background: rgba(0, 255, 153, 0.1);
+            border: 1px solid #00ff99;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .eva-bar {
+            height: 100%;
+            background: #00ff99;
+            transition: width 0.5s ease;
+            position: relative;
+        }
+
+        .eva-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(255, 255, 255, 0.2) 50%,
+                transparent 100%
+            );
+            animation: shimmer 1s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .eva-value {
+            font-size: 12px;
+            margin-top: 4px;
+            text-align: right;
+        }
+
+        .eva-status {
+            font-size: 14px;
+            margin-top: 6px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            animation: statusBlink 1s infinite;
+        }
+
+        .eva-status.nominal {
+            color: #00ff99;
+        }
+
+        .eva-status.caution {
+            color: #ff9900;
+        }
+
+        .eva-status.danger {
+            color: #ff3333;
+            animation: statusBlink 0.3s infinite;
+        }
+
+        .archived-section {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(0, 255, 153, 0.3);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .faded {
+            animation: fadeOut 0.5s ease forwards;
+        }
+
+        .fading-in {
+            animation: fadeIn 1s ease forwards;
+        }
+
+        @media (max-width: 600px) {
+            .doctrine-container {
+                font-size: 18px;
+                letter-spacing: 4px;
+            }
+            
+            .section-title {
+                font-size: 16px;
+            }
+            
+            .section-content {
+                font-size: 14px;
+            }
+        }
+    </style>
 </head>
 <body>
+    <div class="eva-panel">
+        <div class="eva-section">
+            <div class="eva-label">SYNC RATIO</div>
+            <div class="eva-bar-container">
+                <div class="eva-bar" id="sync-bar" style="--bar-width: 94%;"></div>
+            </div>
+            <div class="eva-value" id="sync-value">94%</div>
+            <div class="eva-status nominal" id="sync-status">NOMINAL</div>
+        </div>
+        <div class="eva-section">
+            <div class="eva-label">MENTAL STABILITY</div>
+            <div class="eva-bar-container">
+                <div class="eva-bar" id="mental-bar" style="--bar-width: 89%;"></div>
+            </div>
+            <div class="eva-value" id="mental-value">89%</div>
+            <div class="eva-status nominal" id="mental-status">NOMINAL</div>
+        </div>
+        <div class="eva-section">
+            <div class="eva-label">CORE PRESSURE</div>
+            <div class="eva-bar-container">
+                <div class="eva-bar" id="core-bar" style="--bar-width: 76%;"></div>
+            </div>
+            <div class="eva-value" id="core-value">76%</div>
+            <div class="eva-status nominal" id="core-status">NOMINAL</div>
+        </div>
+    </div>
 
-<div id="doctrine"></div>
+    <div class="right-panel">
+        <div class="doctrine-container fading-in" id="doctrine">
+            <span class="normal">
+                <span>I</span><br>
+                <span>R</span><br>
+                <span>O</span><br>
+                <span>N</span><br><br>
+                <span>F</span><br>
+                <span>O</span><br>
+                <span>R</span><br>
+                <span>T</span><br>
+                <span>R</span><br>
+                <span>E</span><br>
+                <span>S</span><br>
+                <span>S</span>
+            </span>
+            <span class="glitch-text">
+                <span>N</span><br>
+                <span>O</span><br><br>
+                <span>S</span><br>
+                <span>U</span><br>
+                <span>R</span><br>
+                <span>V</span><br>
+                <span>I</span><br>
+                <span>V</span><br>
+                <span>O</span><br>
+                <span>R</span><br>
+                <span>S</span>
+            </span>
+        </div>
+    </div>
 
-<div class="container">
+    <div class="main-container">
+        <div class="boot-sequence" id="boot-sequence"></div>
+        
+        <div id="main-content" class="hidden">
+            <div class="section" id="cybernetic-systems">
+                <div class="section-title"></div>
+                <div class="section-content"></div>
+                <div class="section-content"></div>
+                <div class="section-content"></div>
+            </div>
 
-<div class="section">
-  <div id="boot" class="block cursor"></div>
-</div>
+            <div class="section" id="tc-unit">
+                <div class="section-title"></div>
+                <div class="section-content"></div>
+                <div class="section-content"></div>
+            </div>
 
-<div class="section">
-  <div id="tSystems" class="section-title"></div>
-  <div id="bSystems" class="block"></div>
-</div>
+            <div class="section" id="frame-sensors">
+                <div class="section-title"></div>
+                <div class="section-content"></div>
+                <div class="section-content"></div>
+            </div>
 
-<div class="section">
-  <div id="tTC" class="section-title"></div>
-  <div id="bTC" class="block"></div>
-</div>
+            <div class="section" id="chess-operations">
+                <div class="section-title"></div>
+                <div class="section-content"></div>
+                <div class="section-content"></div>
+            </div>
 
-<div class="section">
-  <div id="tFrame" class="section-title"></div>
-  <div id="bFrame" class="block"></div>
-</div>
+            <div class="section archived-section" id="archived-log">
+                <div class="section-title"></div>
+                <div class="section-content"></div>
+                <div class="section-content"></div>
+            </div>
+        </div>
+    </div>
 
-<div class="section">
-  <div id="tChess" class="section-title"></div>
-  <div id="bChess" class="block"></div>
-</div>
+    <script>
+        // Boot sequence lines
+        const bootLines = [
+            '≻ SYSTEM BOOT˸ GM-UNIT ⁄⁄',
+            'GRANDMASTER CALCULATION-UNIT',
+            'Initializing cores...',
+            'Loading strategic matrices...',
+            'Synchronizing endgame tables...',
+            'Warnings detected',
+            '≻ SYSTEM ONLINE'
+        ];
 
-<div class="section">
-  <div id="tLore" class="section-title"></div>
-  <div id="bLore" class="block"></div>
-</div>
+        // Section data
+        const sectionsData = {
+            'cybernetic-systems': {
+                title: 'CYBERNETIC SYSTEMS',
+                content: [
+                    'Core_001: <span id="core-001">89</span>% // Primary neural processor',
+                    'Core_002: <span id="core-002">92</span>% // Secondary neural processor',
+                    'Memory_Array: 256 TB // Strategic cache'
+                ]
+            },
+            'tc-unit': {
+                title: 'TC UNIT',
+                content: [
+                    'Optic_001: <span id="optic-001">78</span>% // Pattern recognition',
+                    'Optic_002: <span id="optic-002">85</span>% // Threat assessment',
+                    'Tactical_Link: ACTIVE // Synchronized'
+                ]
+            },
+            'frame-sensors': {
+                title: 'FRAME & SENSORS',
+                content: [
+                    'Mobility_Delay: <span id="mobility-delay">23</span>ms // Motor response',
+                    'Targeting_Accuracy: <span id="targeting-accuracy">97</span>% // Precision index'
+                ]
+            },
+            'chess-operations': {
+                title: 'CHESS OPERATIONS',
+                content: [
+                    'Depth_Search: 18 plies // Full calculation',
+                    'Branch_Factor: ≈42 // Position evaluation',
+                    'Eval_Function: OPTIMIZED // Win probability'
+                ]
+            },
+            'archived-log': {
+                title: 'ARCHIVED DEPLOYMENT LOG',
+                content: [
+                    '[T-144h] Protocol initiated // Grandmaster awakening',
+                    '[T-120h] Pattern recognition // Chess variants mapping',
+                    '[T-96h]  Tactical adaptation // Multi-engine synthesis'
+                ]
+            }
+        };
 
-</div>
+        // Typing function
+        function typeText(element, text, speed = 30, cursor = false) {
+            return new Promise(resolve => {
+                element.textContent = '';
+                let index = 0;
+                
+                function type() {
+                    if (index < text.length) {
+                        element.textContent = text.substring(0, index + 1);
+                        index++;
+                        setTimeout(type, speed);
+                    } else {
+                        if (cursor) {
+                            const cursor = document.createElement('span');
+                            cursor.className = 'cursor';
+                            element.appendChild(cursor);
+                        }
+                        resolve();
+                    }
+                }
+                type();
+            });
+        }
 
-<div id="eva-panel">
-  <div>SYNC RATIO</div>
-  <div class="bar"><div class="fill" id="sync"></div></div><br>
-  <div>MENTAL STABILITY</div>
-  <div class="bar"><div class="fill" id="mental"></div></div><br>
-  <div>CORE PRESSURE</div>
-  <div class="bar"><div class="fill" id="coreBar"></div></div>
-  <div id="eva-status">STATUS: NOMINAL</div>
-</div>
+        // Boot sequence
+        async function runBootSequence() {
+            const bootContainer = document.getElementById('boot-sequence');
+            
+            for (const line of bootLines) {
+                const lineDiv = document.createElement('div');
+                lineDiv.className = 'boot-line';
+                lineDiv.innerHTML = line + (line === bootLines[bootLines.length - 1] ? '<span class="cursor"></span>' : '');
+                bootContainer.appendChild(lineDiv);
+                
+                await new Promise(r => setTimeout(r, 500));
+                lineDiv.classList.add('visible');
+                await new Promise(r => setTimeout(r, 300));
+            }
+            
+            await new Promise(r => setTimeout(r, 1000));
+            
+            // Fade out boot sequence
+            bootContainer.classList.add('faded');
+            
+            await new Promise(r => setTimeout(r, 600));
+            bootContainer.style.display = 'none';
+            
+            // Show main content
+            document.getElementById('main-content').classList.remove('hidden');
+            document.getElementById('main-content').classList.add('fading-in');
+            
+            // Start typing sections
+            typeSections();
+        }
 
-<script>
-/* ===== utilities ===== */
-function typeText(el, text, speed=28, cb){
-  let i=0;
-  (function tick(){
-    if(i<text.length){ el.textContent+=text[i++]; setTimeout(tick,speed); } 
-    else cb && cb();
-  })();
-}
+        // Type all sections
+        async function typeSections() {
+            for (const [id, data] of Object.entries(sectionsData)) {
+                const section = document.getElementById(id);
+                const titleEl = section.querySelector('.section-title');
+                const contentEls = section.querySelectorAll('.section-content');
+                
+                await typeText(titleEl, data.title, 30);
+                await new Promise(r => setTimeout(r, 200));
+                
+                for (let i = 0; i < contentEls.length; i++) {
+                    await typeText(contentEls[i], data.content[i], 28, i === contentEls.length - 1);
+                    await new Promise(r => setTimeout(r, 150));
+                }
+                
+                await new Promise(r => setTimeout(r, 300));
+            }
+        }
 
-function vertical(a,b){
-  const m=Math.max(a.length,b.length);
-  let o=[];
-  for(let i=0;i<m;i++) o.push((a[i]||" ")+" "+(b[i]||" "));
-  return o.join("\n");
-}
+        // Doctrine glitch effect
+        function startDoctrineGlitch() {
+            const doctrine = document.getElementById('doctrine');
+            
+            function triggerGlitch() {
+                setTimeout(() => {
+                    doctrine.classList.add('glitch');
+                    
+                    setTimeout(() => {
+                        doctrine.classList.remove('glitch');
+                    }, 400);
+                    
+                    // Next glitch in 12 seconds
+                    setTimeout(triggerGlitch, 12000);
+                }, Math.random() * 3000 + 1000);
+            }
+            
+            triggerGlitch();
+        }
 
-/* ===== boot ===== */
-const bootLines=[
-"≻ SYSTEM BOOT˸ GM-UNIT ⁄⁄",
-"GRANDMASTER CALCULATION-UNIT",
-"",
-"Initializing cores...",
-"Loading strategic matrices...",
-"Synchronizing endgame tables...",
-"Warnings detected",
-"",
-"≻ SYSTEM ONLINE"
-];
+        // EVA panel updates
+        function updateEVAPanel() {
+            const bars = {
+                'sync': { element: 'sync-bar', value: 'sync-value', status: 'sync-status', base: 94, range: 8 },
+                'mental': { element: 'mental-bar', value: 'mental-value', status: 'mental-status', base: 89, range: 12 },
+                'core': { element: 'core-bar', value: 'core-value', status: 'core-status', base: 76, range: 15 }
+            };
+            
+            function getRandomValue(base, range) {
+                return Math.floor(base + (Math.random() - 0.5) * range * 2);
+            }
+            
+            function getStatusClass(value, type) {
+                if (type === 'sync') {
+                    if (value < 70) return 'danger';
+                    if (value < 85) return 'caution';
+                    return 'nominal';
+                } else if (type === 'mental') {
+                    if (value < 65) return 'danger';
+                    if (value < 80) return 'caution';
+                    return 'nominal';
+                } else {
+                    if (value > 90) return 'danger';
+                    if (value > 80) return 'caution';
+                    return 'nominal';
+                }
+            }
+            
+            function updateBar(key, type) {
+                const config = bars[key];
+                const value = getRandomValue(config.base, config.range);
+                const clampedValue = Math.max(0, Math.min(100, value));
+                
+                document.getElementById(config.element).style.width = clampedValue + '%';
+                document.getElementById(config.value).textContent = clampedValue + '%';
+                
+                const statusEl = document.getElementById(config.status);
+                statusEl.textContent = getStatusClass(clampedValue, type).charAt(0).toUpperCase() + getStatusClass(clampedValue, type).slice(1);
+                statusEl.className = 'eva-status ' + getStatusClass(clampedValue, type);
+            }
+            
+            setInterval(() => updateBar('sync', 'sync'), 1500);
+            setInterval(() => updateBar('mental', 'mental'), 2000);
+            setInterval(() => updateBar('core', 'core'), 1800);
+        }
 
-const boot=document.getElementById("boot");
-let bi=0;
+        // Dynamic number updates
+        function startDynamicUpdates() {
+            function getFlickerValue(base, range) {
+                return Math.floor(base + (Math.random() - 0.5) * range * 2);
+            }
+            
+            function updateNumber(id, base, range) {
+                const el = document.getElementById(id);
+                if (el) {
+                    const value = getFlickerValue(base, range);
+                    el.textContent = Math.max(0, Math.min(100, value));
+                }
+            }
+            
+            // Core values (87-91%)
+            setInterval(() => updateNumber('core-001', 89, 2), 1500);
+            setInterval(() => updateNumber('core-002', 90, 2), 1800);
+            
+            // Optic values
+            setInterval(() => updateNumber('optic-001', 77, 4), 2000);
+            setInterval(() => updateNumber('optic-002', 84, 3), 2200);
+            
+            // Other values
+            setInterval(() => updateNumber('mobility-delay', 22, 3), 2500);
+            setInterval(() => updateNumber('targeting-accuracy', 96, 2), 3000);
+        }
 
-(function bootType(){
-  if(bi<bootLines.length){
-    boot.textContent+=bootLines[bi++]+"\n";
-    setTimeout(bootType,550);
-  } else {
-    boot.classList.remove("cursor");
-    const h=boot.offsetHeight+"px";
-    boot.style.height=h;
-    boot.style.opacity=0;
-    setTimeout(()=>{
-      boot.style.display="none";
-      showDoctrine();
-    },700);
-  }
-})();
-
-/* ===== doctrine ===== */
-const doctrine=document.getElementById("doctrine");
-function showDoctrine(){
-  doctrine.textContent=vertical("IRON","FORTRESS");
-  doctrine.style.opacity=1;
-
-  setTimeout(()=>{
-    document.getElementById("eva-panel").style.opacity=1;
-    startTyping();
-    startTelemetry();
-    startDoctrineGlitch();
-  },1500);
-}
-
-function startDoctrineGlitch(){
-  setInterval(()=>{
-    doctrine.classList.add("red");
-    doctrine.textContent=vertical("NO","SURVIVORS");
-    setTimeout(()=>{
-      doctrine.classList.remove("red");
-      doctrine.textContent=vertical("IRON","FORTRESS");
-    },650);
-  },12000);
-}
-
-/* ===== typing ===== */
-function insert(parent,id,val){
-  const s=document.createElement("span");
-  s.id=id;
-  s.textContent=val;
-  parent.appendChild(s);
-}
-
-function startTyping(){
-  typeText(tSystems,"［CYBERNETIC SYSTEMS］",30,()=>{
-    bSystems.textContent+="Core_001˸ "; insert(bSystems,"core1","89"); bSystems.textContent+="％\n";
-    bSystems.textContent+="Core_002˸ "; insert(bSystems,"core2","92"); bSystems.textContent+="％\n";
-    bSystems.textContent+="Status˸ Suboptimal\nRuntime˸ 19 years\nFirmware˸ 2006\nMobility_Delay˸ "; insert(bSystems,"mobility","+0.41s")+"\n";
-  });
-
-  typeText(tTC,"［TC UNIT］",30,()=>{
-    typeText(bTC,"Piloting organic matter˸ 621\nPrediction_Subroutine_086˸ deviation detected\nStrategic_Recognition˸ degraded\n");
-  });
-
-  typeText(tFrame,"［FRAME ＆ SENSORS］",30,()=>{
-    bFrame.textContent+="Optic_001˸ "; insert(bFrame,"optic1","52"); bFrame.textContent+="％\n";
-    bFrame.textContent+="Optic_002˸ "; insert(bFrame,"optic2","78"); bFrame.textContent+="％\n";
-    bFrame.textContent+="Hydraulics˸ failing\n";
-  });
-
-  typeText(tChess,"［CHESS OPERATIONS］",30,()=>{
-    bChess.textContent+="Targeting_Accuracy˸ "; insert(bChess,"accuracy","94"); bChess.textContent+="％\n";
-    bChess.textContent+="Opening_Files˸ partial corruption\nEndgame_Protocol˸ INTACT\n";
-  });
-
-  typeText(tLore,"≻ ARCHIVED DEPLOYMENT LOG",30,()=>{
-    typeText(bLore,"Confirmed_Eliminations˸ 43 357 892 souls\nPost-War Repurposing˸ Chess Domain\nLegacy_Status˸ Hallowed Artifact\n");
-  });
-}
-
-/* ===== telemetry ===== */
-const evaStatus=document.getElementById("eva-status");
-
-function fluctuate(id,min,max){
-  const el=document.getElementById(id);
-  if(!el) return;
-  el.textContent=Math.floor(Math.random()*(max-min+1))+min;
-  el.classList.add("flicker");
-  setTimeout(()=>el.classList.remove("flicker"),80);
-}
-
-function startTelemetry(){
-  setInterval(()=>{
-    const s=60+Math.random()*30;
-    const m=45+Math.random()*45;
-    const c=55+Math.random()*40;
-
-    sync.style.width=s+"%";
-    mental.style.width=m+"%";
-    coreBar.style.width=c+"%";
-
-    fluctuate("core1",87,91);
-    fluctuate("core2",90,94);
-    fluctuate("optic1",50,54);
-    fluctuate("optic2",76,80);
-    fluctuate("accuracy",93,95);
-    fluctuate("mobility",0,1); // optional flicker
-
-    evaStatus.className="";
-    if(m<45||c>85){ evaStatus.textContent="STATUS: DANGER"; evaStatus.classList.add("danger");
-    } else if(m<60||c>75){ evaStatus.textContent="STATUS: CAUTION"; evaStatus.classList.add("caution");
-    } else { evaStatus.textContent="STATUS: NOMINAL"; }
-  },1800);
-}
-</script>
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            runBootSequence();
+            startDoctrineGlitch();
+            updateEVAPanel();
+            startDynamicUpdates();
+        });
+    </script>
 </body>
 </html>
