@@ -37,38 +37,27 @@ body::after {
 
 .section { margin-top: 26px; }
 
-/* === UNIFORM SECTION FONT SIZES === */
 .section-title {
   white-space: pre;
   min-height: 1.3em;
-  font-size: 18px;        /* uniform size for all titles */
+  font-size: 18px;
 }
 
 .block {
   white-space: pre-wrap;
   line-height: 1.4;
   min-height: 4.5em;
-  font-size: 16px;        /* uniform size for all blocks */
+  font-size: 16px;
 }
 
 #boot { min-height: 9em; }
 
-.cursor::after {
-  content:"█";
-  animation:blink 1s infinite;
-}
-
+.cursor::after { content:"█"; animation:blink 1s infinite; }
 @keyframes blink {50%{opacity:0}}
 
-.flicker {
-  animation: numFlicker .08s linear;
-}
+.flicker { animation: numFlicker .08s linear; }
+@keyframes numFlicker {50%{opacity:.4}}
 
-@keyframes numFlicker {
-  50%{opacity:.4}
-}
-
-/* DOCTRINE */
 #doctrine {
   position: fixed;
   left: 68%;
@@ -81,7 +70,6 @@ body::after {
 
 .red { color: #ff0000; }
 
-/* EVA */
 #eva-panel {
   position: fixed;
   right: 30px;
@@ -102,19 +90,11 @@ body::after {
   animation: evaBlink 2.5s infinite;
 }
 
-@keyframes evaBlink {
-  0%,90%{opacity:.9}
-  92%{opacity:.3}
-  100%{opacity:.9}
-}
-
+@keyframes evaBlink {0%,90%{opacity:.9} 92%{opacity:.3} 100%{opacity:.9}}
 .danger { color:#ff4444; }
 .caution { color:#ffaa00; }
 
-@media(max-width:900px){
-  .container{max-width:90%}
-  #doctrine{left:60%;font-size:36px}
-}
+@media(max-width:900px){ .container{max-width:90%} #doctrine{left:60%;font-size:36px} }
 </style>
 </head>
 <body>
@@ -123,9 +103,7 @@ body::after {
 
 <div class="container">
 
-<div class="section">
-<div id="boot" class="block cursor"></div>
-</div>
+<div class="section"><div id="boot" class="block cursor"></div></div>
 
 <div class="section">
 <div id="tSystems" class="section-title"></div>
@@ -161,19 +139,16 @@ body::after {
   <div class="bar"><div class="fill" id="mental"></div></div><br>
   <div>CORE PRESSURE</div>
   <div class="bar"><div class="fill" id="coreBar"></div></div>
-
   <div id="eva-status">STATUS: NOMINAL</div>
 </div>
 
 <script>
-/* ========= utilities ========= */
+/* ===== utilities ===== */
 function typeText(el, text, speed=28, cb){
   let i=0;
   (function tick(){
-    if(i<text.length){
-      el.textContent+=text[i++];
-      setTimeout(tick,speed);
-    } else cb && cb();
+    if(i<text.length){ el.textContent+=text[i++]; setTimeout(tick,speed); } 
+    else cb && cb();
   })();
 }
 
@@ -184,7 +159,7 @@ function vertical(a,b){
   return o.join("\n");
 }
 
-/* ========= boot ========= */
+/* ===== boot ===== */
 const bootLines=[
 "≻ SYSTEM BOOT˸ GM-UNIT ⁄⁄",
 "GRANDMASTER CALCULATION-UNIT",
@@ -216,9 +191,8 @@ let bi=0;
   }
 })();
 
-/* ========= doctrine ========= */
+/* ===== doctrine ===== */
 const doctrine=document.getElementById("doctrine");
-
 function showDoctrine(){
   doctrine.textContent=vertical("IRON","FORTRESS");
   doctrine.style.opacity=1;
@@ -242,7 +216,7 @@ function startDoctrineGlitch(){
   },12000);
 }
 
-/* ========= typing ========= */
+/* ===== typing ===== */
 function insert(parent,id,val){
   const s=document.createElement("span");
   s.id=id;
@@ -254,7 +228,7 @@ function startTyping(){
   typeText(tSystems,"［CYBERNETIC SYSTEMS］",30,()=>{
     bSystems.textContent+="Core_001˸ "; insert(bSystems,"core1","89"); bSystems.textContent+="％\n";
     bSystems.textContent+="Core_002˸ "; insert(bSystems,"core2","92"); bSystems.textContent+="％\n";
-    bSystems.textContent+="Status˸ Suboptimal\nRuntime˸ 19 years\nFirmware˸ 2006\n";
+    bSystems.textContent+="Status˸ Suboptimal\nRuntime˸ 19 years\nFirmware˸ 2006\nMobility_Delay˸ "; insert(bSystems,"mobility","+0.41s")+"\n";
   });
 
   typeText(tTC,"［TC UNIT］",30,()=>{
@@ -264,7 +238,7 @@ function startTyping(){
   typeText(tFrame,"［FRAME ＆ SENSORS］",30,()=>{
     bFrame.textContent+="Optic_001˸ "; insert(bFrame,"optic1","52"); bFrame.textContent+="％\n";
     bFrame.textContent+="Optic_002˸ "; insert(bFrame,"optic2","78"); bFrame.textContent+="％\n";
-    bFrame.textContent+="Hydraulics˸ failing\nMobility_Delay˸ +0.41s\n";
+    bFrame.textContent+="Hydraulics˸ failing\n";
   });
 
   typeText(tChess,"［CHESS OPERATIONS］",30,()=>{
@@ -277,7 +251,7 @@ function startTyping(){
   });
 }
 
-/* ========= telemetry ========= */
+/* ===== telemetry ===== */
 const evaStatus=document.getElementById("eva-status");
 
 function fluctuate(id,min,max){
@@ -303,6 +277,7 @@ function startTelemetry(){
     fluctuate("optic1",50,54);
     fluctuate("optic2",76,80);
     fluctuate("accuracy",93,95);
+    fluctuate("mobility",0,1); // optional small flicker
 
     evaStatus.className="";
     if(m<45||c>85){
@@ -319,4 +294,4 @@ function startTelemetry(){
 </script>
 
 </body>
-</html>
+  </html>
