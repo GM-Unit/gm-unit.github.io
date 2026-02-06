@@ -103,8 +103,19 @@
             .right-panel {
                 position: fixed;
                 right: 15px;
-                top: 50%;
-                transform: translateY(-50%);
+                top: 2%;
+            }
+            
+            .doctrine-container {
+                font-size: 16px;
+                letter-spacing: 4px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .doctrine-container {
+                font-size: 12px;
+                letter-spacing: 2px;
             }
         }
 
@@ -323,21 +334,6 @@
 
         .fading-in {
             animation: fadeIn 1s ease forwards;
-        }
-
-        @media (max-width: 600px) {
-            .doctrine-container {
-                font-size: 18px;
-                letter-spacing: 4px;
-            }
-            
-            .section-title {
-                font-size: 16px;
-            }
-            
-            .section-content {
-                font-size: 14px;
-            }
         }
     </style>
 </head>
