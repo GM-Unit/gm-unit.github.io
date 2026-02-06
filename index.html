@@ -47,9 +47,7 @@ body::after {
   line-height: 1.4;
 }
 
-#boot {
-  min-height: 9em;
-}
+#boot { min-height: 9em; }
 
 .cursor::after {
   content:"█";
@@ -58,13 +56,8 @@ body::after {
 
 @keyframes blink {50%{opacity:0}}
 
-.flicker {
-  animation: flick .08s linear;
-}
-
-@keyframes flick {
-  50%{opacity:.4}
-}
+.flicker { animation:flick .08s linear; }
+@keyframes flick { 50%{opacity:.4} }
 
 /* DOCTRINE */
 #doctrine {
@@ -76,8 +69,7 @@ body::after {
   opacity: 0;
   transition: opacity 1s;
 }
-
-.red { color: #ff0000; font-weight: bold; }
+.red { color:#ff0000; font-weight:bold }
 
 /* EVA PANEL */
 #eva-panel {
@@ -93,9 +85,21 @@ body::after {
 .bar { height:6px; background:rgba(0,255,150,.15); }
 .fill { height:100%; background:rgba(0,255,150,.8); }
 
+#eva-status {
+  margin-top: 10px;
+  text-align: right;
+  animation: evaBlink 2.5s infinite;
+}
+
+@keyframes evaBlink {
+  0%,90%{opacity:.9}
+  92%{opacity:.2}
+  100%{opacity:.9}
+}
+
 @media(max-width:900px){
   .container{max-width:90%}
-  #doctrine{left:58%;font-size:34px}
+  #doctrine{left:56%;font-size:34px}
 }
 </style>
 </head>
@@ -139,35 +143,39 @@ body::after {
 <div id="eva-panel">
   <div>SYNC RATIO</div>
   <div class="bar"><div class="fill" id="sync"></div></div><br>
+
   <div>MENTAL STABILITY</div>
   <div class="bar"><div class="fill" id="mental"></div></div><br>
+
   <div>CORE PRESSURE</div>
   <div class="bar"><div class="fill" id="core"></div></div>
+
+  <div id="eva-status">STATUS: NOMINAL</div>
 </div>
 
 <script>
 /* ================= UTIL ================= */
-function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
 
-async function typeText(el,text,speed=32){
+async function typeClear(el,text,speed=32){
   el.textContent="";
-  for(const c of text){
-    el.textContent+=c;
-    await sleep(speed);
-  }
+  for(const c of text){ el.textContent+=c; await sleep(speed); }
 }
 
-function appendSpan(el,id,val){
+async function typeAppend(el,text,speed=32){
+  for(const c of text){ el.textContent+=c; await sleep(speed); }
+}
+
+function span(el,id,val){
   const s=document.createElement("span");
-  s.id=id;
-  s.textContent=val;
+  s.id=id; s.textContent=val;
   el.appendChild(s);
 }
 
 function vertical(a,b){
-  const m=Math.max(a.length,b.length);
   let o=[];
-  for(let i=0;i<m;i++) o.push((a[i]||" ")+" "+(b[i]||" "));
+  for(let i=0;i<Math.max(a.length,b.length);i++)
+    o.push((a[i]||" ")+" "+(b[i]||" "));
   return o.join("\n");
 }
 
@@ -184,8 +192,6 @@ const bootLines=[
 "≻ SYSTEM ONLINE"
 ];
 
-const boot=document.getElementById("boot");
-
 (async()=>{
   for(const l of bootLines){
     boot.textContent+=l+"\n";
@@ -201,13 +207,11 @@ const boot=document.getElementById("boot");
 })();
 
 /* ================= DOCTRINE ================= */
-const doctrine=document.getElementById("doctrine");
-
 function showDoctrine(){
   doctrine.textContent=vertical("IRON","FORTRESS");
   doctrine.style.opacity=1;
   setTimeout(()=>{
-    document.getElementById("eva-panel").style.opacity=1;
+    eva-panel.style.opacity=1;
     startSections();
     startDoctrineGlitch();
   },1400);
@@ -220,37 +224,34 @@ function startDoctrineGlitch(){
     setTimeout(()=>{
       doctrine.classList.remove("red");
       doctrine.textContent=vertical("IRON","FORTRESS");
-    },700);
+    },800);
   },14000);
 }
 
 /* ================= SECTIONS ================= */
 async function startSections(){
-  await typeText(tSystems,"［CYBERNETIC SYSTEMS］");
-  await typeText(bSystems,"Core_001˸ ");
-  appendSpan(bSystems,"core1","89");
-  await typeText(bSystems,"\nCore_002˸ ");
-  appendSpan(bSystems,"core2","92");
-  await typeText(bSystems,"\nStatus˸ Suboptimal\nRuntime˸ 19 years\nFirmware˸ 2006\n");
+  await typeClear(tSystems,"［CYBERNETIC SYSTEMS］");
+  await typeClear(bSystems,"");
+  await typeAppend(bSystems,"Core_001˸ "); span(bSystems,"core1","89");
+  await typeAppend(bSystems,"\nCore_002˸ "); span(bSystems,"core2","92");
+  await typeAppend(bSystems,"\nStatus˸ Suboptimal\nRuntime˸ 19 years\nFirmware˸ 2006\n");
 
-  await typeText(tTC,"［TC UNIT］");
-  await typeText(bTC,
-"Piloting organic matter˸ 621\nPrediction_Subroutine_086˸ deviation detected\nStrategic_Recognition˸ degraded\n");
+  await typeClear(tTC,"［TC UNIT］");
+  await typeClear(bTC,"Piloting organic matter˸ 621\nPrediction_Subroutine_086˸ deviation detected\nStrategic_Recognition˸ degraded\n");
 
-  await typeText(tFrame,"［FRAME ＆ SENSORS］");
-  await typeText(bFrame,"Optic_001˸ ");
-  appendSpan(bFrame,"optic1","52");
-  await typeText(bFrame,"\nOptic_002˸ ");
-  appendSpan(bFrame,"optic2","78");
-  await typeText(bFrame,"\nHydraulics˸ failing\nMobility_Delay˸ +0.41s\n");
+  await typeClear(tFrame,"［FRAME ＆ SENSORS］");
+  await typeClear(bFrame,"");
+  await typeAppend(bFrame,"Optic_001˸ "); span(bFrame,"optic1","52");
+  await typeAppend(bFrame,"\nOptic_002˸ "); span(bFrame,"optic2","78");
+  await typeAppend(bFrame,"\nHydraulics˸ failing\nMobility_Delay˸ +0.41s\n");
 
-  await typeText(tChess,"［CHESS OPERATIONS］");
-  await typeText(bChess,"Targeting_Accuracy˸ ");
-  appendSpan(bChess,"accuracy","94");
-  await typeText(bChess,"\nOpening_Files˸ partial corruption\nEndgame_Protocol˸ INTACT\n");
+  await typeClear(tChess,"［CHESS OPERATIONS］");
+  await typeClear(bChess,"");
+  await typeAppend(bChess,"Targeting_Accuracy˸ "); span(bChess,"accuracy","94");
+  await typeAppend(bChess,"\nOpening_Files˸ partial corruption\nEndgame_Protocol˸ INTACT\n");
 
-  await typeText(tLore,"≻ ARCHIVED DEPLOYMENT LOG");
-  await typeText(bLore,
+  await typeClear(tLore,"≻ ARCHIVED DEPLOYMENT LOG");
+  await typeClear(bLore,
 "Confirmed_Eliminations˸ 43 357 892 souls\nPost-War Repurposing˸ Chess Domain\nLegacy_Status˸ Hallowed Artifact\n");
 
   startTelemetry();
@@ -265,20 +266,23 @@ function fluctuate(id,min,max){
   setTimeout(()=>el.classList.remove("flicker"),80);
 }
 
-function startTelemetry(){
-  setInterval(()=>{
-    fluctuate("core1",87,91);
-    fluctuate("core2",90,94);
-    fluctuate("optic1",50,54);
-    fluctuate("optic2",76,80);
-    fluctuate("accuracy",93,95);
+setInterval(()=>{
+  fluctuate("core1",87,91);
+  fluctuate("core2",90,94);
+  fluctuate("optic1",50,54);
+  fluctuate("optic2",76,80);
+  fluctuate("accuracy",93,95);
 
-    sync.style.width=(60+Math.random()*30)+"%";
-    mental.style.width=(50+Math.random()*40)+"%";
-    core.style.width=(55+Math.random()*35)+"%";
-  },1700);
-}
+  sync.style.width=(60+Math.random()*30)+"%";
+  mental.style.width=(50+Math.random()*40)+"%";
+  core.style.width=(55+Math.random()*35)+"%";
+
+  eva-status.textContent =
+    (Math.random()<0.15) ? "STATUS: DANGER" :
+    (Math.random()<0.35) ? "STATUS: CAUTION" :
+    "STATUS: NOMINAL";
+},1800);
 </script>
 
 </body>
-</html>
+                     </html>
