@@ -624,16 +624,16 @@
         async function typeSection(sectionName, titleDelay = 0, contentDelay = 500) {
             const section = SYSTEM_DATA[sectionName];
 
-            await showElement(title-${sectionName}, titleDelay);
+            await showElement(`title-${sectionName}`, titleDelay);
             await new Promise(r => setTimeout(r, 300));
 
-            const titleElement = getElement(title-${sectionName});
+            const titleElement = getElement(`title-${sectionName}`);
             titleElement.textContent = section.title;
             titleElement.classList.add('typed');
 
             await new Promise(r => setTimeout(r, contentDelay));
 
-            const contentElement = getElement(content-${sectionName});
+            const contentElement = getElement(`content-${sectionName}`);
             typeText(contentElement, section.content, 30);
         }
 
@@ -688,7 +688,7 @@
             const statusElement = getElement('evaStatus');
             if (statusElement) {
                 statusElement.classList.remove('status-nominal', 'status-caution', 'status-danger');
-                statusElement.classList.add(status-${status.toLowerCase()});
+                statusElement.classList.add(`status-${status.toLowerCase()}`);
                 statusElement.textContent = status;
             }
         }
@@ -704,12 +704,12 @@
 
             container.innerHTML = phrases.map((phrase, index) => {
                 const chars = phrase.text.split('').map((char, charIndex) => 
-                    <span class="char" style="animation-delay: ${charIndex * 0.05}s">${char}</span>
+                    `<span class="char" style="animation-delay: ${charIndex * 0.05}s">${char}</span>`
                 ).join('');
 
-                return <div class="${phrase.class}" style="margin: ${index === 0 ? '0 0 1.5rem 0' : '0'};">
+                return `<div class="${phrase.class}" style="margin: ${index === 0 ? '0 0 1.5rem 0' : '0'};">
                     <div class="vertical-text">${chars}</div>
-                </div>;
+                </div>`;
             }).join('');
         }
 
