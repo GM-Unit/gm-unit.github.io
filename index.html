@@ -1,726 +1,276 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TACTICAL COMMAND TERMINAL</title>
-    <style>
-        @keyframes crtFlicker {
-            0%, 100% { opacity: 0.97; }
-            50% { opacity: 0.94; }
-            92% { opacity: 0.98; }
-            96% { opacity: 0.93; }
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GM-Unit Terminal</title>
 
-        @keyframes scanline {
-            0% { transform: translateY(-100%); }
-            100% { transform: translateY(100vh); }
-        }
+<style>
+:root {
+  --green:#00ff41;
+  --dark:#050505;
+  --dim:#003b00;
+  --red:#ff3333;
+  --orange:#ff9500;
+  --base:14px;
+  --title:18px;
+  --doctrine:46px;
+  --doctrine-mobile:22px;
+}
 
-        @keyframes textGlitch {
-            0%, 100% { transform: translate(0); filter: hue-rotate(0deg); }
-            20% { transform: translate(-2px, 2px); filter: hue-rotate(90deg); }
-            40% { transform: translate(2px, -2px); filter: hue-rotate(180deg); }
-            60% { transform: translate(-2px, -2px); filter: hue-rotate(270deg); }
-            80% { transform: translate(2px, 2px); filter: hue-rotate(360deg); }
-        }
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:black;
+  color:var(--green);
+  font-family:monospace;
+  overflow-x:hidden;
+}
 
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
+body::after{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:rgba(255,255,255,.03);
+  animation:flicker 3s infinite;
+  pointer-events:none;
+}
 
-        @keyframes barFluctuate {
-            0%, 100% { width: var(--target-width); }
-            50% { width: var(--next-width); }
-        }
+@keyframes flicker{0%,97%{opacity:0}98%{opacity:.15}100%{opacity:0}}
 
-        @keyframes bootFade {
-            0% { opacity: 1; }
-            70% { opacity: 1; }
-            100% { opacity: 0; pointer-events: none; }
-        }
+.container{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:24px;
+  padding:24px;
+}
 
-        @keyframes glitchFlash {
-            0%, 100% { color: #00ff99; text-shadow: 0 0 10px #00ff99; }
-            25% { color: #ff0000; text-shadow: 0 0 20px #ff0000; }
-            50% { color: #ff0000; text-shadow: 0 0 15px #ff0000, 0 0 30px #ff0000; }
-            75% { color: #ff0000; text-shadow: 0 0 25px #ff0000; }
-        }
+.left{
+  max-width:640px;
+}
 
-        @keyframes pulseGlow {
-            0%, 100% { text-shadow: 0 0 8px currentColor; }
-            50% { text-shadow: 0 0 15px currentColor, 0 0 25px currentColor; }
-        }
+.section{margin-bottom:20px}
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+.section-title{
+  font-size:var(--title);
+  letter-spacing:2px;
+  min-height:1.4em;
+}
 
-        html, body {
-            height: 100%;
-            overflow: hidden;
-        }
+.section-content{
+  padding-left:12px;
+  border-left:2px solid var(--dim);
+  white-space:pre-wrap;
+  min-height:5em;
+}
 
-        body {
-            background: #000;
-            color: #00ff99;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 14px;
-            line-height: 1.4;
-            text-transform: uppercase;
-            -webkit-font-smoothing: none;
-            image-rendering: pixelated;
-        }
+.cursor::after{
+  content:"█";
+  animation:blink 1s infinite;
+}
 
-        .crt-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 9999;
-            background: repeating-linear-gradient(
-                0deg,
-                rgba(0, 0, 0, 0.15),
-                rgba(0, 0, 0, 0.15) 1px,
-                transparent 1px,
-                transparent 2px
-            );
-            animation: crtFlicker 0.1s infinite;
-        }
+@keyframes blink{50%{opacity:0}}
 
-        .screen-glow {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 9998;
-            background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 255, 153, 0.03) 50%, transparent 100%);
-        }
+#boot{min-height:10em}
 
-        .boot-sequence {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            z-index: 10000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            animation: bootFade 1s ease-in forwards;
-            animation-delay: 8s;
-        }
+.right{
+  display:flex;
+  gap:20px;
+}
 
-        .boot-text {
-            font-size: 24px;
-            line-height: 2;
-            text-align: left;
-        }
+#doctrine{
+  font-size:var(--doctrine);
+  line-height:1.1;
+  white-space:pre;
+  opacity:0;
+  transition:opacity 1s;
+}
 
-        .boot-line {
-            opacity: 0;
-            transform: translateY(10px);
-        }
+.doctrine-red{color:var(--red)}
 
-        .main-container {
-            display: flex;
-            height: 100vh;
-            padding: 20px;
-            gap: 40px;
-            position: relative;
-            z-index: 1;
-        }
+#eva{
+  width:260px;
+  font-size:12px;
+  opacity:0;
+  transition:opacity 1s;
+}
 
-        .left-column {
-            flex: 0 0 62%;
-            max-width: 62%;
-            overflow-y: auto;
-            padding-right: 20px;
-            scrollbar-width: none;
-        }
+.bar{height:6px;background:rgba(0,255,65,.15)}
+.fill{height:100%;background:rgba(0,255,65,.8)}
 
-        .left-column::-webkit-scrollbar {
-            display: none;
-        }
+#eva-status{
+  margin-top:14px;
+  text-align:right;
+}
 
-        .right-column {
-            flex: 0 0 35%;
-            max-width: 35%;
-            display: flex;
-            flex-direction: column;
-            gap: 30px;
-        }
+.danger{color:var(--red)}
+.caution{color:var(--orange)}
 
-        .doctrine-container {
-            position: fixed;
-            right: 40px;
-            top: 50%;
-            transform: translateY(-50%);
-            z-index: 100;
-        }
-
-        .doctrine-text {
-            font-size: 48px;
-            font-weight: bold;
-            letter-spacing: 8px;
-            display: none;
-        }
-
-        .doctrine-text.active {
-            display: block;
-        }
-
-        .doctrine-text.glitching {
-            animation: glitchFlash 0.15s ease-in-out infinite, textGlitch 0.1s ease-in-out infinite;
-        }
-
-        .vertical-phrase {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            line-height: 1.2;
-        }
-
-        .vertical-phrase span {
-            min-width: 28px;
-            text-align: center;
-        }
-
-        .eva-panel {
-            position: fixed;
-            right: 40px;
-            bottom: 40px;
-            width: 320px;
-            border: 1px solid #00ff99;
-            padding: 15px;
-            background: rgba(0, 20, 10, 0.8);
-            display: none;
-        }
-
-        .eva-panel.active {
-            display: block;
-        }
-
-        .eva-title {
-            font-size: 12px;
-            margin-bottom: 12px;
-            border-bottom: 1px solid #00ff99;
-            padding-bottom: 8px;
-        }
-
-        .eva-bars {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .eva-bar-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .eva-bar-label {
-            font-size: 10px;
-            min-width: 100px;
-        }
-
-        .eva-bar-track {
-            flex: 1;
-            height: 12px;
-            background: rgba(0, 50, 25, 0.5);
-            border: 1px solid #00ff99;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .eva-bar-fill {
-            height: 100%;
-            background: #00ff99;
-            transition: width 0.5s ease-out, background-color 0.3s;
-            box-shadow: 0 0 8px currentColor;
-        }
-
-        .eva-bar-value {
-            font-size: 11px;
-            min-width: 45px;
-            text-align: right;
-        }
-
-        .eva-status {
-            margin-top: 15px;
-            text-align: center;
-            font-size: 14px;
-            animation: blink 2s ease-in-out infinite;
-        }
-
-        .terminal-section {
-            margin-bottom: 25px;
-        }
-
-        .section-title {
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 8px;
-            border-bottom: 1px solid #00ff99;
-            padding-bottom: 4px;
-        }
-
-        .section-content {
-            font-size: 13px;
-            line-height: 1.6;
-            white-space: pre-wrap;
-        }
-
-        .section-content span {
-            display: block;
-        }
-
-        .telemetry-value {
-            display: inline-block;
-            min-width: 50px;
-            text-align: right;
-            transition: color 0.1s;
-        }
-
-        .telemetry-value.changing {
-            text-shadow: 0 0 10px currentColor;
-        }
-
-        .status-nominal { color: #00ff99; }
-        .status-caution { color: #ffaa00; }
-        .status-danger { color: #ff0000; }
-
-        @media (max-width: 900px) {
-            .main-container {
-                flex-direction: column;
-                padding: 15px;
-                gap: 20px;
-            }
-
-            .left-column {
-                flex: 1;
-                max-width: 90%;
-                overflow-y: auto;
-            }
-
-            .right-column {
-                display: none;
-            }
-
-            .doctrine-container {
-                right: 15px;
-                top: 30%;
-            }
-
-            .doctrine-text {
-                font-size: 22px;
-                letter-spacing: 4px;
-            }
-
-            .vertical-phrase {
-                gap: 6px;
-            }
-
-            .vertical-phrase span {
-                min-width: 14px;
-            }
-
-            .eva-panel {
-                right: 15px;
-                bottom: 20px;
-                width: calc(100% - 30px);
-                max-width: 320px;
-            }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .terminal-section {
-            animation: fadeIn 0.3s ease-out forwards;
-        }
-    </style>
+@media(max-width:900px){
+  .container{grid-template-columns:1fr}
+  .right{order:-1}
+  #doctrine{font-size:var(--doctrine-mobile)}
+}
+</style>
 </head>
+
 <body>
-    <div class="crt-overlay"></div>
-    <div class="screen-glow"></div>
+<div class="container">
 
-    <div class="boot-sequence" id="bootSequence">
-        <div class="boot-text" id="bootText"></div>
-    </div>
+<div class="left">
+  <div id="boot" class="cursor"></div>
 
-    <div class="main-container" id="mainContainer" style="opacity: 0;">
-        <div class="left-column" id="leftColumn">
-            <!-- Sections will be populated by JavaScript -->
-        </div>
-    </div>
+  <div class="section">
+    <div id="t-cyber" class="section-title"></div>
+    <div id="c-cyber" class="section-content"></div>
+  </div>
 
-    <div class="doctrine-container" id="doctrineContainer">
-        <div class="doctrine-text active" id="doctrineIronFortress">
-            <div class="vertical-phrase">
-                <span>I</span><span>F</span>
-                <span>R</span><span>O</span>
-                <span>O</span><span>R</span>
-                <span>N</span><span>T</span>
-                <span>&nbsp;</span><span>R</span>
-                <span>&nbsp;</span><span>E</span>
-                <span>&nbsp;</span><span>S</span>
-                <span>&nbsp;</span><span>S</span>
-            </div>
-        </div>
-        <div class="doctrine-text" id="doctrineNoSurvivors">
-            <div class="vertical-phrase">
-                <span>N</span><span>S</span>
-                <span>O</span><span>U</span>
-                <span>&nbsp;</span><span>R</span>
-                <span>&nbsp;</span><span>V</span>
-                <span>&nbsp;</span><span>I</span>
-                <span>&nbsp;</span><span>V</span>
-                <span>&nbsp;</span><span>O</span>
-                <span>&nbsp;</span><span>S</span>
-            </div>
-        </div>
-    </div>
+  <div class="section">
+    <div id="t-tc" class="section-title"></div>
+    <div id="c-tc" class="section-content"></div>
+  </div>
 
-    <div class="eva-panel" id="evaPanel">
-        <div class="eva-title">/// EVA STATUS ///</div>
-        <div class="eva-bars">
-            <div class="eva-bar-row">
-                <div class="eva-bar-label">SYNC RATIO</div>
-                <div class="eva-bar-track">
-                    <div class="eva-bar-fill" id="syncFill" style="width: 87%;"></div>
-                </div>
-                <div class="eva-bar-value" id="syncValue">87%</div>
-            </div>
-            <div class="eva-bar-row">
-                <div class="eva-bar-label">MENTAL STABILITY</div>
-                <div class="eva-bar-track">
-                    <div class="eva-bar-fill" id="mentalFill" style="width: 92%;"></div>
-                </div>
-                <div class="eva-bar-value" id="mentalValue">92%</div>
-            </div>
-            <div class="eva-bar-row">
-                <div class="eva-bar-label">CORE PRESSURE</div>
-                <div class="eva-bar-track">
-                    <div class="eva-bar-fill" id="pressureFill" style="width: 78%;"></div>
-                </div>
-                <div class="eva-bar-value" id="pressureValue">78%</div>
-            </div>
-        </div>
-        <div class="eva-status" id="evaStatus">STATUS: NOMINAL</div>
-    </div>
+  <div class="section">
+    <div id="t-frame" class="section-title"></div>
+    <div id="c-frame" class="section-content"></div>
+  </div>
 
-    <script>
-        // Terminal sections data
-        const terminalSections = [
-            {
-                title: "CYBERNETIC SYSTEMS",
-                content: [
-                    "Core_001: <span class='telemetry' data-min='67' data-max='94'>87%</span>",
-                    "Core_002: <span class='telemetry' data-min='52' data-max='89'>73%</span>",
-                    "Runtime: 2847:12:33:41",
-                    "Firmware: v4.2.1-EXODUS",
-                    "Status: ALL SYSTEMS NOMINAL"
-                ]
-            },
-            {
-                title: "TC UNIT",
-                content: [
-                    "Organic pilots: 1/1 CONNECTED",
-                    "Prediction deviation: 0.7%",
-                    "Warning: ELEVATED THREAT INDICATORS",
-                    "Strategic recognition: CLASS-ALPHA"
-                ]
-            },
-            {
-                title: "FRAME & SENSORS",
-                content: [
-                    "Optic_001: <span class='telemetry' data-min='88' data-max='99'>95%</span>",
-                    "Optic_002: <span class='telemetry' data-min='82' data-max='98'>91%</span>",
-                    "Hydraulics: PRESSURE STABLE",
-                    "Mobility delay: 0.003ms"
-                ]
-            },
-            {
-                title: "CHESS OPERATIONS",
-                content: [
-                    "Targeting accuracy: <span class='telemetry' data-min='94' data-max='99'>97%</span>",
-                    "Opening files: OPTIMIZED",
-                    "Endgame protocol: DEPLOYED"
-                ]
-            },
-            {
-                title: "ARCHIVED DEPLOYMENT LOG",
-                content: [
-                    "Kill count: 847,293",
-                    "Post-war repurposing: AUTHORIZED",
-                    "Legacy status: OPERATIONAL"
-                ]
-            }
-        ];
+  <div class="section">
+    <div id="t-chess" class="section-title"></div>
+    <div id="c-chess" class="section-content"></div>
+  </div>
 
-        // Typing animation
-        function typeText(element, text, speed = 30, callback) {
-            let i = 0;
-            element.style.opacity = '1';
-            function type() {
-                if (i < text.length) {
-                    element.textContent += text.charAt(i);
-                    i++;
-                    setTimeout(type, speed);
-                } else if (callback) {
-                    setTimeout(callback, 200);
-                }
-            }
-            type();
-        }
+  <div class="section">
+    <div id="t-log" class="section-title"></div>
+    <div id="c-log" class="section-content"></div>
+  </div>
+</div>
 
-        // Boot sequence
-        function runBootSequence() {
-            const bootLines = [
-                "SYSTEM BOOT",
-                "INITIALIZING CORES",
-                "LOADING STRATEGIC MATRICES",
-                "SYNCHRONIZING ENDGAME TABLES",
-                "WARNINGS DETECTED",
-                "SYSTEM ONLINE"
-            ];
+<div class="right">
+  <div id="doctrine"></div>
 
-            const bootText = document.getElementById('bootText');
-            let lineIndex = 0;
+  <div id="eva">
+    SYNC RATIO
+    <div class="bar"><div id="sync" class="fill"></div></div><br>
+    MENTAL STABILITY
+    <div class="bar"><div id="mental" class="fill"></div></div><br>
+    CORE PRESSURE
+    <div class="bar"><div id="pressure" class="fill"></div></div>
 
-            function showNextLine() {
-                if (lineIndex < bootLines.length) {
-                    const line = document.createElement('div');
-                    line.className = 'boot-line';
-                    bootText.appendChild(line);
+    <div id="eva-status">STATUS: NOMINAL</div>
+  </div>
+</div>
 
-                    setTimeout(() => {
-                        line.style.opacity = '1';
-                        line.style.transition = 'opacity 0.3s';
-                    }, 50);
+</div>
 
-                    lineIndex++;
-                    setTimeout(showNextLine, 800);
-                }
-            }
+<script>
+/* typing */
+function type(el,text,speed=28,cb){
+  let i=0;
+  el.textContent="";
+  (function t(){
+    if(i<text.length){
+      el.textContent+=text[i++];
+      setTimeout(t,speed);
+    } else cb&&cb();
+  })();
+}
 
-            showNextLine();
+/* doctrine text */
+function doctrine(a,b){
+  let m=Math.max(a.length,b.length),o=[];
+  for(let i=0;i<m;i++)o.push((a[i]||" ")+" "+(b[i]||" "));
+  return o.join("\n");
+}
 
-            // After boot fades, show main interface
-            setTimeout(() => {
-                document.getElementById('mainContainer').style.opacity = '1';
-                document.getElementById('mainContainer').style.transition = 'opacity 1s';
-                renderTerminalSections();
-                startEVA();
-                startDoctrineGlitch();
-            }, 9000);
-        }
+/* boot */
+const bootLines=[
+"≻ SYSTEM BOOT: GM-UNIT",
+"INITIALIZING CORES",
+"LOADING STRATEGIC MATRICES",
+"SYNCHRONIZING ENDGAME TABLES",
+"WARNINGS DETECTED",
+"",
+"≻ SYSTEM ONLINE"
+];
 
-        // Render terminal sections with typing
-        function renderTerminalSections() {
-            const leftColumn = document.getElementById('leftColumn');
-            let sectionIndex = 0;
+const boot=document.getElementById("boot");
+let bi=0;
 
-            function renderNextSection() {
-                if (sectionIndex < terminalSections.length) {
-                    const section = terminalSections[sectionIndex];
-                    const sectionDiv = document.createElement('div');
-                    sectionDiv.className = 'terminal-section';
-                    sectionDiv.style.opacity = '0';
+(function bootSeq(){
+  if(bi<bootLines.length){
+    boot.textContent+=bootLines[bi++]+"\n";
+    setTimeout(bootSeq,520);
+  } else {
+    boot.classList.remove("cursor");
+    setTimeout(()=>{
+      boot.style.display="none";
+      start();
+    },600);
+  }
+})();
 
-                    const title = document.createElement('div');
-                    title.className = 'section-title';
-                    sectionDiv.appendChild(title);
+/* start */
+function start(){
+  const d=document.getElementById("doctrine");
+  const e=document.getElementById("eva");
+  d.textContent=doctrine("IRON","FORTRESS");
+  d.style.opacity=1;
+  e.style.opacity=1;
 
-                    leftColumn.appendChild(sectionDiv);
+  setInterval(()=>{
+    d.classList.add("doctrine-red");
+    d.textContent=doctrine("NO","SURVIVORS");
+    setTimeout(()=>{
+      d.classList.remove("doctrine-red");
+      d.textContent=doctrine("IRON","FORTRESS");
+    },700);
+  },12000);
 
-                    // Type title
-                    typeText(title, section.title, 40, () => {
-                        // Type content
-                        const contentDiv = document.createElement('div');
-                        contentDiv.className = 'section-content';
-                        sectionDiv.appendChild(contentDiv);
+  sections();
+  telemetry();
+}
 
-                        let contentIndex = 0;
+/* sections */
+function sections(){
+  type(t-cyber,"[ CYBERNETIC SYSTEMS ]",30,()=>{
+    type(c-cyber,
+"Core_001: 89%\nCore_002: 92%\nStatus: Suboptimal\nRuntime: 19y\nFirmware: 2006");
+  });
 
-                        function typeNextLine() {
-                            if (contentIndex < section.content.length) {
-                                const line = document.createElement('span');
-                                contentDiv.appendChild(line);
+  setTimeout(()=>type(t-tc,"[ TC UNIT ]",30,()=>{
+    type(c-tc,"Organic pilots: 621\nPrediction deviation detected\nRecognition degraded");
+  }),700);
 
-                                // Parse telemetry values
-                                let text = section.content[contentIndex];
-                                const telemetryMatch = text.match(/<span class='telemetry' data-min='(\d+)' data-max='(\d+)'>([^<]*)<\/span>/);
-                                if (telemetryMatch) {
-                                    const before = text.split('<span class="telemetry" data-min=\'\d+\' data-max=\'\d+\'>')[0];
-                                    const min = telemetryMatch[1];
-                                    const max = telemetryMatch[2];
-                                    const value = telemetryMatch[3];
-                                    line.innerHTML = before + '<span class="telemetry-value" data-min="' + min + '" data-max="' + max + '">' + value + '</span>';
-                                } else {
-                                    line.textContent = text;
-                                }
+  setTimeout(()=>type(t-frame,"[ FRAME & SENSORS ]",30,()=>{
+    type(c-frame,"Optic_001: 52%\nOptic_002: 78%\nHydraulics failing\nMobility delay +0.41s");
+  }),1400);
 
-                                contentIndex++;
-                                setTimeout(typeNextLine, 50);
-                            } else {
-                                sectionIndex++;
-                                setTimeout(renderNextSection, 500);
-                            }
-                        }
+  setTimeout(()=>type(t-chess,"[ CHESS OPERATIONS ]",30,()=>{
+    type(c-chess,"Targeting accuracy: 94%\nOpening files partial\nEndgame protocol intact");
+  }),2100);
 
-                        typeNextLine();
-                    });
+  setTimeout(()=>type(t-log,"[ ARCHIVED DEPLOYMENT LOG ]",30,()=>{
+    type(c-log,"Confirmed eliminations: 43,357,892\nRepurposed: Chess Domain\nLegacy: HALLOWED");
+  }),2800);
+}
 
-                    setTimeout(() => {
-                        sectionDiv.style.opacity = '1';
-                    }, 100);
-                } else {
-                    // All sections rendered, start telemetry updates
-                    startTelemetryUpdates();
-                }
-            }
+/* telemetry */
+function telemetry(){
+  setInterval(()=>{
+    sync.style.width=(60+Math.random()*30)+"%";
+    mental.style.width=(50+Math.random()*40)+"%";
+    pressure.style.width=(40+Math.random()*50)+"%";
 
-            renderNextSection();
-        }
+    const p=parseInt(pressure.style.width);
+    const s=document.getElementById("eva-status");
 
-        // Telemetry value updates
-        function startTelemetryUpdates() {
-            const teleValues = document.querySelectorAll('.telemetry-value');
-
-            function updateTelemetry() {
-                teleValues.forEach(el => {
-                    const min = parseInt(el.dataset.min);
-                    const max = parseInt(el.dataset.max);
-
-                    const currentText = el.textContent.replace('%', '');
-                    const currentVal = parseInt(currentText);
-                    const change = Math.floor(Math.random() * 7) - 3;
-                    let newVal = currentVal + change;
-                    newVal = Math.max(min, Math.min(max, newVal));
-
-                    el.classList.add('changing');
-                    el.textContent = newVal + '%';
-
-                    setTimeout(() => {
-                        el.classList.remove('changing');
-                    }, 150);
-                });
-            }
-
-            setInterval(updateTelemetry, 2000);
-        }
-
-        // EVA Status panel
-        function startEVA() {
-            const syncFill = document.getElementById('syncFill');
-            const syncValue = document.getElementById('syncValue');
-            const mentalFill = document.getElementById('mentalFill');
-            const mentalValue = document.getElementById('mentalValue');
-            const pressureFill = document.getElementById('pressureFill');
-            const pressureValue = document.getElementById('pressureValue');
-            const evaStatus = document.getElementById('evaStatus');
-
-            let sync = 87, mental = 92, pressure = 78;
-
-            function updateEVA() {
-                // Fluctuate values
-                sync += (Math.random() - 0.5) * 6;
-                mental += (Math.random() - 0.5) * 8;
-                pressure += (Math.random() - 0.5) * 10;
-
-                sync = Math.max(60, Math.min(99, sync));
-                mental = Math.max(55, Math.min(98, mental));
-                pressure = Math.max(40, Math.min(95, pressure));
-
-                // Update bars
-                syncFill.style.width = sync + '%';
-                syncValue.textContent = Math.round(sync) + '%';
-                mentalFill.style.width = mental + '%';
-                mentalValue.textContent = Math.round(mental) + '%';
-                pressureFill.style.width = pressure + '%';
-                pressureValue.textContent = Math.round(pressure) + '%';
-
-                // Determine status
-                let status = 'NOMINAL';
-                let statusClass = 'status-nominal';
-                let color = '#00ff99';
-
-                if (pressure > 85 || mental < 70) {
-                    status = 'DANGER';
-                    statusClass = 'status-danger';
-                    color = '#ff0000';
-                } else if (pressure > 70 || mental < 80) {
-                    status = 'CAUTION';
-                    statusClass = 'status-caution';
-                    color = '#ffaa00';
-                }
-
-                evaStatus.textContent = 'STATUS: ' + status;
-                evaStatus.className = 'eva-status ' + statusClass;
-
-                syncFill.style.backgroundColor = color;
-                syncFill.style.boxShadow = '0 0 8px ' + color;
-                mentalFill.style.backgroundColor = color;
-                mentalFill.style.boxShadow = '0 0 8px ' + color;
-                pressureFill.style.backgroundColor = color;
-                pressureFill.style.boxShadow = '0 0 8px ' + color;
-            }
-
-            // Show EVA panel
-            document.getElementById('evaPanel').classList.add('active');
-
-            setInterval(updateEVA, 1500);
-        }
-
-        // Doctrine glitch
-        function startDoctrineGlitch() {
-            const ironFortress = document.getElementById('doctrineIronFortress');
-            const noSurvivors = document.getElementById('doctrineNoSurvivors');
-
-            // Show doctrine
-            document.getElementById('doctrineContainer').style.display = 'block';
-
-            function triggerGlitch() {
-                // Random interval between 3-8 seconds
-                const delay = 3000 + Math.random() * 5000;
-
-                setTimeout(() => {
-                    // Glitch to NO SURVIVORS
-                    ironFortress.classList.remove('active');
-                    noSurvivors.classList.add('active', 'glitching');
-
-                    // Random glitch duration
-                    setTimeout(() => {
-                        noSurvivors.classList.remove('glitching');
-                        ironFortress.classList.add('active');
-                        noSurvivors.classList.remove('active');
-
-                        // Next glitch
-                        triggerGlitch();
-                    }, 400 + Math.random() * 600);
-                }, delay);
-            }
-
-            triggerGlitch();
-        }
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            runBootSequence();
-        });
-    </script>
+    s.className="";
+    if(p>85){s.textContent="STATUS: DANGER";s.classList.add("danger")}
+    else if(p>70){s.textContent="STATUS: CAUTION";s.classList.add("caution")}
+    else s.textContent="STATUS: NOMINAL";
+  },1600);
+}
+</script>
 </body>
 </html>
