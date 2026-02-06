@@ -2,58 +2,26 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>GM-UNIT</title>
+<title>GM-UNIT TERMINAL</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body {
+html, body {
   margin: 0;
-  background: #050505;
-  color: #bcbcbc;
+  background: black;
+  color: #00ff99;
   font-family: monospace;
   overflow: hidden;
 }
 
-#container {
-  display: flex;
-  height: 100vh;
-  padding: 20px;
-  box-sizing: border-box;
-  overflow-y: auto;
-}
-
-#left {
-  flex: 2;
-  min-width: 320px;
-}
-
-#right {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.section {
-  margin-bottom: 18px;
-}
-
-.title {
-  font-weight: bold;
-  margin-bottom: 6px;
-  min-height: 1em;
-}
-
-.subtext div {
-  min-height: 1em;
-}
-
+/* ---------- BOOT ---------- */
 #boot {
   position: fixed;
   inset: 0;
-  background: #050505;
-  padding: 20px;
+  padding: 24px;
+  background: black;
   z-index: 10;
+  white-space: pre-line;
 }
 
 .fade-out {
@@ -64,20 +32,40 @@ body {
   to { opacity: 0; visibility: hidden; }
 }
 
-.bigtext {
+/* ---------- LAYOUT ---------- */
+#container {
   display: flex;
-  gap: 40px;
-  font-size: 48px;
+  height: 100vh;
+  padding: 20px;
+  box-sizing: border-box;
+  visibility: hidden;
+}
+
+#left {
+  flex: 2;
+  overflow-y: auto;
+  padding-right: 20px;
+}
+
+#right {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+/* ---------- BIG WORDS ---------- */
+.big {
+  display: flex;
+  gap: 32px;
+  font-size: 42px;
   letter-spacing: 6px;
   opacity: 0;
 }
 
-.bigtext span {
-  display: block;
-}
-
-.fade-in {
-  animation: fadeIn 1.2s forwards;
+.big.fade-in {
+  animation: fadeIn 1.4s forwards;
 }
 
 @keyframes fadeIn {
@@ -95,7 +83,21 @@ body {
 
 @keyframes flicker {
   from { opacity: 1; }
-  to { opacity: 0.2; }
+  to { opacity: 0.25; }
+}
+
+/* ---------- SECTIONS ---------- */
+.section {
+  margin-bottom: 22px;
+}
+
+.title {
+  min-height: 1em;
+  margin-bottom: 6px;
+}
+
+.line {
+  min-height: 1em;
 }
 </style>
 </head>
@@ -104,55 +106,47 @@ body {
 
 <div id="boot"></div>
 
-<div id="container" style="visibility:hidden;">
+<div id="container">
   <div id="left">
 
     <div class="section">
-      <div class="title" id="cyber-title"></div>
-      <div class="subtext" id="cyber-sub">
-        <div data-text="Core_001˸ <span id='core1'>89</span>％"></div>
-        <div data-text="Core_002˸ <span id='core2'>92</span>％"></div>
-        <div data-text="Status˸ Suboptimal"></div>
-      </div>
+      <div class="title" id="t-cyber"></div>
+      <div class="line" id="cy1"></div>
+      <div class="line">Core_002˸ <span id="core2">92</span>％</div>
+      <div class="line">Status˸ Suboptimal</div>
     </div>
 
     <div class="section">
-      <div class="title" id="tc-title"></div>
-      <div class="subtext" id="tc-sub">
-        <div data-text="Piloting organic matter˸ 621"></div>
-        <div data-text="Prediction_Subroutine_086˸ deviation detected"></div>
-        <div data-text="Strategic_Recognition˸ degraded"></div>
-      </div>
+      <div class="title" id="t-tc"></div>
+      <div class="line">Piloting organic matter˸ 621</div>
+      <div class="line">Prediction_Subroutine_086˸ deviation detected</div>
+      <div class="line">Strategic_Recognition˸ degraded</div>
     </div>
 
     <div class="section">
-      <div class="title" id="frame-title"></div>
-      <div class="subtext" id="frame-sub">
-        <div data-text="Optic_001˸ <span id='optic1'>52</span>％"></div>
-        <div data-text="Optic_002˸ <span id='optic2'>78</span>％"></div>
-        <div data-text="Hydraulics˸ failing"></div>
-        <div data-text="Mobility_Delay˸ ＋0․41s"></div>
-      </div>
+      <div class="title" id="t-frame"></div>
+      <div class="line">Optic_001˸ <span id="optic1">52</span>％</div>
+      <div class="line">Optic_002˸ <span id="optic2">78</span>％</div>
+      <div class="line">Hydraulics˸ failing</div>
+      <div class="line">Mobility_Delay˸ ＋0․41s</div>
     </div>
 
     <div class="section">
-      <div class="title" id="chess-title"></div>
-      <div class="subtext" id="chess-sub">
-        <div data-text="Targeting_Accuracy˸ <span id='acc'>94</span>％"></div>
-        <div data-text="Opening_Files˸ partial corruption"></div>
-        <div data-text="Endgame_Protocol˸ INTACT"></div>
-      </div>
+      <div class="title" id="t-chess"></div>
+      <div class="line">Targeting_Accuracy˸ <span id="acc">94</span>％</div>
+      <div class="line">Opening_Files˸ partial corruption</div>
+      <div class="line">Endgame_Protocol˸ INTACT</div>
     </div>
 
   </div>
 
   <div id="right">
-    <div id="iron" class="bigtext">
+    <div id="iron" class="big">
       <span>IRON</span>
       <span>FORTRESS</span>
     </div>
 
-    <div id="survivors" class="bigtext red" style="position:absolute; display:none;">
+    <div id="survivors" class="big red" style="position:absolute; display:none;">
       <span>NO</span>
       <span>SURVIVORS</span>
     </div>
@@ -162,39 +156,32 @@ body {
 <script>
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-async function typeLine(el, text, speed = 18) {
-  el.innerHTML = "";
-  for (let c of text) {
-    el.innerHTML += c;
+async function type(el, text, speed=22) {
+  el.textContent = "";
+  for (const c of text) {
+    el.textContent += c;
     await sleep(speed);
   }
 }
 
-async function typeSub(id) {
-  const lines = document.querySelectorAll(`#${id} [data-text]`);
-  for (const line of lines) {
-    await typeLine(line, line.dataset.text);
-  }
-}
-
-// BOOT SEQUENCE
+/* ---------- BOOT ---------- */
 (async () => {
   const boot = document.getElementById("boot");
-  const bootLines = [
+  const lines = [
     "≻ SYSTEM BOOT˸ GM-UNIT",
     "initialising cores...",
     "loading strategic matrices...",
     "synchronising endgame tables...",
     "WARNING˸ anomalies detected",
-    "System_Online"
+    "SYSTEM ONLINE"
   ];
 
-  for (const l of bootLines) {
-    await typeLine(boot, boot.innerHTML + l + "<br>");
-    await sleep(200);
+  for (const l of lines) {
+    boot.textContent += l + "\n";
+    await sleep(420);
   }
 
-  await sleep(600);
+  await sleep(800);
   boot.classList.add("fade-out");
 
   await sleep(1000);
@@ -203,50 +190,42 @@ async function typeSub(id) {
   const iron = document.getElementById("iron");
   iron.classList.add("fade-in");
 
-  await sleep(2000);
+  await sleep(1800);
 
-  // NO SURVIVORS flicker
   const surv = document.getElementById("survivors");
   iron.style.display = "none";
   surv.style.display = "flex";
   surv.classList.add("flicker");
 
-  await sleep(700);
+  await sleep(900);
 
   surv.classList.remove("flicker");
   surv.style.display = "none";
   iron.style.display = "flex";
 
-  // TITLES + SUBTEXT
-  await Promise.all([
-    typeLine(cyber-title, "［CYBERNETIC SYSTEMS］"),
-    typeLine(tc-title, "［TC UNIT］"),
-    typeLine(frame-title, "［FRAME ＆ SENSORS］"),
-    typeLine(chess-title, "［CHESS OPERATIONS］")
-  ]);
+  await sleep(800);
 
   await Promise.all([
-    typeSub("cyber-sub"),
-    typeSub("tc-sub"),
-    typeSub("frame-sub"),
-    typeSub("chess-sub")
+    type(t-cyber, "［CYBERNETIC SYSTEMS］"),
+    type(t-tc, "［TC UNIT］"),
+    type(t-frame, "［FRAME ＆ SENSORS］"),
+    type(t-chess, "［CHESS OPERATIONS］")
   ]);
 })();
 
-// PERCENT FLICKER
+/* ---------- FLICKER NUMBERS ---------- */
 function flicker(id, min, max) {
   setInterval(() => {
     document.getElementById(id).textContent =
-      Math.floor(Math.random() * (max - min) + min);
-  }, 300 + Math.random() * 300);
+      Math.floor(Math.random()*(max-min)+min);
+  }, 800 + Math.random()*600);
 }
 
-flicker("core1", 85, 92);
-flicker("core2", 88, 95);
-flicker("optic1", 48, 56);
-flicker("optic2", 72, 82);
-flicker("acc", 91, 96);
+flicker("core2", 88, 94);
+flicker("optic1", 50, 55);
+flicker("optic2", 75, 82);
+flicker("acc", 92, 96);
 </script>
 
 </body>
-  </html>
+</html>
