@@ -499,12 +499,12 @@
         // Typing function
         function typeText(element, text, speed = 30, cursor = false) {
             return new Promise(resolve => {
-                element.textContent = '';
+                element.innerHTML = '';
                 let index = 0;
                 
                 function type() {
                     if (index < text.length) {
-                        element.textContent = text.substring(0, index + 1);
+                        element.innerHTML = text.substring(0, index + 1);
                         index++;
                         setTimeout(type, speed);
                     } else {
