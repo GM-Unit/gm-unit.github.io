@@ -178,11 +178,12 @@
             line-height: 1.2;
             opacity: 0;
             transition: opacity 1s ease;
-            text-align: right;
+            text-align: center;
             writing-mode: vertical-rl;
-            transform: rotate(180deg);
+            transform: none;
             height: auto;
             max-height: 400px;
+            white-space: nowrap;
         }
 
         .iron-fortress-container.visible {
@@ -196,8 +197,13 @@
 
         .vertical-text {
             display: inline-block;
-            text-align: left;
-            width: 2.5em;
+            writing-mode: vertical-lr;
+            text-orientation: upright;
+            letter-spacing: 0.2em;
+            whitespace: nowrap;
+            frontweight: bold;
+            text-align: center;
+            width: auto;
         }
 
         .no-survivors {
