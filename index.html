@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -140,7 +139,7 @@
         .right-panel {
             position: fixed;
             right: 40px;
-            top: 50%;
+            top: 25%;
             transform: translateY(-50%);
             text-align: right;
             z-index: 100;
@@ -502,334 +501,299 @@
                 ]
             },
             'frame-sensors': {
-                title: 'FRAME SENSORS',
+                title: 'FRAME & SENSORS',
                 content: [
-                    'Gyro_001: <span id="gyro-001">94</span>% // Balance control',
-                    'Gyro_002: <span id="gyro-002">91</span>% // Orientation tracking',
-                    'Vibro_Sensors: ACTIVE // Terrain analysis'
+                    'Mobility_Delay: <span id="mobility-delay">23</span>ms // Motor response',
+                    'Targeting_Accuracy: <span id="targeting-accuracy">97</span>% // Precision index'
                 ]
             },
             'chess-operations': {
                 title: 'CHESS OPERATIONS',
                 content: [
-                    'Board_State: CHECKMATE_THREAT // Final phase',
-                    'Enemy_Units: 2 // Command and Artillery',
-                    'Friendly_Units: 1 // Combat capable'
+                    'Depth_Search: 18 plies // Full calculation',
+                    'Branch_Factor: ≈42 // Position evaluation',
+                    'Eval_Function: OPTIMIZED // Win probability'
                 ]
             },
             'archived-log': {
                 title: 'ARCHIVED DEPLOYMENT LOG',
                 content: [
-                    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
-                    'OPERATION: IRON FORTRESS',
-                    'STATUS: DEPLOYED',
-                    'TIME: 0347 HOURS',
-                    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
+                    '08:00:00 // Unit activation confirmed',
+                    '08:00:15 // Neural sync established',
+                    '08:00:23 // Tactical parameters loaded',
+                    '08:00:31 // Combat protocols engaged',
+                    '08:00:47 // WARNING: Mobility delay detected'
                 ]
             }
         };
 
-        // Dynamic values for glitch effect
-        const dynamicIds = ['core-001', 'core-002', 'optic-001', 'optic-002', 'gyro-001', 'gyro-002'];
-        const dynamicRanges = {
-            'core-001': { min: 85, max: 92 },
-            'core-002': { min: 88, max: 95 },
-            'optic-001': { min: 75, max: 82 },
-            'optic-002': { min: 80, max: 88 },
-            'gyro-001': { min: 90, max: 96 },
-            'gyro-002': { min: 88, max: 94 }
-        };
-
-        // Boot sequence messages
-        const bootMessages = [
-            '≻ SYSTEM BOOT',
-            '≻ KERNEL: LOADING...',
-            '≻ HARDWARE: CHECK',
-            '≻ NETWORK: CONNECTING...',
-            '≻ SYNC: ESTABLISHING...',
-            '≻ SYSTEM ONLINE'
-        ];
-
-        // Fill section titles
-        Object.keys(sectionsData).forEach(sectionId => {
-            const section = document.getElementById(sectionId);
-            if (section) {
-                const titleEl = section.querySelector('.section-title');
-                if (titleEl) {
-                    titleEl.textContent = sectionsData[sectionId].title;
+        // Typing function
+        async function typeText(element, text, speed = 30) {
+            const cursor = element.querySelector('.cursor') || document.createElement('span');
+            cursor.className = 'cursor';
+            cursor.innerHTML = '';
+            
+            if (!element.querySelector('.cursor')) {
+                element.appendChild(cursor);
+            }
+            
+            // Parse HTML spans and regular text
+            const parts = [];
+            let lastIndex = 0;
+            const regex = /<span[^>]*id="([^"]*)"[^>]*>([^<]*)<\/span>/g;
+            let match;
+            
+            while ((match = regex.exec(text)) !== null) {
+                // Add any text before this span
+                if (match.index > lastIndex) {
+                    parts.push({ type: 'text', content: text.substring(lastIndex, match.index) });
                 }
+                parts.push({ type: 'html', id: match[1], text: match[2] });
+                lastIndex = regex.lastIndex;
             }
-        });
-
-        // Typing effect function
-        async function typeText(element, text, cursorElement, speed = 30) {
-            // Clear any existing content
-            if (element.dataset.originalContent === undefined) {
-                element.dataset.originalContent = element.innerHTML;
+            
+            // Add remaining text after last span
+            if (lastIndex < text.length) {
+                parts.push({ type: 'text', content: text.substring(lastIndex) });
             }
-            element.innerHTML = '';
             
-            let i = 0;
-            
-            function typeChar() {
-                if (i < text.length) {
-                    const char = text.charAt(i);
-                    element.innerHTML += char;
-                    i++;
-                    setTimeout(typeChar, speed);
-                } else if (cursorElement) {
-                    cursorElement.style.display = 'inline-block';
+            // Type each part
+            for (const part of parts) {
+                if (part.type === 'html') {
+                    // Insert span immediately with its content
+                    const span = document.createElement('span');
+                    span.id = part.id;
+                    span.textContent = part.text;
+                    element.insertBefore(span, cursor);
+                    await delay(speed * 2);
+                } else {
+                    // Type character by character into the element before cursor
+                    for (let i = 0; i < part.content.length; i++) {
+                        // Insert text node before cursor
+                        const textNode = document.createTextNode(part.content[i]);
+                        element.insertBefore(textNode, cursor);
+                        await delay(speed);
+                    }
                 }
             }
             
-            typeChar();
-            return new Promise(resolve => {
-                setTimeout(resolve, text.length * speed + 200);
-            });
+            return;
         }
 
-        // Random number generator
-        function randomInRange(min, max) {
-            return Math.floor(Math.random() * (max - min + 1)) + min;
-        }
-
-        // Update dynamic values with glitch effect
-        function triggerGlitch() {
-            // Apply glitch class to doctrine
-            const doctrine = document.getElementById('doctrine');
-            doctrine.classList.add('glitch');
-            
-            // Randomize values
-            dynamicIds.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) {
-                    const range = dynamicRanges[id];
-                    el.textContent = randomInRange(range.min, range.max);
-                }
-            });
-
-            // Add glitch effect to EVA panel
-            const evaPanel = document.getElementById('eva-panel');
-            evaPanel.style.opacity = '0.5';
-            evaPanel.style.filter = 'hue-rotate(90deg)';
-
-            // Randomize EVA bars
-            ['sync-bar', 'mental-bar', 'core-bar'].forEach((barId, index) => {
-                const bar = document.getElementById(barId);
-                const valueEl = document.getElementById(barId.replace('bar', 'value'));
-                const statusEl = document.getElementById(barId.replace('bar', 'status'));
-                
-                const newValue = randomInRange(40, 95);
-                bar.style.setProperty('--bar-width', newValue + '%');
-                valueEl.textContent = newValue + '%';
-                
-                // Randomize status
-                const statuses = ['nominal', 'caution', 'danger'];
-                const randomStatus = statuses[Math.floor(Math.random() * 3)];
-                statusEl.className = 'eva-status ' + randomStatus;
-                statusEl.textContent = randomStatus.toUpperCase();
-            });
-
-            // Reset after random time
-            setTimeout(() => {
-                doctrine.classList.remove('glitch');
-                evaPanel.style.opacity = '1';
-                evaPanel.style.filter = 'none';
-                
-                // Reset EVA panel
-                const syncBar = document.getElementById('sync-bar');
-                const mentalBar = document.getElementById('mental-bar');
-                const coreBar = document.getElementById('core-bar');
-                
-                syncBar.style.setProperty('--bar-width', '94%');
-                mentalBar.style.setProperty('--bar-width', '89%');
-                coreBar.style.setProperty('--bar-width', '76%');
-                
-                document.getElementById('sync-value').textContent = '94%';
-                document.getElementById('sync-status').textContent = 'NOMINAL';
-                document.getElementById('sync-status').className = 'eva-status nominal';
-                
-                document.getElementById('mental-value').textContent = '89%';
-                document.getElementById('mental-status').textContent = 'NOMINAL';
-                document.getElementById('mental-status').className = 'eva-status nominal';
-                
-                document.getElementById('core-value').textContent = '76%';
-                document.getElementById('core-status').textContent = 'NOMINAL';
-                document.getElementById('core-status').className = 'eva-status nominal';
-
-                // Reset dynamic values
-                const core001 = document.getElementById('core-001');
-                const core002 = document.getElementById('core-002');
-                const optic001 = document.getElementById('optic-001');
-                const optic002 = document.getElementById('optic-002');
-                const gyro001 = document.getElementById('gyro-001');
-                const gyro002 = document.getElementById('gyro-002');
-                
-                if (core001) core001.textContent = '89';
-                if (core002) core002.textContent = '92';
-                if (optic001) optic001.textContent = '78';
-                if (optic002) optic002.textContent = '85';
-                if (gyro001) gyro001.textContent = '94';
-                if (gyro002) gyro002.textContent = '91';
-            }, randomInRange(800, 2000));
-        }
-
-        // Delay helper
         function delay(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
         }
 
-        // Create boot lines
-        function createBootLine(text) {
-            const line = document.createElement('div');
-            line.className = 'boot-line';
-            line.innerHTML = text;
-            return line;
-        }
-
-        // Boot sequence function
+        // Boot sequence - Stage 1: Just BOOT
         async function runBootSequence() {
             const bootSequence = document.getElementById('boot-sequence');
-            
-            // Create all boot lines
-            for (let i = 1; i < bootMessages.length; i++) {
-                const line = createBootLine(bootMessages[i]);
-                bootSequence.appendChild(line);
-            }
-            
-            // Show boot line 1 with cursor
             const bootLine1 = document.getElementById('boot-line-1');
+            
+            // Stage 1: BOOT with cursor
+            await delay(500);
             bootLine1.classList.add('visible');
             await delay(800);
             
-            // Type each boot line
-            const bootLines = bootSequence.querySelectorAll('.boot-line');
-            for (let i = 1; i < bootLines.length; i++) {
-                bootLines[i].classList.add('visible');
+            // Type "≻ SYSTEM BOOT" if not already visible
+            bootLine1.innerHTML = '≻ SYSTEM BOOT: GM-UNIT <span class="cursor"></span>';
+            await typeText(bootLine1, '≻ SYSTEM BOOT: GM-UNIT ', 30);
+            await delay(500);
+            
+            // Show more boot lines
+            const bootLines = [
+                'GRANDMASTER CALCULATION-UNIT',
+                'Initializing cores...',
+                'Loading strategic matrices...',
+                'Synchronizing endgame tables...',
+                'Warnings detected',
+                '≻ SYSTEM ONLINE'
+            ];
+            
+            for (const line of bootLines) {
+                const newLine = document.createElement('div');
+                newLine.className = 'boot-line';
+                newLine.innerHTML = line + '<span class="cursor"></span>';
+                bootSequence.appendChild(newLine);
                 await delay(300);
+                newLine.classList.add('visible');
+                await delay(400);
             }
             
-            // Wait after SYSTEM ONLINE
-            await delay(1500);
+            await delay(1000);
             
             // Fade out all boot lines
-            for (const line of bootLines) {
+            const allBootLines = bootSequence.querySelectorAll('.boot-line');
+            for (const line of allBootLines) {
                 line.classList.remove('visible');
                 line.classList.add('faded');
             }
             
             await delay(600);
             
-            // Fade in IRON FORTRESS
+            // Stage 2: Fade in IRON FORTRESS
             const doctrine = document.getElementById('doctrine');
             doctrine.classList.add('fading-in');
             
             await delay(1500);
             
-            // Show EVA panel
+            // Stage 3: Show EVA panel
             const evaPanel = document.getElementById('eva-panel');
             evaPanel.classList.add('visible');
             
             await delay(1500);
             
-            // Start typing main content
+            // Start main content typing
+            bootSequence.innerHTML = '';
             document.getElementById('main-content').classList.remove('hidden');
             
-            // Type each section
-            const sections = ['cybernetic-systems', 'tc-unit', 'frame-sensors', 'chess-operations', 'archived-log'];
+            await typeSectionTitles();
+            await typeAllContent();
             
-            for (const sectionId of sections) {
-                const section = document.getElementById(sectionId);
-                if (!section) continue;
-                
-                const contentElements = section.querySelectorAll('.section-content');
-                const titleElement = section.querySelector('.section-title');
-                
-                if (titleElement && sectionId !== 'archived-log') {
-                    await typeText(titleElement, sectionsData[sectionId].title, null, 25);
-                    await delay(200);
-                }
-                
-                for (let i = 0; i < contentElements.length; i++) {
-                    const cursor = document.createElement('span');
-                    cursor.className = 'cursor';
-                    cursor.style.display = 'none';
-                    contentElements[i].appendChild(cursor);
-                    
-                    await typeText(contentElements[i], sectionsData[sectionId].content[i], cursor, 20);
-                    
-                    if (i < contentElements.length - 1) {
-                        await delay(150);
-                    }
-                }
-                
-                // Random delay between sections (except last)
-                if (sections.indexOf(sectionId) < sections.length - 1) {
-                    await delay(randomInRange(500, 1500));
-                }
-            }
+            // Start EVA updates after content is typed
+            startEVAUpdates();
             
-            // Start glitch cycle after content finishes
+            // Start doctrine glitch after everything is loaded
             await delay(2000);
-            startGlitchCycle();
+            startDoctrineGlitch();
         }
 
-        // Random glitch cycle
-        function startGlitchCycle() {
-            function scheduleGlitch() {
-                const delay = randomInRange(5000, 12000);
-                setTimeout(() => {
-                    triggerGlitch();
-                    scheduleGlitch();
-                }, delay);
-            }
-            scheduleGlitch();
-        }
-
-        // Update EVA values periodically
-        function updateEVA() {
-            const bars = ['sync-bar', 'mental-bar', 'core-bar'];
-            const ranges = [
-                { min: 90, max: 98 },
-                { min: 85, max: 95 },
-                { min: 70, max: 85 }
-            ];
+        async function typeSectionTitles() {
+            const order = ['cybernetic-systems', 'tc-unit', 'frame-sensors', 'chess-operations', 'archived-log'];
             
-            bars.forEach((barId, index) => {
-                const bar = document.getElementById(barId);
-                const valueEl = document.getElementById(barId.replace('bar', 'value'));
-                const statusEl = document.getElementById(barId.replace('bar', 'status'));
-                
-                const range = ranges[index];
-                const currentValue = parseInt(valueEl.textContent);
-                const change = randomInRange(-3, 3);
-                let newValue = currentValue + change;
-                
-                newValue = Math.max(range.min, Math.min(range.max, newValue));
-                
-                bar.style.setProperty('--bar-width', newValue + '%');
-                valueEl.textContent = newValue + '%';
-                
-                // Update status based on value
-                if (newValue >= 85) {
-                    statusEl.className = 'eva-status nominal';
-                    statusEl.textContent = 'NOMINAL';
-                } else if (newValue >= 60) {
-                    statusEl.className = 'eva-status caution';
-                    statusEl.textContent = 'CAUTION';
-                } else {
-                    statusEl.className = 'eva-status danger';
-                    statusEl.textContent = 'DANGER';
-                }
-            });
+            for (const id of order) {
+                const section = document.getElementById(id);
+                const title = section.querySelector('.section-title');
+                await typeText(title, sectionsData[id].title, 20);
+            }
         }
 
-        // Start the boot sequence when page loads
+        async function typeAllContent() {
+            const order = ['cybernetic-systems', 'tc-unit', 'frame-sensors', 'chess-operations', 'archived-log'];
+            
+            for (const id of order) {
+                const section = document.getElementById(id);
+                const contents = section.querySelectorAll('.section-content');
+                
+                for (let i = 0; i < contents.length; i++) {
+                    await typeText(contents[i], sectionsData[id].content[i], 15);
+                    await delay(150);
+                }
+            }
+        }
+
+        function startEVAUpdates() {
+            setInterval(() => {
+                // Sync Ratio - stays mostly stable around 94%
+                const syncBar = document.getElementById('sync-bar');
+                const syncValue = document.getElementById('sync-value');
+                const syncStatus = document.getElementById('sync-status');
+                const syncWidth = 90 + Math.random() * 8;
+                syncBar.style.width = syncWidth + '%';
+                syncValue.textContent = Math.floor(syncWidth) + '%';
+                
+                if (syncWidth < 85) {
+                    syncStatus.textContent = 'CAUTION';
+                    syncStatus.className = 'eva-status caution';
+                } else {
+                    syncStatus.textContent = 'NOMINAL';
+                    syncStatus.className = 'eva-status nominal';
+                }
+                
+                // Mental Stability - fluctuates
+                const mentalBar = document.getElementById('mental-bar');
+                const mentalValue = document.getElementById('mental-value');
+                const mentalStatus = document.getElementById('mental-status');
+                const mentalWidth = 75 + Math.random() * 20;
+                mentalBar.style.width = mentalWidth + '%';
+                mentalValue.textContent = Math.floor(mentalWidth) + '%';
+                
+                if (mentalWidth < 80) {
+                    mentalStatus.textContent = 'CAUTION';
+                    mentalStatus.className = 'eva-status caution';
+                } else if (mentalWidth < 60) {
+                    mentalStatus.textContent = 'DANGER';
+                    mentalStatus.className = 'eva-status danger';
+                } else {
+                    mentalStatus.textContent = 'NOMINAL';
+                    mentalStatus.className = 'eva-status nominal';
+                }
+                
+                // Core Pressure - increases gradually
+                const coreBar = document.getElementById('core-bar');
+                const coreValue = document.getElementById('core-value');
+                const coreStatus = document.getElementById('core-status');
+                let coreWidth = parseFloat(coreBar.style.getPropertyValue('--bar-width')) || 76;
+                coreWidth = Math.min(coreWidth + 0.1, 98);
+                coreBar.style.setProperty('--bar-width', coreWidth + '%');
+                coreBar.style.width = coreWidth + '%';
+                coreValue.textContent = Math.floor(coreWidth) + '%';
+                
+                if (coreWidth > 90) {
+                    coreStatus.textContent = 'DANGER';
+                    coreStatus.className = 'eva-status danger';
+                } else if (coreWidth > 80) {
+                    coreStatus.textContent = 'CAUTION';
+                    coreStatus.className = 'eva-status caution';
+                } else {
+                    coreStatus.textContent = 'NOMINAL';
+                    coreStatus.className = 'eva-status nominal';
+                }
+            }, 2000);
+            
+            // Update dynamic values more frequently for flicker effect
+            setInterval(() => {
+                const core001 = document.getElementById('core-001');
+                const core002 = document.getElementById('core-002');
+                const optic001 = document.getElementById('optic-001');
+                const optic002 = document.getElementById('optic-002');
+                const mobilityDelay = document.getElementById('mobility-delay');
+                const targetingAccuracy = document.getElementById('targeting-accuracy');
+                
+                if (core001) {
+                    const val = 85 + Math.floor(Math.random() * 10);
+                    core001.textContent = val;
+                }
+                if (core002) {
+                    const val = 88 + Math.floor(Math.random() * 10);
+                    core002.textContent = val;
+                }
+                if (optic001) {
+                    const val = 70 + Math.floor(Math.random() * 20);
+                    optic001.textContent = val;
+                }
+                if (optic002) {
+                    const val = 75 + Math.floor(Math.random() * 20);
+                    optic002.textContent = val;
+                }
+                if (mobilityDelay) {
+                    const val = 18 + Math.floor(Math.random() * 15);
+                    mobilityDelay.textContent = val;
+                }
+                if (targetingAccuracy) {
+                    const val = 92 + Math.floor(Math.random() * 6);
+                    targetingAccuracy.textContent = val;
+                }
+            }, 3000);
+        }
+
+        function startDoctrineGlitch() {
+            setInterval(() => {
+                const doctrine = document.getElementById('doctrine');
+                const shouldGlitch = Math.random() < 0.3;
+                
+                if (shouldGlitch) {
+                    doctrine.classList.add('glitch');
+                    
+                    setTimeout(() => {
+                        doctrine.classList.remove('glitch');
+                    }, 200 + Math.random() * 300);
+                }
+            }, 3000 + Math.random() * 5000);
+        }
+
+        // Start boot sequence when page loads
         window.addEventListener('load', () => {
             runBootSequence();
-            
-            // Update EVA values every 3 seconds
-            setInterval(updateEVA, 3000);
         });
     </script>
 </body>
