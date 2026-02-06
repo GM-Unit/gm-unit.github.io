@@ -1,159 +1,759 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GM-Unit Terminal</title>
-
-<style>
-/* ===== YOUR ORIGINAL CSS – UNCHANGED ===== */
-:root {
-    --terminal-green: #00ff41;
-    --terminal-dark: #0a0a0a;
-    --terminal-dim: #003b00;
-    --terminal-red: #ff3333;
-    --terminal-orange: #ff9500;
-    --font-size-base: 14px;
-    --font-size-title: 18px;
-    --font-size-large: 46px;
-    --font-size-mobile: 22px;
-}
-*{margin:0;padding:0;box-sizing:border-box}
-body{
-    background-color:var(--terminal-dark);
-    color:var(--terminal-green);
-    font-family:'Courier New',monospace;
-    min-height:100vh;
-}
-.flicker-overlay{
-    position:fixed;inset:0;pointer-events:none;
-    background:repeating-linear-gradient(
-        0deg,rgba(0,0,0,.15),rgba(0,0,0,.15) 1px,
-        transparent 1px,transparent 2px);
-    z-index:1000;
-    animation:flicker .1s infinite;
-}
-@keyframes flicker{0%{opacity:.85}10%{opacity:.8}20%{opacity:.9}100%{opacity:.85}}
-.scanlines{
-    position:fixed;inset:0;pointer-events:none;
-    background:linear-gradient(
-        to bottom,rgba(255,255,255,0) 50%,rgba(0,0,0,.1) 50%);
-    background-size:100% 4px;
-    z-index:999;
-}
-.terminal-container{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:2rem;
-    padding:2rem;
-}
-.left-panel{max-width:600px}
-
-.right-panel{
-    display:flex;
-    flex-direction:row;
-    align-items:flex-start;
-    gap:1.5rem;
-}
-
-/* ===== IRON FORTRESS ===== */
-.iron-fortress-container{
-    font-size:var(--font-size-large);
-    writing-mode:vertical-rl;
-    transform:rotate(180deg);
-    opacity:0;
-    transition:1s;
-}
-.iron-fortress-container.visible{opacity:1}
-
-.iron-fortress-text{letter-spacing:.5rem}
-
-.no-survivors{
-    color:var(--terminal-red);
-    text-shadow:0 0 15px var(--terminal-red);
-}
-.glitching{
-    animation:glitch .6s infinite;
-}
-@keyframes glitch{
-    0%{transform:translate(0)}
-    25%{transform:translate(-3px,2px)}
-    50%{transform:translate(3px,-2px)}
-    100%{transform:translate(0)}
-}
-.char{display:inline-block}
-
-/* EVA panel unchanged */
-.eva-panel{
-    background:rgba(0,59,0,.3);
-    border:1px solid var(--terminal-dim);
-    padding:1.5rem;
-    min-width:320px;
-    opacity:0;
-    transition:1s;
-}
-.eva-panel.visible{opacity:1}
-</style>
-</head>
-
-<body>
-<div class="flicker-overlay"></div>
-<div class="scanlines"></div>
-
-<div class="terminal-container">
-
-<!-- LEFT -->
-<div class="left-panel">
-    <div id="bootScreen"></div>
-    <div id="systemSections"></div>
-</div>
-
-<!-- RIGHT -->
-<div class="right-panel">
-    <div id="ironFortress" class="iron-fortress-container"></div>
-    <div id="evaPanel" class="eva-panel">EVA TELEMETRY</div>
-</div>
-
-</div>
-
-<script>
-/* ===== ONLY CHANGE IS BELOW ===== */
-
-function generateIronFortressText(){
-    const container = document.getElementById('ironFortress');
-    if(!container) return;
-
-    function render(text, cls){
-        container.innerHTML = `
-            <div class="${cls}">
-                <div class="vertical-text">
-                    ${text.split('').map(c=>`<span class="char">${c}</span>`).join('')}
-                </div>
-            </div>`;
-    }
-
-    // default
-    render('IRON FORTRESS','iron-fortress-text');
-
-    // glitch loop
-    setInterval(()=>{
-        if(Math.random() > 0.75){
-            container.classList.add('glitching');
-            render('NO SURVIVORS','no-survivors');
-
-            setTimeout(()=>{
-                container.classList.remove('glitching');
-                render('IRON FORTRESS','iron-fortress-text');
-            },600);
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GM-Unit Terminal</title>
+    <style>
+        :root {
+            --terminal-green: #00ff41;
+            --terminal-dark: #0a0a0a;
+            --terminal-dim: #003b00;
+            --terminal-red: #ff3333;
+            --terminal-orange: #ff9500;
+            --flicker-opacity: 0.15;
+            --font-size-base: 14px;
+            --font-size-title: 18px;
+            --font-size-large: 46px;
+            --font-size-mobile: 22px;
         }
-    },3000);
-}
 
-document.addEventListener('DOMContentLoaded',()=>{
-    document.getElementById('ironFortress').classList.add('visible');
-    generateIronFortressText();
-});
-</script>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            background-color: var(--terminal-dark);
+            color: var(--terminal-green);
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Flicker Overlay */
+        .flicker-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15),
+                rgba(0, 0, 0, 0.15) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            z-index: 1000;
+            animation: flicker 0.1s infinite;
+        }
+
+        @keyframes flicker {
+            0% { opacity: 0.85; }
+            5% { opacity: 0.9; }
+            10% { opacity: 0.8; }
+            15% { opacity: 0.85; }
+            20% { opacity: 0.9; }
+            100% { opacity: 0.85; }
+        }
+
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0,0,0,0.1) 50%,
+                rgba(0,0,0,0.1)
+            );
+            background-size: 100% 4px;
+            z-index: 999;
+        }
+
+        /* Container Layout */
+        .terminal-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            padding: 2rem;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Left Panel - Boot & Sections */
+        .left-panel {
+            max-width: 600px;
+        }
+
+        .boot-screen {
+            margin-bottom: 2rem;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .boot-screen.visible {
+            opacity: 1;
+        }
+
+        .boot-screen.fading {
+            opacity: 0;
+        }
+
+        .boot-line {
+            font-size: var(--font-size-base);
+            margin: 0.25rem 0;
+            min-height: 1.6em;
+        }
+
+        .boot-line::after {
+            content: '█';
+            animation: blink 0.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .system-sections {
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        .system-sections.visible {
+            opacity: 1;
+        }
+
+        .section {
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: var(--font-size-title);
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            opacity: 0;
+            letter-spacing: 2px;
+        }
+
+        .section-title.typed {
+            opacity: 1;
+        }
+
+        .section-content {
+            font-size: var(--font-size-base);
+            color: rgba(0, 255, 65, 0.8);
+            padding-left: 1rem;
+            border-left: 2px solid var(--terminal-dim);
+            min-height: 1.6em;
+        }
+
+        .section-content.typing {
+            overflow: hidden;
+            white-space: pre-wrap;
+        }
+
+        /* Right Panel - EVA & Iron Fortress */
+        .right-panel {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            padding-top: 1rem;
+            gap: 1.5rem;
+        }
+
+        .iron-fortress-container {
+            font-size: var(--font-size-large);
+            line-height: 1.2;
+            opacity: 0;
+            transition: opacity 1s ease;
+            text-align: right;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            height: auto;
+            max-height: 400px;
+        }
+
+        .iron-fortress-container.visible {
+            opacity: 1;
+        }
+
+        .iron-fortress-text {
+            display: inline-block;
+            letter-spacing: 0.5rem;
+        }
+
+        .vertical-text {
+            display: inline-block;
+            text-align: left;
+            width: 2.5em;
+        }
+
+        .no-survivors {
+            color: var(--terminal-red);
+            text-shadow: 0 0 10px var(--terminal-red), 0 0 20px var(--terminal-red);
+        }
+
+        .no-survivors.glitching {
+            animation: glitch 0.65s ease-in-out;
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-3px, 3px); }
+            40% { transform: translate(-3px, -3px); }
+            60% { transform: translate(3px, 3px); }
+            80% { transform: translate(3px, -3px); }
+            100% { transform: translate(0); }
+        }
+
+        .no-survivors.glitching .char {
+            animation: charGlitch 0.1s ease-in-out infinite;
+        }
+
+        @keyframes charGlitch {
+            0%, 100% { opacity: 1; transform: translateX(0); }
+            25% { opacity: 0.8; transform: translateX(-2px); }
+            50% { opacity: 1; transform: translateX(2px); }
+            75% { opacity: 0.9; transform: translateX(-1px); }
+        }
+
+        /* EVA Panel */
+        .eva-panel {
+            background: rgba(0, 59, 0, 0.3);
+            border: 1px solid var(--terminal-dim);
+            padding: 1.5rem;
+            min-width: 320px;
+            max-width: 400px;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        .eva-panel.visible {
+            opacity: 1;
+        }
+
+        .eva-title {
+            font-size: var(--font-size-title);
+            text-align: center;
+            margin-bottom: 1.5rem;
+            letter-spacing: 3px;
+            border-bottom: 1px solid var(--terminal-dim);
+            padding-bottom: 0.5rem;
+        }
+
+        .eva-section {
+            margin-bottom: 1.25rem;
+        }
+
+        .eva-label {
+            font-size: calc(var(--font-size-base) * 0.9);
+            margin-bottom: 0.25rem;
+            color: rgba(0, 255, 65, 0.7);
+        }
+
+        .eva-bar-container {
+            background: var(--terminal-dim);
+            height: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .eva-bar {
+            height: 100%;
+            transition: width 0.3s ease, background-color 0.3s ease;
+            position: relative;
+        }
+
+        .eva-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255,255,255,0.2),
+                transparent
+            );
+            animation: shimmer 1s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .bar-sync { background: var(--terminal-green); }
+        .bar-stability { background: var(--terminal-green); }
+        .bar-pressure { background: var(--terminal-green); }
+        .bar-pressure.warning { background: var(--terminal-orange); }
+        .bar-pressure.danger { background: var(--terminal-red); }
+
+        .telemetry-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .telemetry-item {
+            background: rgba(0, 59, 0, 0.2);
+            padding: 0.5rem;
+            text-align: center;
+        }
+
+        .telemetry-label {
+            font-size: calc(var(--font-size-base) * 0.75);
+            color: rgba(0, 255, 65, 0.6);
+            margin-bottom: 0.25rem;
+        }
+
+        .telemetry-value {
+            font-size: calc(var(--font-size-base) * 1.1);
+            font-weight: bold;
+        }
+
+        .telemetry-value.flickering {
+            animation: valueFlicker 0.15s ease-in-out infinite;
+        }
+
+        @keyframes valueFlicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .eva-status {
+            text-align: center;
+            font-size: calc(var(--font-size-base) * 1.2);
+            padding: 0.75rem;
+            background: rgba(0, 59, 0, 0.3);
+            border: 1px solid var(--terminal-dim);
+            margin-top: 0.5rem;
+        }
+
+        .status-nominal {
+            color: var(--terminal-green);
+            text-shadow: 0 0 10px var(--terminal-green);
+        }
+
+        .status-caution {
+            color: var(--terminal-orange);
+            text-shadow: 0 0 10px var(--terminal-orange);
+            animation: cautionPulse 1s infinite;
+        }
+
+        @keyframes cautionPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .status-danger {
+            color: var(--terminal-red);
+            text-shadow: 0 0 15px var(--terminal-red);
+            animation: dangerPulse 0.3s infinite;
+        }
+
+        @keyframes dangerPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 900px) {
+            .terminal-container {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                padding: 1rem;
+            }
+
+            .right-panel {
+                align-items: center;
+                order: -1;
+            }
+
+            .iron-fortress-container {
+                font-size: var(--font-size-mobile);
+            }
+
+            .eva-panel {
+                min-width: 100%;
+                max-width: 400px;
+            }
+
+            .left-panel {
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            :root {
+                --font-size-base: 12px;
+                --font-size-title: 14px;
+                --font-size-large: 18px;
+                --font-size-mobile: 16px;
+            }
+
+            .eva-panel {
+                padding: 1rem;
+            }
+
+            .telemetry-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--terminal-dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--terminal-dim);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--terminal-green);
+        }
+
+        /* Utility Classes */
+        .hidden {
+            display: none !important;
+        }
+
+        .faded {
+            opacity: 0.3 !important;
+        }
+
+        .dim {
+            color: rgba(0, 255, 65, 0.5) !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="flicker-overlay"></div>
+    <div class="scanlines"></div>
+
+    <div class="terminal-container">
+        <!-- Left Panel -->
+        <div class="left-panel">
+            <div class="boot-screen" id="bootScreen">
+                <!-- Boot content will be inserted here -->
+            </div>
+
+            <div class="system-sections" id="systemSections">
+                <div class="section" data-section="cybernetic">
+                    <div class="section-title" id="title-cybernetic"></div>
+                    <div class="section-content" id="content-cybernetic"></div>
+                </div>
+
+                <div class="section" data-section="tcunit">
+                    <div class="section-title" id="title-tcunit"></div>
+                    <div class="section-content" id="content-tcunit"></div>
+                </div>
+
+                <div class="section" data-section="frame">
+                    <div class="section-title" id="title-frame"></div>
+                    <div class="section-content" id="content-frame"></div>
+                </div>
+
+                <div class="section" data-section="chess">
+                    <div class="section-title" id="title-chess"></div>
+                    <div class="section-content" id="content-chess"></div>
+                </div>
+
+                <div class="section" data-section="deployment">
+                    <div class="section-title" id="title-deployment"></div>
+                    <div class="section-content" id="content-deployment"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="right-panel">
+            <div class="iron-fortress-container" id="ironFortress">
+                <!-- Iron Fortress / No Survivors text will be inserted here -->
+            </div>
+
+            <div class="eva-panel" id="evaPanel">
+                <div class="eva-title">EVA TELEMETRY</div>
+
+                <div class="telemetry-grid">
+                    <div class="telemetry-item">
+                        <div class="telemetry-label">CORE 1</div>
+                        <div class="telemetry-value" id="core1">98%</div>
+                    </div>
+                    <div class="telemetry-item">
+                        <div class="telemetry-label">CORE 2</div>
+                        <div class="telemetry-value" id="core2">97%</div>
+                    </div>
+                    <div class="telemetry-item">
+                        <div class="telemetry-label">CORE 3</div>
+                        <div class="telemetry-value" id="core3">99%</div>
+                    </div>
+                    <div class="telemetry-item">
+                        <div class="telemetry-label">CORE 4</div>
+                        <div class="telemetry-value" id="core4">96%</div>
+                    </div>
+                </div>
+
+                <div class="eva-section">
+                    <div class="eva-label">NEURAL SYNC</div>
+                    <div class="eva-bar-container">
+                        <div class="eva-bar bar-sync" id="syncBar" style="width: 85%"></div>
+                    </div>
+                </div>
+
+                <div class="eva-section">
+                    <div class="eva-label">STABILITY INDEX</div>
+                    <div class="eva-bar-container">
+                        <div class="eva-bar bar-stability" id="stabilityBar" style="width: 92%"></div>
+                    </div>
+                </div>
+
+                <div class="eva-section">
+                    <div class="eva-label">PRESSURE VARIANCE</div>
+                    <div class="eva-bar-container">
+                        <div class="eva-bar bar-pressure" id="pressureBar" style="width: 15%"></div>
+                    </div>
+                </div>
+
+                <div class="eva-status status-nominal" id="evaStatus">NOMINAL</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SYSTEM_DATA = {
+            cybernetic: {
+                title: "CYBERNETIC LINK ESTABLISHED",
+                content: "Pilot-to-EVA neural synchronization complete.\nSignal latency: 47ms\nEncryption: AES-256\nBandwidth: 1000 Mbps\nProtocol: TTCN-3"
+            },
+            tcunit: {
+                title: "TC-UNIT STATUS: ONLINE",
+                content: "Unit ID: GM-007-FORT\nFirmware v4.2.1\nBoot sequence: SUCCESS\nMemory allocation: 512MB\nProcess count: 24"
+            },
+            frame: {
+                title: "FRAME INTEGRITY: 100%",
+                content: "Carbon-reinforced alloy structure\nImpact resistance: 98.7%\nJoint servos: NOMINAL\nReaction thrusters: STANDBY\nShield emitters: ACTIVE"
+            },
+            chess: {
+                title: "CHESS INTERFACE READY",
+                content: "Engine: Stockfish 16\nELO rating: 3500\nMode: BULLET (3+0)\nOpening book: MASTER\nAnalysis: ACTIVE"
+            },
+            deployment: {
+                title: "DEPLOYMENT ZONE: OMEGA-9",
+                content: "Coordinates: 47.3°N, 142.5°E\nTerrain: Urban/ruins\nThreat level: ELEVATED\nObjectives: SEEK & DESTROY\nRules of engagement: IRON FORTRESS"
+            }
+        };
+
+        const bootMessages = [
+            "INITIALIZING GM-UNIT TERMINAL...",
+            "LOADING KERNEL MODULES...",
+            "MOUNTING VIRTUAL FILE SYSTEMS...",
+            "ESTABLISHING SECURE CONNECTION...",
+            "VERIFYING PILOT CREDENTIALS...",
+            "SYNCING NEURAL INTERFACE...",
+            "LOADING EVA TELEMETRY...",
+            "INITIATING CHESS SUBSYSTEM...",
+            "CALIBRATING SENSORS...",
+            "SYSTEM READY."
+        ];
+
+        function getElement(elementId) {
+            return document.getElementById(elementId);
+        }
+
+        function typeText(element, text, speed = 50, onComplete = null) {
+            if (!text) {
+                if (onComplete) onComplete();
+                return;
+            }
+
+            element.classList.add('typing');
+            let index = 0;
+
+            function type() {
+                if (index < text.length) {
+                    element.textContent = text.substring(0, index + 1);
+                    index++;
+
+                    const char = text.charAt(index);
+                    const isNewline = char === '\n';
+                    const delay = isNewline ? 200 : speed;
+
+                    setTimeout(type, delay);
+                } else {
+                    element.classList.remove('typing');
+                    if (onComplete) onComplete();
+                }
+            }
+
+            type();
+        }
+
+        function showElement(elementId, delay = 0) {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    const element = getElement(elementId);
+                    if (element) {
+                        element.classList.add('visible');
+                    }
+                    resolve();
+                }, delay);
+            });
+        }
+
+        async function typeSection(sectionName, titleDelay = 0, contentDelay = 500) {
+            const section = SYSTEM_DATA[sectionName];
+
+            await showElement(title-${sectionName}, titleDelay);
+            await new Promise(r => setTimeout(r, 300));
+
+            const titleElement = getElement(title-${sectionName});
+            titleElement.textContent = section.title;
+            titleElement.classList.add('typed');
+
+            await new Promise(r => setTimeout(r, contentDelay));
+
+            const contentElement = getElement(content-${sectionName});
+            typeText(contentElement, section.content, 30);
+        }
+
+        function updateTelemetry() {
+            const coreValues = ['core1', 'core2', 'core3', 'core4'];
+            coreValues.forEach(id => {
+                const element = getElement(id);
+                if (element) {
+                    const currentValue = parseInt(element.textContent);
+                    const change = Math.random() > 0.5 ? 1 : -1;
+                    const newValue = Math.max(85, Math.min(100, currentValue + change));
+                    element.textContent = newValue + '%';
+                    element.classList.add('flickering');
+                    setTimeout(() => element.classList.remove('flickering'), 150);
+                }
+            });
+
+            const syncBar = getElement('syncBar');
+            if (syncBar) {
+                const currentWidth = parseFloat(syncBar.style.width) || 85;
+                const newWidth = Math.max(70, Math.min(100, currentWidth + (Math.random() * 4 - 2)));
+                syncBar.style.width = newWidth + '%';
+            }
+
+            const stabilityBar = getElement('stabilityBar');
+            if (stabilityBar) {
+                const currentWidth = parseFloat(stabilityBar.style.width) || 92;
+                const newWidth = Math.max(80, Math.min(100, currentWidth + (Math.random() * 3 - 1.5)));
+                stabilityBar.style.width = newWidth + '%';
+            }
+
+            const pressureBar = getElement('pressureBar');
+            if (pressureBar) {
+                const currentWidth = parseFloat(pressureBar.style.width) || 15;
+                const newWidth = Math.max(5, Math.min(50, currentWidth + (Math.random() * 6 - 3)));
+                pressureBar.style.width = newWidth + '%';
+
+                pressureBar.classList.remove('warning', 'danger');
+                if (newWidth > 35) {
+                    pressureBar.classList.add('danger');
+                    updateEVAStatus('DANGER');
+                } else if (newWidth > 25) {
+                    pressureBar.classList.add('warning');
+                    updateEVAStatus('CAUTION');
+                } else {
+                    updateEVAStatus('NOMINAL');
+                }
+            }
+        }
+
+        function updateEVAStatus(status) {
+            const statusElement = getElement('evaStatus');
+            if (statusElement) {
+                statusElement.classList.remove('status-nominal', 'status-caution', 'status-danger');
+                statusElement.classList.add(status-${status.toLowerCase()});
+                statusElement.textContent = status;
+            }
+        }
+
+        function generateIronFortressText() {
+            const container = getElement('ironFortress');
+            if (!container) return;
+
+            const phrases = [
+                { text: 'IRON FORTRESS', class: 'iron-fortress-text' },
+                { text: 'NO SURVIVORS', class: 'no-survivors' }
+            ];
+
+            container.innerHTML = phrases.map((phrase, index) => {
+                const chars = phrase.text.split('').map((char, charIndex) => 
+                    <span class="char" style="animation-delay: ${charIndex * 0.05}s">${char}</span>
+                ).join('');
+
+                return <div class="${phrase.class}" style="margin: ${index === 0 ? '0 0 1.5rem 0' : '0'};">
+                    <div class="vertical-text">${chars}</div>
+                </div>;
+            }).join('');
+        }
+
+        async function startBootSequence() {
+            const bootScreen = getElement('bootScreen');
+            if (!bootScreen) return;
+
+            for (let i = 0; i < bootMessages.length; i++) {
+                const line = document.createElement('div');
+                line.className = 'boot-line';
+                line.textContent = bootMessages[i];
+                bootScreen.appendChild(line);
+
+                await new Promise(r => setTimeout(r, 300 + Math.random() * 200));
+            }
+
+            await new Promise(r => setTimeout(r, 500));
+            bootScreen.classList.add('fading');
+
+            await new Promise(r => setTimeout(r, 600));
+            bootScreen.style.display = 'none';
+
+            getElement('systemSections').classList.add('visible');
+
+            const sections = ['cybernetic', 'tcunit', 'frame', 'chess', 'deployment'];
+            for (let i = 0; i < sections.length; i++) {
+                await typeSection(sections[i], i * 800, 600);
+            }
+
+            await new Promise(r => setTimeout(r, 800));
+            generateIronFortressText();
+            showElement('ironFortress', 0);
+
+            await new Promise(r => setTimeout(r, 500));
+            showElement('evaPanel', 0);
+
+            setInterval(updateTelemetry, 800);
+        }
+
+        document.addEventListener('DOMContentLoaded', startBootSequence);
+
+        window.addEventListener('beforeunload', () => {
+            console.log('GM-Unit Terminal session ended');
+        });
+    </script>
 </body>
 </html>
