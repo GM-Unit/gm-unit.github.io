@@ -3,27 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GM-UNIT TERMINAL</title>
+    <title>GM-Unit Terminal</title>
     <style>
+        :root {
+            --terminal-green: #00ff41;
+            --terminal-dark: #0a0a0a;
+            --terminal-dim: #003b00;
+            --terminal-red: #ff3333;
+            --terminal-orange: #ff9500;
+            --flicker-opacity: 0.15;
+            --font-size-base: 14px;
+            --font-size-title: 18px;
+            --font-size-large: 46px;
+            --font-size-mobile: 22px;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        @keyframes staticFlicker {
-            0%, 100% { opacity: 0.03; }
-            50% { opacity: 0.05; }
+        body {
+            background-color: var(--terminal-dark);
+            color: var(--terminal-green);
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        /* Flicker Overlay */
+        .flicker-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15),
+                rgba(0, 0, 0, 0.15) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            z-index: 1000;
+            animation: flicker 0.1s infinite;
         }
 
-        @keyframes fadeOut {
-            from { opacity: 1; }
-            to { opacity: 0; }
+        @keyframes flicker {
+            0% { opacity: 0.85; }
+            5% { opacity: 0.9; }
+            10% { opacity: 0.8; }
+            15% { opacity: 0.85; }
+            20% { opacity: 0.9; }
+            100% { opacity: 0.85; }
+        }
+
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0,0,0,0.1) 50%,
+                rgba(0,0,0,0.1)
+            );
+            background-size: 100% 4px;
+            z-index: 999;
+        }
+
+        /* Container Layout */
+        .terminal-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            padding: 2rem;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Left Panel - Boot & Sections */
+        .left-panel {
+            max-width: 600px;
+        }
+
+        .boot-screen {
+            margin-bottom: 2rem;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .boot-screen.visible {
+            opacity: 1;
+        }
+
+        .boot-screen.fading {
+            opacity: 0;
+        }
+
+        .boot-line {
+            font-size: var(--font-size-base);
+            margin: 0.25rem 0;
+            min-height: 1.6em;
+        }
+
+        .boot-line::after {
+            content: '█';
+            animation: blink 0.5s infinite;
         }
 
         @keyframes blink {
@@ -31,219 +125,148 @@
             51%, 100% { opacity: 0; }
         }
 
-        @keyframes statusBlink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
-        @keyframes barFluctuate {
-            0% { width: var(--bar-width); }
-            25% { width: calc(var(--bar-width) + 8%); }
-            50% { width: calc(var(--bar-width) - 5%); }
-            75% { width: calc(var(--bar-width) + 3%); }
-            100% { width: var(--bar-width); }
-        }
-
-        @keyframes glitchText {
-            0%, 100% { 
-                opacity: 1;
-            }
-            25% { 
-                opacity: 0.85;
-            }
-            50% { 
-                opacity: 0.95;
-            }
-            75% { 
-                opacity: 0.8;
-            }
-        }
-
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-
-        body {
-            background: black;
-            font-family: 'Courier New', Courier, monospace;
-            color: #00ff99;
-            min-height: 100vh;
-            overflow-x: hidden;
-            font-size: 16px;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.03);
-            animation: staticFlicker 0.15s infinite;
-            pointer-events: none;
-            z-index: 1000;
-        }
-
-        .main-container {
-            max-width: 65%;
-            padding: 28px;
-            margin: 0 auto;
-            overflow-y: auto;
-            max-height: 100vh;
-        }
-
-        .right-panel {
-            position: fixed;
-            right: 40px;
-            top: 2%;
-            text-align: right;
-            z-index: 100;
-        }
-
-        .doctrine-container {
-            font-size: 32px;
-            font-weight: bold;
-            letter-spacing: 6px;
-            line-height: 1.8;
-            position: relative;
+        .system-sections {
             opacity: 0;
             transition: opacity 1s ease;
         }
 
-        .doctrine-container.fading-in {
+        .system-sections.visible {
             opacity: 1;
-        }
-
-        .doctrine-columns {
-            display: flex;
-            gap: 30px;
-            position: absolute;
-            right: 0;
-            top: 0;
-        }
-
-        .doctrine-column {
-            display: flex;
-            flex-direction: column;
-            gap: 0;
-        }
-
-        .doctrine-column span {
-            line-height: 1.8;
-        }
-
-        #normal-columns {
-            transition: opacity 0.3s ease;
-        }
-
-        #glitch-columns {
-            display: none;
-            animation: glitchText 0.3s ease;
-            color: #ff3333;
-        }
-
-        .doctrine-container.glitch #normal-columns {
-            display: none;
-        }
-
-        .doctrine-container.glitch #glitch-columns {
-            display: flex;
-        }
-
-        .boot-sequence {
-            margin-bottom: 40px;
-        }
-
-        .boot-line {
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            font-size: 16px;
-        }
-
-        .boot-line.visible {
-            opacity: 1;
-        }
-
-        .boot-line.faded {
-            opacity: 0;
-        }
-
-        .boot-line .cursor {
-            display: inline-block;
-            width: 10px;
-            height: 18px;
-            background: #00ff99;
-            animation: blink 0.5s infinite;
-            vertical-align: middle;
-            margin-left: 2px;
         }
 
         .section {
-            margin-bottom: 35px;
+            margin-bottom: 1.5rem;
         }
 
         .section-title {
-            font-size: 18px;
-            margin-bottom: 12px;
-            line-height: 1.4;
+            font-size: var(--font-size-title);
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            opacity: 0;
+            letter-spacing: 2px;
+        }
+
+        .section-title.typed {
+            opacity: 1;
         }
 
         .section-content {
-            font-size: 16px;
-            line-height: 1.4;
-            margin-bottom: 8px;
+            font-size: var(--font-size-base);
+            color: rgba(0, 255, 65, 0.8);
+            padding-left: 1rem;
+            border-left: 2px solid var(--terminal-dim);
+            min-height: 1.6em;
         }
 
-        .section-content .cursor {
-            display: inline-block;
-            width: 8px;
-            height: 16px;
-            background: #00ff99;
-            animation: blink 0.5s infinite;
-            vertical-align: middle;
-            margin-left: 2px;
+        .section-content.typing {
+            overflow: hidden;
+            white-space: pre-wrap;
         }
 
-        .eva-panel {
-            position: fixed;
-            left: 40px;
-            top: 50%;
-            transform: translateY(-50%);
-            z-index: 100;
+        /* Right Panel - EVA & Iron Fortress */
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            padding-top: 1rem;
+        }
+
+        .iron-fortress-container {
+            font-size: var(--font-size-large);
+            line-height: 1.2;
+            margin-bottom: 2rem;
             opacity: 0;
-            transition: opacity 0.5s ease;
+            transition: opacity 1s ease;
+            text-align: right;
+        }
+
+        .iron-fortress-container.visible {
+            opacity: 1;
+        }
+
+        .iron-fortress-text {
+            display: inline-block;
+            letter-spacing: 0.5rem;
+        }
+
+        .vertical-text {
+            display: inline-block;
+            text-align: left;
+            width: 2.5em;
+        }
+
+        .no-survivors {
+            color: var(--terminal-red);
+            text-shadow: 0 0 10px var(--terminal-red), 0 0 20px var(--terminal-red);
+        }
+
+        .no-survivors.glitching {
+            animation: glitch 0.65s ease-in-out;
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-3px, 3px); }
+            40% { transform: translate(-3px, -3px); }
+            60% { transform: translate(3px, 3px); }
+            80% { transform: translate(3px, -3px); }
+            100% { transform: translate(0); }
+        }
+
+        .no-survivors.glitching .char {
+            animation: charGlitch 0.1s ease-in-out infinite;
+        }
+
+        @keyframes charGlitch {
+            0%, 100% { opacity: 1; transform: translateX(0); }
+            25% { opacity: 0.8; transform: translateX(-2px); }
+            50% { opacity: 1; transform: translateX(2px); }
+            75% { opacity: 0.9; transform: translateX(-1px); }
+        }
+
+        /* EVA Panel */
+        .eva-panel {
+            background: rgba(0, 59, 0, 0.3);
+            border: 1px solid var(--terminal-dim);
+            padding: 1.5rem;
+            min-width: 320px;
+            opacity: 0;
+            transition: opacity 1s ease;
         }
 
         .eva-panel.visible {
             opacity: 1;
         }
 
+        .eva-title {
+            font-size: var(--font-size-title);
+            text-align: center;
+            margin-bottom: 1.5rem;
+            letter-spacing: 3px;
+            border-bottom: 1px solid var(--terminal-dim);
+            padding-bottom: 0.5rem;
+        }
+
         .eva-section {
-            margin-bottom: 25px;
+            margin-bottom: 1.25rem;
         }
 
         .eva-label {
-            font-size: 14px;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
+            font-size: calc(var(--font-size-base) * 0.9);
+            margin-bottom: 0.25rem;
+            color: rgba(0, 255, 65, 0.7);
         }
 
         .eva-bar-container {
-            width: 180px;
-            height: 24px;
-            background: rgba(0, 255, 153, 0.1);
-            border: 1px solid #00ff99;
+            background: var(--terminal-dim);
+            height: 20px;
             position: relative;
             overflow: hidden;
         }
 
         .eva-bar {
             height: 100%;
-            background: #00ff99;
-            transition: width 0.5s ease;
+            transition: width 0.3s ease, background-color 0.3s ease;
             position: relative;
         }
 
@@ -256,464 +279,676 @@
             bottom: 0;
             background: linear-gradient(
                 90deg,
-                transparent 0%,
-                rgba(255, 255, 255, 0.2) 50%,
-                transparent 100%
+                transparent,
+                rgba(255,255,255,0.2),
+                transparent
             );
             animation: shimmer 1s infinite;
         }
 
-        .eva-value {
-            font-size: 12px;
-            margin-top: 4px;
-            text-align: right;
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .bar-sync { background: var(--terminal-green); }
+        .bar-stability { background: var(--terminal-green); }
+        .bar-pressure { background: var(--terminal-green); }
+        .bar-pressure.warning { background: var(--terminal-orange); }
+        .bar-pressure.danger { background: var(--terminal-red); }
+
+        .telemetry-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .telemetry-item {
+            background: rgba(0, 59, 0, 0.2);
+            padding: 0.5rem;
+            text-align: center;
+        }
+
+        .telemetry-label {
+            font-size: calc(var(--font-size-base) * 0.75);
+            color: rgba(0, 255, 65, 0.6);
+            margin-bottom: 0.25rem;
+        }
+
+        .telemetry-value {
+            font-size: calc(var(--font-size-base) * 1.1);
+            font-weight: bold;
+        }
+
+        .telemetry-value.flickering {
+            animation: valueFlicker 0.15s ease-in-out infinite;
+        }
+
+        @keyframes valueFlicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
         }
 
         .eva-status {
-            font-size: 14px;
-            margin-top: 6px;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            animation: statusBlink 1s infinite;
+            text-align: center;
+            font-size: calc(var(--font-size-base) * 1.2);
+            padding: 0.75rem;
+            background: rgba(0, 59, 0, 0.3);
+            border: 1px solid var(--terminal-dim);
+            margin-top: 0.5rem;
         }
 
-        .eva-status.nominal {
-            color: #00ff99;
+        .status-nominal {
+            color: var(--terminal-green);
+            text-shadow: 0 0 10px var(--terminal-green);
         }
 
-        .eva-status.caution {
-            color: #ff9900;
+        .status-caution {
+            color: var(--terminal-orange);
+            text-shadow: 0 0 10px var(--terminal-orange);
+            animation: cautionPulse 1s infinite;
         }
 
-        .eva-status.danger {
-            color: #ff3333;
-            animation: statusBlink 0.3s infinite;
+        @keyframes cautionPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
         }
 
-        .archived-section {
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(0, 255, 153, 0.3);
+        .status-danger {
+            color: var(--terminal-red);
+            text-shadow: 0 0 15px var(--terminal-red);
+            animation: dangerPulse 0.3s infinite;
         }
 
+        @keyframes dangerPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 900px) {
+            .terminal-container {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                padding: 1rem;
+            }
+
+            .right-panel {
+                align-items: center;
+                order: -1;
+            }
+
+            .iron-fortress-container {
+                font-size: var(--font-size-mobile);
+            }
+
+            .eva-panel {
+                min-width: 100%;
+                max-width: 400px;
+            }
+
+            .left-panel {
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            :root {
+                --font-size-base: 12px;
+                --font-size-title: 14px;
+                --font-size-large: 18px;
+                --font-size-mobile: 16px;
+            }
+
+            .eva-panel {
+                padding: 1rem;
+            }
+
+            .telemetry-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--terminal-dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--terminal-dim);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--terminal-green);
+        }
+
+        /* Utility Classes */
         .hidden {
-            display: none;
+            display: none !important;
         }
 
         .faded {
-            animation: fadeOut 0.5s ease forwards;
+            opacity: 0.3 !important;
         }
 
-        .fading-in {
-            animation: fadeIn 1s ease forwards;
-        }
-
-        /* Responsive styles */
-        @media (max-width: 900px) {
-            .main-container {
-                max-width: 90%;
-                padding: 20px;
-            }
-            
-            .right-panel {
-                position: fixed;
-                right: 15px;
-                top: 2%;
-            }
-            
-            .doctrine-container {
-                font-size: 20px;
-                letter-spacing: 4px;
-                opacity: 0;
-                transition: opacity 1s ease;
-            }
-            
-            .doctrine-container.fading-in {
-                opacity: 1;
-            }
-            
-            .doctrine-columns {
-                gap: 15px;
-            }
-            
-            .eva-panel {
-                position: static;
-                transform: none;
-                margin: 20px auto;
-                max-width: 90%;
-            }
-        }
-
-        @media (max-width: 600px) {
-            .doctrine-container {
-                font-size: 20px;
-                letter-spacing: 3px;
-            }
-            
-            .doctrine-columns {
-                gap: 15px;
-            }
-            
-            .section-title {
-                font-size: 18px;
-            }
-            
-            .section-content {
-                font-size: 16px;
-            }
+        .dim {
+            color: rgba(0, 255, 65, 0.5) !important;
         }
     </style>
 </head>
 <body>
-    <div class="eva-panel" id="eva-panel">
-        <div class="eva-section">
-            <div class="eva-label">SYNC RATIO</div>
-            <div class="eva-bar-container">
-                <div class="eva-bar" id="sync-bar" style="--bar-width: 94%;"></div>
-            </div>
-            <div class="eva-value" id="sync-value">94%</div>
-            <div class="eva-status nominal" id="sync-status">NOMINAL</div>
-        </div>
-        <div class="eva-section">
-            <div class="eva-label">MENTAL STABILITY</div>
-            <div class="eva-bar-container">
-                <div class="eva-bar" id="mental-bar" style="--bar-width: 89%;"></div>
-            </div>
-            <div class="eva-value" id="mental-value">89%</div>
-            <div class="eva-status nominal" id="mental-status">NOMINAL</div>
-        </div>
-        <div class="eva-section">
-            <div class="eva-label">CORE PRESSURE</div>
-            <div class="eva-bar-container">
-                <div class="eva-bar" id="core-bar" style="--bar-width: 76%;"></div>
-            </div>
-            <div class="eva-value" id="core-value">76%</div>
-            <div class="eva-status nominal" id="core-status">NOMINAL</div>
-        </div>
-    </div>
+    <div class="flicker-overlay"></div>
+    <div class="scanlines"></div>
 
-    <div class="right-panel">
-        <div class="doctrine-container" id="doctrine">
-            <div class="doctrine-columns" id="normal-columns">
-                <div class="doctrine-column">
-                    <span>I</span>
-                    <span>R</span>
-                    <span>O</span>
-                    <span>N</span>
+    <div class="terminal-container">
+        <!-- Left Panel -->
+        <div class="left-panel">
+            <div class="boot-screen" id="bootScreen"></div>
+
+            <div class="system-sections" id="systemSections">
+                <div class="section" data-section="cybernetic">
+                    <div class="section-title" id="title-cybernetic"></div>
+                    <div class="section-content" id="content-cybernetic"></div>
                 </div>
-                <div class="doctrine-column">
-                    <span>F</span>
-                    <span>O</span>
-                    <span>R</span>
-                    <span>T</span>
-                    <span>R</span>
-                    <span>E</span>
-                    <span>S</span>
-                    <span>S</span>
+
+                <div class="section" data-section="tcunit">
+                    <div class="section-title" id="title-tcunit"></div>
+                    <div class="section-content" id="content-tcunit"></div>
                 </div>
-            </div>
-            <div class="doctrine-columns" id="glitch-columns">
-                <div class="doctrine-column">
-                    <span>N</span>
-                    <span>O</span>
+
+                <div class="section" data-section="frame">
+                    <div class="section-title" id="title-frame"></div>
+                    <div class="section-content" id="content-frame"></div>
                 </div>
-                <div class="doctrine-column">
-                    <span>S</span>
-                    <span>U</span>
-                    <span>R</span>
-                    <span>V</span>
-                    <span>I</span>
-                    <span>V</span>
-                    <span>O</span>
-                    <span>R</span>
-                    <span>S</span>
+
+                <div class="section" data-section="chess">
+                    <div class="section-title" id="title-chess"></div>
+                    <div class="section-content" id="content-chess"></div>
+                </div>
+
+                <div class="section" data-section="deployment">
+                    <div class="section-title" id="title-deployment"></div>
+                    <div class="section-content" id="content-deployment"></div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="main-container">
-        <div class="boot-sequence" id="boot-sequence">
-            <div class="boot-line" id="boot-line-1">≻ SYSTEM BOOT<span class="cursor"></span></div>
-        </div>
-        
-        <div id="main-content" class="hidden">
-            <div class="section" id="cybernetic-systems">
-                <div class="section-title"></div>
-                <div class="section-content"></div>
-                <div class="section-content"></div>
-                <div class="section-content"></div>
-            </div>
+        <!-- Right Panel -->
+        <div class="right-panel">
+            <div class="iron-fortress-container" id="ironFortress"></div>
 
-            <div class="section" id="tc-unit">
-                <div class="section-title"></div>
-                <div class="section-content"></div>
-                <div class="section-content"></div>
-            </div>
+            <div class="eva-panel" id="evaPanel">
+                <div class="eva-title">EVA TELEMETRY</div>
 
-            <div class="section" id="frame-sensors">
-                <div class="section-title"></div>
-                <div class="section-content"></div>
-                <div class="section-content"></div>
-            </div>
+                <div class="telemetry-grid">
+                    <div class="telemetry-item">
+                        <div class="telemetry-label">CORE 1</div>
+                        <div class="telemetry-value flickering" id="core1">0</div>
+                    </div>
+                    <div class="telemetry-item">
+                        <div class="telemetry-label">CORE 2</div>
+                        <div class="telemetry-value flickering" id="core2">0</div>
+                    </div>
+                    <div class="telemetry-item">
+                        <div class="telemetry-label">OPTICS 1</div>
+                        <div class="telemetry-value flickering" id="optics1">0</div>
+                    </div>
+                    <div class="telemetry-item">
+                        <div class="telemetry-label">OPTICS 2</div>
+                        <div class="telemetry-value flickering" id="optics2">0</div>
+                    </div>
+                    <div class="telemetry-item">
+                        <div class="telemetry-label">MOBILITY DELAY</div>
+                        <div class="telemetry-value flickering" id="mobility">0</div>
+                    </div>
+                    <div class="telemetry-item">
+                        <div class="telemetry-label">TARGETING ACCURACY</div>
+                        <div class="telemetry-value flickering" id="accuracy">0</div>
+                    </div>
+                </div>
 
-            <div class="section" id="chess-operations">
-                <div class="section-title"></div>
-                <div class="section-content"></div>
-                <div class="section-content"></div>
-                <div class="section-content"></div>
-            </div>
+                <div class="eva-section">
+                    <div class="eva-label">SYNC RATIO</div>
+                    <div class="eva-bar-container">
+                        <div class="eva-bar bar-sync" id="barSync" style="width: 0%"></div>
+                    </div>
+                </div>
 
-            <div class="section archived-section" id="archived-log">
-                <div class="section-title"></div>
-                <div class="section-content"></div>
-                <div class="section-content"></div>
-                <div class="section-content"></div>
-                <div class="section-content"></div>
-                <div class="section-content"></div>
+                <div class="eva-section">
+                    <div class="eva-label">MENTAL STABILITY</div>
+                    <div class="eva-bar-container">
+                        <div class="eva-bar bar-stability" id="barStability" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="eva-section">
+                    <div class="eva-label">CORE PRESSURE</div>
+                    <div class="eva-bar-container">
+                        <div class="eva-bar bar-pressure" id="barPressure" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="eva-status status-nominal" id="evaStatus">
+                    SYSTEM NOMINAL
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Section data
-        const sectionsData = {
-            'cybernetic-systems': {
-                title: 'CYBERNETIC SYSTEMS',
-                content: [
-                    'Core_001: <span id="core-001">89</span>% // Primary neural processor',
-                    'Core_002: <span id="core-002">92</span>% // Secondary neural processor',
-                    'Memory_Array: 256 TB // Strategic cache'
-                ]
+        // ============================================
+        // CONFIGURATION - Easy to customize
+        // ============================================
+        const CONFIG = {
+            typing: {
+                bootSpeed: 30,
+                bootPause: 500,
+                titlePause: 300,
+                contentSpeed: 40,
+                contentPause: 200,
+                bootFadeDelay: 2000,
+                sectionDelay: 800
             },
-            'tc-unit': {
-                title: 'TC UNIT',
-                content: [
-                    'Optic_001: <span id="optic-001">78</span>% // Pattern recognition',
-                    'Optic_002: <span id="optic-002">85</span>% // Threat assessment',
-                    'Tactical_Link: ACTIVE // Synchronized'
-                ]
+            glitch: {
+                minInterval: 5000,
+                maxInterval: 12000,
+                duration: 650
             },
-            'frame-sensors': {
-                title: 'FRAME & SENSORS',
-                content: [
-                    'Mobility_Delay: <span id="mobility-delay">23</span>ms // Motor response',
-                    'Skeleton_Stress: <span id="skeleton-stress">67</span>% // Structural integrity',
-                    'Total_G-Force: <span id="total-g">12.4</span>G // Max tolerance'
-                ]
+            telemetry: {
+                updateInterval: 150,
+                barSmoothness: 0.15
             },
-            'chess-operations': {
-                title: 'CHESS OPERATIONS',
-                content: [
-                    'Match_001: LOST // Opponent: <span id="opponent-001">UNK</span>',
-                    'Match_002: WON // Opponent: <span id="opponent-002">UNK</span>',
-                    'Match_003: PENDING // Opponent: <span id="opponent-003">UNK</span>'
-                ]
+            ranges: {
+                core: { min: 85, max: 100 },
+                optics: { min: 70, max: 99 },
+                mobility: { min: 15, max: 45 },
+                accuracy: { min: 85, max: 99 },
+                syncRatio: { min: 70, max: 98 },
+                stability: { min: 80, max: 99 },
+                pressure: { min: 10, max: 85 }
             },
-            'archived-log': {
-                title: '// ARCHIVED LOG: EPOCH 2006',
-                content: [
-                    '// EPOCH 2006: INITIAL CONTACT',
-                    'Date: 2006.01.15 // Event: First signal detected',
-                    'Origin: UNKNOWN // Distance: measuring',
-                    'Unit_Loss: 12% // Fleet designation: Pathfinder',
-                    '// EPOCH 2147',
-                    'Date: 2147.03.15 // Event: Contact confirmed',
-                    'Unit_Loss: 73% // Fleet designation: Alpha',
-                    'Status: RECOVERING // Operation: Enduring'
-                ]
+            thresholds: {
+                sync: { caution: 80, danger: 65 },
+                stability: { caution: 85, danger: 70 },
+                pressure: { caution: 70, danger: 85 },
+                core: { caution: 90, danger: 88 },
+                optics: { caution: 80, danger: 75 },
+                mobility: { caution: 35, danger: 40 },
+                accuracy: { caution: 90, danger: 87 }
             }
         };
 
-        // Boot sequence
-        const bootSequence = [
-            '≻ Initializing system...',
-            '≻ Loading neural interface...',
-            '≻ Establishing sync...',
-            '≻ Calibrating sensors...',
-            '≻ Connecting to GM-Unit...',
-            '≻ System ready.'
-        ];
-
-        let bootLineIndex = 0;
-        let contentIndex = 0;
-        let charIndex = 0;
-        let isTyping = false;
-        let mainContentVisible = false;
-
-        function typeText(element, text, callback) {
-            isTyping = true;
-            charIndex = 0;
-            element.innerHTML = '';
-
-            function typeChar() {
-                if (charIndex < text.length) {
-                    const currentText = text.substring(0, charIndex + 1);
-                    element.innerHTML = currentText + '<span class="cursor"></span>';
-                    charIndex++;
-                    setTimeout(typeChar, 30);
-                } else {
-                    element.innerHTML = text;
-                    isTyping = false;
-                    if (callback) {
-                        setTimeout(callback, 300);
-                    }
+        // ============================================
+        // CONTENT - All text content
+        // ============================================
+        const CONTENT = {
+            boot: [
+                "GM-UNIT TERMINAL v4.2.1",
+                "Initializing core systems...",
+                "Loading neural interface...",
+                "Calibrating sensors...",
+                "Establishing TC connection...",
+                "Systems ready."
+            ],
+            sections: {
+                cybernetic: {
+                    title: "CYBERNETIC SYSTEMS",
+                    content: "Neural bridge: ACTIVE\nGyro-stabilizers: NOMINAL\nReflex boosters: ENGAGED\nSynapse sync: 98.7%"
+                },
+                tcunit: {
+                    title: "TC UNIT",
+                    content: "Channel: SECURE\nEncryption: MIL-SPEC\nLatency: 12ms\nPacket integrity: 100%"
+                },
+                frame: {
+                    title: "FRAME & SENSORS",
+                    content: "Chassis integrity: 94%\nHull stress: MINIMAL\nThermal levels: STABLE\nRadiation shielding: ACTIVE"
+                },
+                chess: {
+                    title: "CHESS OPERATIONS",
+                    content: "Active games: 3\nCompleted victories: 847\nCurrent ELO: 2847\nWin rate: 78.3%"
+                },
+                deployment: {
+                    title: "DEPLOYMENT LOG",
+                    content: "Last sortie: 14:32:08\nZone: SECTOR 7\nStatus: SUCCESS\nKills confirmed: 12"
                 }
+            },
+            ironFortress: {
+                iron: ["I", "R", "O", "N"],
+                fortress: ["F", "O", "R", "T", "R", "E", "S", "S"],
+                no: ["N", "O"],
+                survivors: ["S", "U", "R", "V", "I", "V", "O", "R", "S"]
             }
-            typeChar();
+        };
+
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
         }
 
-        function typeContent(sectionId, lineIndex, callback) {
-            const section = sectionsData[sectionId];
-            const elements = document.querySelectorAll(`#${sectionId} .section-${lineIndex === 'title' ? 'title' : 'content'}`);
-            
-            elements.forEach((element, index) => {
-                const text = lineIndex === 'title' ? section.title : section.content[index];
-                if (text) {
-                    typeText(element, text, index === elements.length - 1 ? callback : null);
-                }
-            });
+        function random(min, max) {
+            return Math.random() * (max - min) + min;
         }
 
-        function startBootSequence() {
-            const bootLine = document.getElementById('boot-line-1');
-            bootLine.classList.add('visible');
-            
-            setTimeout(() => {
-                typeText(bootLine, bootSequence[0], () => {
-                    fadeOutBootLine(() => {
-                        bootLineIndex = 1;
-                        showNextBootLine();
-                    });
+        function randomInt(min, max) {
+            return Math.floor(random(min, max + 1));
+        }
+
+        function clamp(val, min, max) {
+            return Math.max(min, Math.min(max, val));
+        }
+
+        // ============================================
+        // IRON FORTRESS DISPLAY
+        // ============================================
+        class IronFortressDisplay {
+            constructor(containerId) {
+                this.container = document.getElementById(containerId);
+                this.isGlitching = false;
+            }
+
+            createVerticalText(charArray, isRed = false) {
+                const div = document.createElement('div');
+                div.className = `vertical-text ${isRed ? 'no-survivors' : ''}`;
+                
+                charArray.forEach(char => {
+                    const span = document.createElement('span');
+                    span.className = 'char';
+                    span.textContent = char;
+                    div.appendChild(span);
                 });
-            }, 800);
-        }
-
-        function fadeOutBootLine(callback) {
-            const bootLine = document.getElementById('boot-line-1');
-            bootLine.classList.add('faded');
-            setTimeout(() => {
-                bootLine.classList.remove('visible', 'faded');
-                callback();
-            }, 500);
-        }
-
-        function showNextBootLine() {
-            if (bootLineIndex < bootSequence.length) {
-                const bootLine = document.getElementById('boot-line-1');
-                bootLine.textContent = bootSequence[bootLineIndex];
-                bootLine.classList.add('visible');
                 
-                setTimeout(() => {
-                    fadeOutBootLine(() => {
-                        bootLineIndex++;
-                        showNextBootLine();
-                    });
-                }, 600);
-            } else {
-                showMainContent();
+                return div;
+            }
+
+            renderIronFortress(isRed = false) {
+                this.container.innerHTML = '';
+                const textWrapper = document.createElement('div');
+                textWrapper.className = 'iron-fortress-text';
+                
+                const iron = this.createVerticalText(CONTENT.ironFortress.iron, isRed);
+                const fortress = this.createVerticalText(CONTENT.ironFortress.fortress, isRed);
+                
+                textWrapper.appendChild(iron);
+                textWrapper.appendChild(fortress);
+                this.container.appendChild(textWrapper);
+            }
+
+            renderNoSurvivors() {
+                this.container.innerHTML = '';
+                const textWrapper = document.createElement('div');
+                textWrapper.className = 'iron-fortress-text no-survivors';
+                
+                const no = this.createVerticalText(CONTENT.ironFortress.no, true);
+                const survivors = this.createVerticalText(CONTENT.ironFortress.survivors, true);
+                
+                textWrapper.appendChild(no);
+                textWrapper.appendChild(survivors);
+                this.container.appendChild(textWrapper);
+            }
+
+            show() {
+                this.renderIronFortress(false);
+                this.container.classList.add('visible');
+            }
+
+            async glitch() {
+                if (this.isGlitching) return;
+                this.isGlitching = true;
+
+                this.renderNoSurvivors();
+                this.container.classList.add('visible');
+                
+                const glitchElement = this.container.querySelector('.no-survivors');
+                if (glitchElement) {
+                    glitchElement.classList.add('glitching');
+                }
+
+                await sleep(CONFIG.glitch.duration);
+
+                this.renderIronFortress(false);
+                this.isGlitching = false;
+            }
+
+            startGlitchLoop() {
+                const scheduleNext = () => {
+                    const delay = randomInt(CONFIG.glitch.minInterval, CONFIG.glitch.maxInterval);
+                    setTimeout(() => {
+                        this.glitch();
+                        scheduleNext();
+                    }, delay);
+                };
+                scheduleNext();
             }
         }
 
-        function showMainContent() {
-            mainContentVisible = true;
-            document.getElementById('main-content').classList.remove('hidden');
-            document.getElementById('main-content').classList.add('fading-in');
-            
-            setTimeout(() => {
-                document.getElementById('eva-panel').classList.add('visible');
-                document.getElementById('doctrine').classList.add('fading-in');
-                
-                setTimeout(() => {
-                    typeSectionContent('cybernetic-systems', 0, () => {
-                        typeSectionContent('tc-unit', 0, () => {
-                            typeSectionContent('frame-sensors', 0, () => {
-                                typeSectionContent('chess-operations', 0, () => {
-                                    typeSectionContent('archived-log', 0, () => {
-                                        startFluctuatingBars();
-                                        startGlitchCycle();
-                                    });
-                                });
-                            });
-                        });
-                    });
-                }, 500);
-            }, 500);
-        }
+        // ============================================
+        // EVA TELEMETRY
+        // ============================================
+        class EVATelemetry {
+            constructor() {
+                this.elements = {
+                    core1: document.getElementById('core1'),
+                    core2: document.getElementById('core2'),
+                    optics1: document.getElementById('optics1'),
+                    optics2: document.getElementById('optics2'),
+                    mobility: document.getElementById('mobility'),
+                    accuracy: document.getElementById('accuracy'),
+                    barSync: document.getElementById('barSync'),
+                    barStability: document.getElementById('barStability'),
+                    barPressure: document.getElementById('barPressure'),
+                    status: document.getElementById('evaStatus')
+                };
 
-        function typeSectionContent(sectionId, contentIndex, callback) {
-            const section = sectionsData[sectionId];
-            const titleElement = document.querySelector(`#${sectionId} .section-title`);
-            const contentElements = document.querySelectorAll(`#${sectionId} .section-content`);
-            
-            typeText(titleElement, section.title, () => {
-                let currentIndex = 0;
+                this.targets = {
+                    core1: 92,
+                    core2: 91,
+                    optics1: 94,
+                    optics2: 93,
+                    mobility: 25,
+                    accuracy: 94,
+                    sync: 92,
+                    stability: 95,
+                    pressure: 45
+                };
+
+                this.status = 'nominal';
+            }
+
+            randomWalk(key, range) {
+                const change = random(-2, 2);
+                this.targets[key] = clamp(this.targets[key] + change, range.min, range.max);
+                return this.targets[key];
+            }
+
+            calculateStatus() {
+                const t = CONFIG.thresholds;
+                let dangerCount = 0;
+                let cautionCount = 0;
+
+                if (this.targets.sync < t.sync.danger || 
+                    this.targets.stability < t.stability.danger ||
+                    this.targets.pressure > t.pressure.danger) {
+                    dangerCount++;
+                }
+
+                if (this.targets.core1 < t.core.danger || 
+                    this.targets.core2 < t.core.danger) {
+                    dangerCount++;
+                }
+
+                if (this.targets.sync < t.sync.caution || this.targets.sync >= t.sync.danger ||
+                    this.targets.stability < t.stability.caution || this.targets.stability >= t.stability.danger ||
+                    this.targets.pressure > t.pressure.caution && this.targets.pressure <= t.pressure.danger) {
+                    cautionCount++;
+                }
+
+                if (dangerCount >= 2) return 'danger';
+                if (cautionCount >= 2 || dangerCount >= 1) return 'caution';
+                return 'nominal';
+            }
+
+            updateStatus() {
+                const newStatus = this.calculateStatus();
                 
-                function typeNextLine() {
-                    if (currentIndex < contentElements.length) {
-                        const text = section.content[currentIndex];
-                        typeText(contentElements[currentIndex], text, () => {
-                            currentIndex++;
-                            typeNextLine();
-                        });
-                    } else {
-                        if (callback) {
-                            callback();
-                        }
+                if (newStatus !== this.status) {
+                    this.status = newStatus;
+                    this.elements.status.className = `eva-status status-${newStatus}`;
+                    
+                    switch (newStatus) {
+                        case 'danger':
+                            this.elements.status.textContent = 'CRITICAL WARNING';
+                            break;
+                        case 'caution':
+                            this.elements.status.textContent = 'CAUTION: DEVIATION DETECTED';
+                            break;
+                        default:
+                            this.elements.status.textContent = 'SYSTEM NOMINAL';
                     }
                 }
-                
-                typeNextLine();
-            });
-        }
-
-        function startFluctuatingBars() {
-            setInterval(() => {
-                const bars = ['sync', 'mental', 'core'];
-                bars.forEach(bar => {
-                    const barElement = document.getElementById(`${bar}-bar`);
-                    const valueElement = document.getElementById(`${bar}-value`);
-                    const statusElement = document.getElementById(`${bar}-status`);
-                    
-                    const currentWidth = parseFloat(barElement.style.getPropertyValue('--bar-width'));
-                    const fluctuation = (Math.random() - 0.5) * 10;
-                    let newWidth = currentWidth + fluctuation;
-                    newWidth = Math.max(50, Math.min(100, newWidth));
-                    
-                    barElement.style.setProperty('--bar-width', `${newWidth}%`);
-                    valueElement.textContent = `${Math.round(newWidth)}%`;
-                    
-                    if (newWidth < 60) {
-                        statusElement.textContent = 'DANGER';
-                        statusElement.className = 'eva-status danger';
-                    } else if (newWidth < 80) {
-                        statusElement.textContent = 'CAUTION';
-                        statusElement.className = 'eva-status caution';
-                    } else {
-                        statusElement.textContent = 'NOMINAL';
-                        statusElement.className = 'eva-status nominal';
-                    }
-                });
-            }, 2000);
-        }
-
-        function startGlitchCycle() {
-            function triggerGlitch() {
-                const doctrine = document.getElementById('doctrine');
-                doctrine.classList.add('glitch');
-                
-                setTimeout(() => {
-                    doctrine.classList.remove('glitch');
-                    const randomDelay = Math.random() * 10000 + 5000;
-                    setTimeout(triggerGlitch, randomDelay);
-                }, 500);
             }
-            
-            const initialDelay = Math.random() * 15000 + 10000;
-            setTimeout(triggerGlitch, initialDelay);
+
+            updateBar(element, value) {
+                element.style.width = `${value}%`;
+                
+                if (element.id === 'barPressure') {
+                    element.classList.remove('warning', 'danger');
+                    if (value > CONFIG.thresholds.pressure.danger) {
+                        element.classList.add('danger');
+                    } else if (value > CONFIG.thresholds.pressure.caution) {
+                        element.classList.add('warning');
+                    }
+                }
+            }
+
+            update() {
+                this.elements.core1.textContent = Math.round(this.randomWalk('core1', CONFIG.ranges.core));
+                this.elements.core2.textContent = Math.round(this.randomWalk('core2', CONFIG.ranges.core));
+                this.elements.optics1.textContent = Math.round(this.randomWalk('optics1', CONFIG.ranges.optics));
+                this.elements.optics2.textContent = Math.round(this.randomWalk('optics2', CONFIG.ranges.optics));
+                this.elements.mobility.textContent = Math.round(this.randomWalk('mobility', CONFIG.ranges.mobility));
+                this.elements.accuracy.textContent = Math.round(this.randomWalk('accuracy', CONFIG.ranges.accuracy));
+
+                this.targets.sync = clamp(this.targets.sync + random(-1.5, 1.5), CONFIG.ranges.syncRatio.min, CONFIG.ranges.syncRatio.max);
+                this.targets.stability = clamp(this.targets.stability + random(-1, 1), CONFIG.ranges.stability.min, CONFIG.ranges.stability.max);
+                this.targets.pressure = clamp(this.targets.pressure + random(-1.5, 2), CONFIG.ranges.pressure.min, CONFIG.ranges.pressure.max);
+
+                this.updateBar(this.elements.barSync, this.targets.sync);
+                this.updateBar(this.elements.barStability, this.targets.stability);
+                this.updateBar(this.elements.barPressure, this.targets.pressure);
+
+                this.updateStatus();
+            }
+
+            start() {
+                this.update();
+                setInterval(() => this.update(), CONFIG.telemetry.updateInterval);
+            }
         }
 
-        // Start the system
-        document.addEventListener('DOMContentLoaded', startBootSequence);
+        // ============================================
+        // BOOT SEQUENCE
+        // ============================================
+        class BootSequence {
+            constructor(containerId) {
+                this.container = document.getElementById(containerId);
+            }
+
+            async typeText(text, speed = CONFIG.typing.bootSpeed) {
+                const line = document.createElement('div');
+                line.className = 'boot-line';
+                this.container.appendChild(line);
+
+                for (let i = 0; i < text.length; i++) {
+                    line.textContent = text.substring(0, i + 1);
+                    await sleep(speed);
+                }
+
+                await sleep(CONFIG.typing.bootPause);
+            }
+
+            async run() {
+                this.container.classList.add('visible');
+
+                for (const line of CONTENT.boot) {
+                    await this.typeText(line);
+                }
+
+                await sleep(CONFIG.typing.bootFadeDelay);
+                this.container.classList.add('fading');
+                await sleep(500);
+                this.container.style.display = 'none';
+            }
+        }
+
+        // ============================================
+        // SYSTEM SECTIONS
+        // ============================================
+        class SystemSections {
+            constructor() {
+                this.sections = Object.keys(CONTENT.sections);
+            }
+
+            async typeText(element, text, speed = CONFIG.typing.contentSpeed) {
+                element.classList.add('typing');
+                
+                for (let i = 0; i < text.length; i++) {
+                    element.textContent = text.substring(0, i + 1);
+                    await sleep(speed);
+                }
+
+                element.classList.remove('typing');
+            }
+
+            async run() {
+                const container = document.getElementById('systemSections');
+                container.classList.add('visible');
+
+                for (const sectionId of this.sections) {
+                    const section = CONTENT.sections[sectionId];
+                    const titleEl = document.getElementById(`title-${sectionId}`);
+                    const contentEl = document.getElementById(`content-${sectionId}`);
+
+                    titleEl.textContent = section.title;
+                    titleEl.classList.add('typed');
+
+                    await sleep(CONFIG.typing.titlePause);
+
+                    await this.typeText(contentEl, section.content);
+                    await sleep(CONFIG.typing.contentPause);
+                }
+            }
+        }
+
+        // ============================================
+        // MAIN INITIALIZATION
+        // ============================================
+        async function init() {
+            const boot = new BootSequence('bootScreen');
+            const sections = new SystemSections();
+            const ironFortress = new IronFortressDisplay('ironFortress');
+            const eva = new EVATelemetry();
+
+            await boot.run();
+            await sleep(CONFIG.typing.sectionDelay);
+
+            ironFortress.show();
+            document.getElementById('evaPanel').classList.add('visible');
+            eva.start();
+            ironFortress.startGlitchLoop();
+
+            await sections.run();
+        }
+
+        // Start when DOM is ready
+        document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
+</html>
