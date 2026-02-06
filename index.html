@@ -1,295 +1,420 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GM-UNIT TERMINAL</title>
+"use client";
 
-<style>
-:root{
-  --green:#00ff41;
-  --dark:#000;
-  --dim:#003b00;
-  --red:#ff3333;
-  --orange:#ff9500;
-  --base:14px;
-  --title:18px;
-  --doctrine:46px;
-  --doctrine-mobile:22px;
+import { useState, useEffect, useCallback, useRef } from "react";
+
+// Vertical text helper function
+function VerticalText({ text, className = "" }: { text: string; className?: string }) {
+  // Split text into two columns for vertical layout
+  const midpoint = Math.ceil(text.length / 2);
+  const col1 = text.slice(0, midpoint);
+  const col2 = text.slice(midpoint);
+
+  return (
+    <div className={`${className} flex gap-4`}>
+      <div className="flex flex-col leading-none tracking-widest font-bold">
+        {col1.split("").map((char, i) => (
+          <span key={`col1-${i}`} className="h-8">{char}</span>
+        ))}
+      </div>
+      <div className="flex flex-col leading-none tracking-widest font-bold">
+        {col2.split("").map((char, i) => (
+          <span key={`col2-${i}`} className="h-8">{char}</span>
+        ))}
+      </div>
+    </div>
+  );
 }
 
-*{box-sizing:border-box}
-body{
-  margin:0;
-  background:black;
-  color:var(--green);
-  font-family:monospace;
-  overflow-x:hidden;
+// Doctrine Glitch Component - the core IRON FORTRESS / NO SURVIVORS effect
+function DoctrineGlitch() {
+  const [showNoSurvivors, setShowNoSurvivors] = useState(false);
+  const [glitchIntensity, setGlitchIntensity] = useState(0);
+  const [jitter, setJitter] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const glitchInterval = setInterval(() => {
+      // IRON FORTRESS is default, NO SURVIVORS flickers occasionally
+      const random = Math.random();
+      if (random > 0.97) {
+        // Trigger glitch
+        setGlitchIntensity(1);
+        setShowNoSurvivors(true);
+        setJitter({ x: Math.random() * 4 - 2, y: Math.random() * 4 - 2 });
+        
+        // Brief flicker duration (50-150ms)
+        setTimeout(() => {
+          setShowNoSurvivors(false);
+          setGlitchIntensity(0);
+          setJitter({ x: 0, y: 0 });
+        }, 50 + Math.random() * 100);
+      } else {
+        setShowNoSurvivors(false);
+        setGlitchIntensity(0);
+      }
+    }, 2000);
+
+    return () => clearInterval(glitchInterval);
+  }, []);
+
+  const glitchStyle = {
+    opacity: glitchIntensity > 0 ? glitchIntensity : 1,
+    transform: glitchIntensity > 0 ? `translate(${jitter.x}px, ${jitter.y}px)` : "none",
+    color: showNoSurvivors ? "#ff0000" : undefined,
+    textShadow: glitchIntensity > 0 ? `0 0 10px #ff0000, 0 0 20px #ff0000` : undefined,
+  };
+
+  return (
+    <div className="relative flex items-center justify-center h-64 overflow-hidden">
+      <div className={`
+        transition-all duration-75
+        ${glitchIntensity > 0 ? "scale-105" : "scale-100"}
+      `} style={glitchStyle}>
+        {showNoSurvivors ? (
+          <VerticalText text="NO SURVIVORS" />
+        ) : (
+          <VerticalText text="IRON FORTRESS" />
+        )}
+      </div>
+    </div>
+  );
 }
 
-body::after{
-  content:"";
-  position:fixed;
-  inset:0;
-  background:rgba(255,255,255,.03);
-  animation:flicker 3s infinite;
-  pointer-events:none;
+// Typing effect component
+function Typewriter({ text, speed = 50, onComplete }: { text: string; speed?: number; onComplete?: () => void }) {
+  const [displayed, setDisplayed] = useState("");
+  
+  useEffect(() => {
+    let i = 0;
+    const timer = setInterval(() => {
+      if (i < text.length) {
+        setDisplayed(text.slice(0, i + 1));
+        i++;
+      } else {
+        clearInterval(timer);
+        onComplete?.();
+      }
+    }, speed);
+    return () => clearInterval(timer);
+  }, [text, speed, onComplete]);
+
+  return <>{displayed}</>;
 }
 
-@keyframes flicker{0%,97%{opacity:0}98%{opacity:.15}100%{opacity:0}}
-
-.container{
-  display:grid;
-  grid-template-columns:1fr auto;
-  gap:24px;
-  padding:24px;
-}
-
-.left{max-width:640px}
-.section{margin-bottom:22px}
-
-.section-title{
-  font-size:var(--title);
-  letter-spacing:2px;
-  min-height:1.4em;
-}
-
-.section-content{
-  padding-left:12px;
-  border-left:2px solid var(--dim);
-  white-space:pre-wrap;
-  min-height:5em;
-}
-
-.cursor::after{
-  content:"█";
-  animation:blink 1s infinite;
-}
-@keyframes blink{50%{opacity:0}}
-
-#boot{min-height:10em}
-
-.right{
-  display:flex;
-  gap:22px;
-}
-
-#doctrine{
-  font-size:var(--doctrine);
-  line-height:1.1;
-  white-space:pre;
-  opacity:0;
-  transition:opacity 1s;
-}
-
-.doctrine-red{color:var(--red)}
-
-#eva{
-  width:260px;
-  font-size:12px;
-  opacity:0;
-  transition:opacity 1s;
-}
-
-.bar{height:6px;background:rgba(0,255,65,.15)}
-.fill{height:100%;background:rgba(0,255,65,.8)}
-
-#eva-status{
-  margin-top:14px;
-  text-align:right;
-}
-
-.flicker-num{
-  animation:numFlicker .12s linear;
-}
-@keyframes numFlicker{50%{opacity:.4}}
-
-.danger{color:var(--red)}
-.caution{color:var(--orange)}
-
-@media(max-width:900px){
-  .container{grid-template-columns:1fr}
-  .right{order:-1}
-  #doctrine{font-size:var(--doctrine-mobile)}
-}
-</style>
-</head>
-
-<body>
-<div class="container">
-
-<div class="left">
-  <div id="boot" class="cursor"></div>
-
-  <div class="section">
-    <div id="t-cyber" class="section-title"></div>
-    <div id="c-cyber" class="section-content"></div>
-  </div>
-
-  <div class="section">
-    <div id="t-tc" class="section-title"></div>
-    <div id="c-tc" class="section-content"></div>
-  </div>
-
-  <div class="section">
-    <div id="t-frame" class="section-title"></div>
-    <div id="c-frame" class="section-content"></div>
-  </div>
-
-  <div class="section">
-    <div id="t-chess" class="section-title"></div>
-    <div id="c-chess" class="section-content"></div>
-  </div>
-
-  <div class="section">
-    <div id="t-log" class="section-title"></div>
-    <div id="c-log" class="section-content"></div>
-  </div>
-</div>
-
-<div class="right">
-  <div id="doctrine"></div>
-
-  <div id="eva">
-    SYNC RATIO
-    <div class="bar"><div id="sync" class="fill"></div></div><br>
-    MENTAL STABILITY
-    <div class="bar"><div id="mental" class="fill"></div></div><br>
-    CORE PRESSURE
-    <div class="bar"><div id="pressure" class="fill"></div></div>
-
-    <div id="eva-status">STATUS: NOMINAL</div>
-  </div>
-</div>
-
-</div>
-
-<script>
-/* typing */
-function type(el,text,speed=28,cb){
-  let i=0; el.textContent="";
-  (function t(){
-    if(i<text.length){ el.textContent+=text[i++]; setTimeout(t,speed); }
-    else cb&&cb();
-  })();
-}
-
-/* doctrine */
-function doctrine(a,b){
-  let m=Math.max(a.length,b.length),o=[];
-  for(let i=0;i<m;i++)o.push((a[i]||" ")+" "+(b[i]||" "));
-  return o.join("\n");
-}
-
-/* boot */
-const bootLines=[
-"≻ SYSTEM BOOT: GM-UNIT",
-"INITIALIZING CORES",
-"LOADING STRATEGIC MATRICES",
-"SYNCHRONIZING ENDGAME TABLES",
-"WARNINGS DETECTED",
-"",
-"≻ SYSTEM ONLINE"
+// Boot sequence component
+const BOOT_LINES = [
+  "GM-UNIT TERMINAL v2.4.1",
+  "Initializing hardware...",
+  "Loading kernel modules...",
+  "Establishing EVA link...",
+  "Calibrating sensors...",
+  "System ready.",
 ];
-const boot=document.getElementById("boot"); let bi=0;
-(function bootSeq(){
-  if(bi<bootLines.length){
-    boot.textContent+=bootLines[bi++]+"\n";
-    setTimeout(bootSeq,520);
-  }else{
-    boot.classList.remove("cursor");
-    setTimeout(()=>{boot.style.display="none";start();},600);
-  }
-})();
 
-/* start */
-function start(){
-  const d=document.getElementById("doctrine");
-  const e=document.getElementById("eva");
-  d.textContent=doctrine("IRON","FORTRESS");
-  d.style.opacity=1; e.style.opacity=1;
+function BootSequence({ onComplete }: { onComplete: () => void }) {
+  const [lines, setLines] = useState<string[]>([]);
+  
+  useEffect(() => {
+    let currentLine = 0;
+    const addLine = () => {
+      if (currentLine < BOOT_LINES.length) {
+        setLines(prev => [...prev, BOOT_LINES[currentLine]]);
+        currentLine++;
+        setTimeout(addLine, 300 + Math.random() * 500);
+      } else {
+        setTimeout(onComplete, 500);
+      }
+    };
+    setTimeout(addLine, 500);
+    return () => { currentLine = BOOT_LINES.length; };
+  }, [onComplete]);
 
-  setInterval(()=>{
-    d.classList.add("doctrine-red");
-    d.textContent=doctrine("NO","SURVIVORS");
-    setTimeout(()=>{
-      d.classList.remove("doctrine-red");
-      d.textContent=doctrine("IRON","FORTRESS");
-    },700);
-  },12000);
-
-  sections();
-  telemetry();
+  return (
+    <div className="fixed inset-0 bg-black text-green-500 font-mono p-8 z-50">
+      {lines.map((line, i) => (
+        <div key={i} className="mb-1 animate-pulse">{line}</div>
+      ))}
+      <div className="animate-pulse">_</div>
+    </div>
+  );
 }
 
-/* sections */
-function sections(){
-  type(t-cyber,"[ CYBERNETIC SYSTEMS ]",30,()=>{
-    c-cyber.innerHTML=
-`Core_001: <span id="core1">89</span>%  
-Core_002: <span id="core2">92</span>%  
-Status: Suboptimal  
-Runtime: 19y  
-Firmware: 2006`;
+// Status indicator component
+function StatusIndicator({ status }: { status: "nominal" | "caution" | "danger" }) {
+  const colors = {
+    nominal: "bg-green-500",
+    caution: "bg-yellow-500",
+    danger: "bg-red-500",
+  };
+
+  const labels = {
+    nominal: "NOMINAL",
+    caution: "CAUTION",
+    danger: "DANGER",
+  };
+
+  return (
+    <div className="flex items-center gap-3">
+      <div className={`w-4 h-4 ${colors[status]} animate-pulse rounded-full`} />
+      <span className={`font-bold tracking-widest ${
+        status === "nominal" ? "text-green-500" : 
+        status === "caution" ? "text-yellow-500" : "text-red-500"
+      }`}>
+        {labels[status]}
+      </span>
+    </div>
+  );
+}
+
+// Telemetry data component
+function TelemetryPanel({ status }: { status: "nominal" | "caution" | "danger" }) {
+  const [values, setValues] = useState({
+    oxygen: 98,
+    pressure: 101.3,
+    temperature: 22,
+    radiation: 0.1,
   });
+  const [flicker, setFlicker] = useState(false);
 
-  setTimeout(()=>type(t-tc,"[ TC UNIT ]",30,()=>{
-    type(c-tc,"Organic pilots: 621\nPrediction deviation detected\nRecognition degraded");
-  }),700);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setValues(prev => ({
+        oxygen: prev.oxygen + (Math.random() - 0.5) * 2,
+        pressure: prev.pressure + (Math.random() - 0.5) * 0.5,
+        temperature: prev.temperature + (Math.random() - 0.5) * 0.5,
+        radiation: Math.max(0, prev.radiation + (Math.random() - 0.5) * 0.05),
+      }));
+      if (Math.random() > 0.95) {
+        setFlicker(true);
+        setTimeout(() => setFlicker(false), 50);
+      }
+    }, 100);
 
-  setTimeout(()=>type(t-frame,"[ FRAME & SENSORS ]",30,()=>{
-    c-frame.innerHTML=
-`Optic_001: <span id="optic1">52</span>%  
-Optic_002: <span id="optic2">78</span>%  
-Hydraulics: failing  
-Mobility delay: +<span id="mobility">0.41</span>s`;
-  }),1400);
+    return () => clearInterval(interval);
+  }, []);
 
-  setTimeout(()=>type(t-chess,"[ CHESS OPERATIONS ]",30,()=>{
-    c-chess.innerHTML=
-`Targeting accuracy: <span id="accuracy">94</span>%  
-Opening files: partial  
-Endgame protocol: intact`;
-  }),2100);
-
-  setTimeout(()=>type(t-log,"[ ARCHIVED DEPLOYMENT LOG ]",30,()=>{
-    type(c-log,"Confirmed eliminations: 43,357,892\nRepurposed: Chess Domain\nLegacy: HALLOWED");
-  }),2800);
+  return (
+    <div className={`bg-black/50 p-4 border border-green-900/50 font-mono text-sm ${
+      flicker ? "animate-pulse" : ""
+    }`}>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <div className="text-green-700">O₂ LEVEL</div>
+          <div className={`${status === "danger" ? "text-red-500" : "text-green-500"}`}>
+            {values.oxygen.toFixed(1)}%
+          </div>
+        </div>
+        <div>
+          <div className="text-green-700">PRESSURE</div>
+          <div className="text-green-500">{values.pressure.toFixed(1)} kPa</div>
+        </div>
+        <div>
+          <div className="text-green-700">TEMP</div>
+          <div className="text-green-500">{values.temperature.toFixed(1)}°C</div>
+        </div>
+        <div>
+          <div className="text-green-700">RADIATION</div>
+          <div className={values.radiation > 0.5 ? "text-red-500" : "text-green-500"}>
+            {values.radiation.toFixed(2)} mSv
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
-/* telemetry + numeric flicker */
-function flicker(el){
-  el.classList.add("flicker-num");
-  setTimeout(()=>el.classList.remove("flicker-num"),120);
+// EVA Panel component
+const EVA_MESSAGES = {
+  nominal: ["EVA link stable", "All systems nominal", "Monitoring active"],
+  caution: ["Warning: EVA link unstable", "Re calibrating...", "Sensors detecting anomalies"],
+  danger: ["CRITICAL: EVA FAILURE", "LIFE SUPPORT COMPROMISED", "EMERGENCY PROTOCOLS ACTIVE"],
+};
+
+function EVAPanel({ status }: { status: "nominal" | "caution" | "danger" }) {
+  const [currentMsg, setCurrentMsg] = useState(0);
+  const [showSubtitle, setShowSubtitle] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentMsg(prev => (prev + 1) % EVA_MESSAGES[status].length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [status]);
+
+  useEffect(() => {
+    setTimeout(() => setShowSubtitle(true), 1500);
+  }, []);
+
+  return (
+    <div className={`
+      border p-6 mb-6 transition-colors duration-300
+      ${status === "nominal" ? "border-green-500/50 bg-green-900/10" : 
+        status === "caution" ? "border-yellow-500/50 bg-yellow-900/10" : 
+        "border-red-500/50 bg-red-900/10"}
+    `}>
+      <div className="text-xs text-green-600 mb-2 tracking-[0.5em]">EVA STATUS</div>
+      <Typewriter 
+        text={EVA_MESSAGES[status][currentMsg]} 
+        speed={30}
+        onComplete={() => setShowSubtitle(true)}
+      />
+      {showSubtitle && (
+        <div className="mt-4 text-sm text-green-700 animate-pulse">
+          ▸ Connecting to satellite network...
+        </div>
+      )}
+    </div>
+  );
 }
 
-function telemetry(){
-  setInterval(()=>{
-    const rand=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+// Main component
+export default function GMTerminal() {
+  const [booted, setBooted] = useState(false);
+  const [status, setStatus] = useState<"nominal" | "caution" | "danger">("nominal");
+  const [overlayFlicker, setOverlayFlicker] = useState(false);
 
-    [["core1",87,91],["core2",90,94],["optic1",50,54],["optic2",76,80],["accuracy",93,95]]
-    .forEach(([id,min,max])=>{
-      const el=document.getElementById(id);
-      if(el){ el.textContent=rand(min,max); flicker(el); }
-    });
+  // Random status changes for demo
+  useEffect(() => {
+    if (!booted) return;
+    
+    const statusInterval = setInterval(() => {
+      const rand = Math.random();
+      if (rand > 0.95) setStatus(rand > 0.98 ? "danger" : "caution");
+      else setStatus("nominal");
+    }, 5000);
 
-    const mob=document.getElementById("mobility");
-    if(mob){ mob.textContent=(0.38+Math.random()*0.08).toFixed(2); flicker(mob); }
+    return () => clearInterval(statusInterval);
+  }, [booted]);
 
-    const s=60+Math.random()*30;
-    const m=45+Math.random()*40;
-    const p=50+Math.random()*40;
-    sync.style.width=s+"%";
-    mental.style.width=m+"%";
-    pressure.style.width=p+"%";
+  // Overlay flicker effect
+  useEffect(() => {
+    const overlayInterval = setInterval(() => {
+      if (Math.random() > 0.97) {
+        setOverlayFlicker(true);
+        setTimeout(() => setOverlayFlicker(false), 50 + Math.random() * 100);
+      }
+    }, 2000);
 
-    const st=document.getElementById("eva-status");
-    st.className="";
-    if(p>85){st.textContent="STATUS: DANGER";st.classList.add("danger")}
-    else if(p>70){st.textContent="STATUS: CAUTION";st.classList.add("caution")}
-    else st.textContent="STATUS: NOMINAL";
-  },1600);
+    return () => clearInterval(overlayInterval);
+  }, []);
+
+  // Keyboard interaction for status testing
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === "1") setStatus("nominal");
+      if (e.key === "2") setStatus("caution");
+      if (e.key === "3") setStatus("danger");
+    };
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, []);
+
+  if (!booted) {
+    return <BootSequence onComplete={() => setBooted(true)} />;
+  }
+
+  return (
+    <div className="min-h-screen bg-neutral-900 text-green-500 font-mono overflow-hidden relative">
+      {/* Static overlay flicker */}
+      {overlayFlicker && (
+        <div className="fixed inset-0 bg-white/5 pointer-events-none z-40 animate-pulse" />
+      )}
+
+      {/* Scanline effect */}
+      <div className="fixed inset-0 pointer-events-none z-30 bg-[linear-gradient(transparent_50%,rgba(0,0,0,0.25)_50%)] bg-[length:100%_4px]" />
+
+      <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 h-screen flex flex-col">
+        {/* Header */}
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-green-900/50 pb-4">
+          <div>
+            <h1 className="text-xl sm:text-2xl tracking-[0.3em] font-bold">GM-UNIT TERMINAL</h1>
+            <p className="text-sm text-green-700 mt-1">UNIT 734 // SECTOR 9</p>
+          </div>
+          <StatusIndicator status={status} />
+        </header>
+
+        {/* Main content grid */}
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-0">
+          {/* Left Panel - Scrollable */}
+          <div className="lg:col-span-2 bg-black/30 border border-green-900/50 overflow-y-auto max-h-[40vh] lg:max-h-none">
+            <div className="p-4">
+              <EVAPanel status={status} />
+
+              {/* Doctrine Display - The Glitch Effect */}
+              <div className={`
+                border-2 p-8 mb-6 transition-colors duration-300
+                ${status === "nominal" ? "border-green-500/50" : 
+                  status === "caution" ? "border-yellow-500/50" : 
+                  "border-red-500/50 animate-pulse"}
+              `}>
+                <div className="text-xs text-green-600 mb-4 tracking-[0.5em] text-center">
+                  CURRENT DOCTRINE
+                </div>
+                <div className="flex justify-center">
+                  <DoctrineGlitch />
+                </div>
+              </div>
+
+              {/* Telemetry */}
+              <TelemetryPanel status={status} />
+
+              {/* System Log */}
+              <div className="mt-6 border-t border-green-900/50 pt-4">
+                <div className="text-xs text-green-600 mb-2 tracking-[0.5em]">SYSTEM LOG</div>
+                <div className="text-sm space-y-1 text-green-700/80">
+                  <div>[{new Date().toLocaleTimeString()}] Connection established</div>
+                  <div>[{new Date().toLocaleTimeString()}] Encryption verified</div>
+                  <div>[{new Date().toLocaleTimeString()}] Sensor array online</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Panel - Static Info */}
+          <div className="space-y-4">
+            <div className="bg-black/50 p-4 border border-green-900/50">
+              <div className="text-xs text-green-600 mb-2 tracking-[0.5em]">UNIT STATUS</div>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-green-700">OPERATIONAL</span>
+                  <span className="text-green-500">ONLINE</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-green-700">POWER</span>
+                  <span className="text-green-500">98%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-green-700">NETWORK</span>
+                  <span className="text-green-500">CONNECTED</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-black/50 p-4 border border-green-900/50">
+              <div className="text-xs text-green-600 mb-2 tracking-[0.5em]">CONTROLS</div>
+              <div className="text-xs text-green-700 space-y-1">
+                <div>[1] Nominal Status</div>
+                <div>[2] Caution Status</div>
+                <div>[3] Danger Status</div>
+              </div>
+            </div>
+
+            <div className="bg-black/50 p-4 border border-green-900/50">
+              <div className="text-xs text-green-600 mb-2 tracking-[0.5em]">COORDS</div>
+              <div className="text-xs text-green-500 font-mono">
+                47.1823° N<br />
+                123.8923° W<br />
+                ALT: 142m
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <footer className="mt-4 pt-4 border-t border-green-900/50 flex justify-between text-xs text-green-700">
+          <span>GM-UNIT TERMINAL v2.4.1</span>
+          <span>SECURE CONNECTION // AES-256</span>
+        </footer>
+      </div>
+    </div>
+  );
 }
-</script>
-</body>
-                                                               </html>
