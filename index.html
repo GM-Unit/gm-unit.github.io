@@ -166,18 +166,22 @@
         /* Right Panel - EVA & Iron Fortress */
         .right-panel {
             display: flex;
-            flex-direction: column;
-            align-items: flex-end;
+            flex-direction: row;
+            align-items: flex-start;
             padding-top: 1rem;
+            gap: 1.5rem;
         }
 
         .iron-fortress-container {
             font-size: var(--font-size-large);
             line-height: 1.2;
-            margin-bottom: 2rem;
             opacity: 0;
             transition: opacity 1s ease;
             text-align: right;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            height: auto;
+            max-height: 400px;
         }
 
         .iron-fortress-container.visible {
@@ -230,6 +234,7 @@
             border: 1px solid var(--terminal-dim);
             padding: 1.5rem;
             min-width: 320px;
+            max-width: 400px;
             opacity: 0;
             transition: opacity 1s ease;
         }
@@ -449,7 +454,9 @@
     <div class="terminal-container">
         <!-- Left Panel -->
         <div class="left-panel">
-            <div class="boot-screen" id="bootScreen"></div>
+            <div class="boot-screen" id="bootScreen">
+                <!-- Boot content will be inserted here -->
+            </div>
 
             <div class="system-sections" id="systemSections">
                 <div class="section" data-section="cybernetic">
@@ -481,7 +488,9 @@
 
         <!-- Right Panel -->
         <div class="right-panel">
-            <div class="iron-fortress-container" id="ironFortress"></div>
+            <div class="iron-fortress-container" id="ironFortress">
+                <!-- Iron Fortress / No Survivors text will be inserted here -->
+            </div>
 
             <div class="eva-panel" id="evaPanel">
                 <div class="eva-title">EVA TELEMETRY</div>
@@ -489,466 +498,261 @@
                 <div class="telemetry-grid">
                     <div class="telemetry-item">
                         <div class="telemetry-label">CORE 1</div>
-                        <div class="telemetry-value flickering" id="core1">0</div>
+                        <div class="telemetry-value" id="core1">98%</div>
                     </div>
                     <div class="telemetry-item">
                         <div class="telemetry-label">CORE 2</div>
-                        <div class="telemetry-value flickering" id="core2">0</div>
+                        <div class="telemetry-value" id="core2">97%</div>
                     </div>
                     <div class="telemetry-item">
-                        <div class="telemetry-label">OPTICS 1</div>
-                        <div class="telemetry-value flickering" id="optics1">0</div>
+                        <div class="telemetry-label">CORE 3</div>
+                        <div class="telemetry-value" id="core3">99%</div>
                     </div>
                     <div class="telemetry-item">
-                        <div class="telemetry-label">OPTICS 2</div>
-                        <div class="telemetry-value flickering" id="optics2">0</div>
-                    </div>
-                    <div class="telemetry-item">
-                        <div class="telemetry-label">MOBILITY DELAY</div>
-                        <div class="telemetry-value flickering" id="mobility">0</div>
-                    </div>
-                    <div class="telemetry-item">
-                        <div class="telemetry-label">TARGETING ACCURACY</div>
-                        <div class="telemetry-value flickering" id="accuracy">0</div>
+                        <div class="telemetry-label">CORE 4</div>
+                        <div class="telemetry-value" id="core4">96%</div>
                     </div>
                 </div>
 
                 <div class="eva-section">
-                    <div class="eva-label">SYNC RATIO</div>
+                    <div class="eva-label">NEURAL SYNC</div>
                     <div class="eva-bar-container">
-                        <div class="eva-bar bar-sync" id="barSync" style="width: 0%"></div>
+                        <div class="eva-bar bar-sync" id="syncBar" style="width: 85%"></div>
                     </div>
                 </div>
 
                 <div class="eva-section">
-                    <div class="eva-label">MENTAL STABILITY</div>
+                    <div class="eva-label">STABILITY INDEX</div>
                     <div class="eva-bar-container">
-                        <div class="eva-bar bar-stability" id="barStability" style="width: 0%"></div>
+                        <div class="eva-bar bar-stability" id="stabilityBar" style="width: 92%"></div>
                     </div>
                 </div>
 
                 <div class="eva-section">
-                    <div class="eva-label">CORE PRESSURE</div>
+                    <div class="eva-label">PRESSURE VARIANCE</div>
                     <div class="eva-bar-container">
-                        <div class="eva-bar bar-pressure" id="barPressure" style="width: 0%"></div>
+                        <div class="eva-bar bar-pressure" id="pressureBar" style="width: 15%"></div>
                     </div>
                 </div>
 
-                <div class="eva-status status-nominal" id="evaStatus">
-                    SYSTEM NOMINAL
-                </div>
+                <div class="eva-status status-nominal" id="evaStatus">NOMINAL</div>
             </div>
         </div>
     </div>
 
     <script>
-        // ============================================
-        // CONFIGURATION - Easy to customize
-        // ============================================
-        const CONFIG = {
-            typing: {
-                bootSpeed: 30,
-                bootPause: 500,
-                titlePause: 300,
-                contentSpeed: 40,
-                contentPause: 200,
-                bootFadeDelay: 2000,
-                sectionDelay: 800
+        const SYSTEM_DATA = {
+            cybernetic: {
+                title: "CYBERNETIC LINK ESTABLISHED",
+                content: "Pilot-to-EVA neural synchronization complete.\nSignal latency: 47ms\nEncryption: AES-256\nBandwidth: 1000 Mbps\nProtocol: TTCN-3"
             },
-            glitch: {
-                minInterval: 5000,
-                maxInterval: 12000,
-                duration: 650
+            tcunit: {
+                title: "TC-UNIT STATUS: ONLINE",
+                content: "Unit ID: GM-007-FORT\nFirmware v4.2.1\nBoot sequence: SUCCESS\nMemory allocation: 512MB\nProcess count: 24"
             },
-            telemetry: {
-                updateInterval: 150,
-                barSmoothness: 0.15
+            frame: {
+                title: "FRAME INTEGRITY: 100%",
+                content: "Carbon-reinforced alloy structure\nImpact resistance: 98.7%\nJoint servos: NOMINAL\nReaction thrusters: STANDBY\nShield emitters: ACTIVE"
             },
-            ranges: {
-                core: { min: 85, max: 100 },
-                optics: { min: 70, max: 99 },
-                mobility: { min: 15, max: 45 },
-                accuracy: { min: 85, max: 99 },
-                syncRatio: { min: 70, max: 98 },
-                stability: { min: 80, max: 99 },
-                pressure: { min: 10, max: 85 }
+            chess: {
+                title: "CHESS INTERFACE READY",
+                content: "Engine: Stockfish 16\nELO rating: 3500\nMode: BULLET (3+0)\nOpening book: MASTER\nAnalysis: ACTIVE"
             },
-            thresholds: {
-                sync: { caution: 80, danger: 65 },
-                stability: { caution: 85, danger: 70 },
-                pressure: { caution: 70, danger: 85 },
-                core: { caution: 90, danger: 88 },
-                optics: { caution: 80, danger: 75 },
-                mobility: { caution: 35, danger: 40 },
-                accuracy: { caution: 90, danger: 87 }
+            deployment: {
+                title: "DEPLOYMENT ZONE: OMEGA-9",
+                content: "Coordinates: 47.3°N, 142.5°E\nTerrain: Urban/ruins\nThreat level: ELEVATED\nObjectives: SEEK & DESTROY\nRules of engagement: IRON FORTRESS"
             }
         };
 
-        // ============================================
-        // CONTENT - All text content
-        // ============================================
-        const CONTENT = {
-            boot: [
-                "GM-UNIT TERMINAL v4.2.1",
-                "Initializing core systems...",
-                "Loading neural interface...",
-                "Calibrating sensors...",
-                "Establishing TC connection...",
-                "Systems ready."
-            ],
-            sections: {
-                cybernetic: {
-                    title: "CYBERNETIC SYSTEMS",
-                    content: "Neural bridge: ACTIVE\nGyro-stabilizers: NOMINAL\nReflex boosters: ENGAGED\nSynapse sync: 98.7%"
-                },
-                tcunit: {
-                    title: "TC UNIT",
-                    content: "Channel: SECURE\nEncryption: MIL-SPEC\nLatency: 12ms\nPacket integrity: 100%"
-                },
-                frame: {
-                    title: "FRAME & SENSORS",
-                    content: "Chassis integrity: 94%\nHull stress: MINIMAL\nThermal levels: STABLE\nRadiation shielding: ACTIVE"
-                },
-                chess: {
-                    title: "CHESS OPERATIONS",
-                    content: "Active games: 3\nCompleted victories: 847\nCurrent ELO: 2847\nWin rate: 78.3%"
-                },
-                deployment: {
-                    title: "DEPLOYMENT LOG",
-                    content: "Last sortie: 14:32:08\nZone: SECTOR 7\nStatus: SUCCESS\nKills confirmed: 12"
-                }
-            },
-            ironFortress: {
-                iron: ["I", "R", "O", "N"],
-                fortress: ["F", "O", "R", "T", "R", "E", "S", "S"],
-                no: ["N", "O"],
-                survivors: ["S", "U", "R", "V", "I", "V", "O", "R", "S"]
-            }
-        };
+        const bootMessages = [
+            "INITIALIZING GM-UNIT TERMINAL...",
+            "LOADING KERNEL MODULES...",
+            "MOUNTING VIRTUAL FILE SYSTEMS...",
+            "ESTABLISHING SECURE CONNECTION...",
+            "VERIFYING PILOT CREDENTIALS...",
+            "SYNCING NEURAL INTERFACE...",
+            "LOADING EVA TELEMETRY...",
+            "INITIATING CHESS SUBSYSTEM...",
+            "CALIBRATING SENSORS...",
+            "SYSTEM READY."
+        ];
 
-        // ============================================
-        // UTILITY FUNCTIONS
-        // ============================================
-        function sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
+        function getElement(elementId) {
+            return document.getElementById(elementId);
         }
 
-        function random(min, max) {
-            return Math.random() * (max - min) + min;
+        function typeText(element, text, speed = 50, onComplete = null) {
+            if (!text) {
+                if (onComplete) onComplete();
+                return;
+            }
+
+            element.classList.add('typing');
+            let index = 0;
+
+            function type() {
+                if (index < text.length) {
+                    element.textContent = text.substring(0, index + 1);
+                    index++;
+
+                    const char = text.charAt(index);
+                    const isNewline = char === '\n';
+                    const delay = isNewline ? 200 : speed;
+
+                    setTimeout(type, delay);
+                } else {
+                    element.classList.remove('typing');
+                    if (onComplete) onComplete();
+                }
+            }
+
+            type();
         }
 
-        function randomInt(min, max) {
-            return Math.floor(random(min, max + 1));
-        }
-
-        function clamp(val, min, max) {
-            return Math.max(min, Math.min(max, val));
-        }
-
-        // ============================================
-        // IRON FORTRESS DISPLAY
-        // ============================================
-        class IronFortressDisplay {
-            constructor(containerId) {
-                this.container = document.getElementById(containerId);
-                this.isGlitching = false;
-            }
-
-            createVerticalText(charArray, isRed = false) {
-                const div = document.createElement('div');
-                div.className = `vertical-text ${isRed ? 'no-survivors' : ''}`;
-                
-                charArray.forEach(char => {
-                    const span = document.createElement('span');
-                    span.className = 'char';
-                    span.textContent = char;
-                    div.appendChild(span);
-                });
-                
-                return div;
-            }
-
-            renderIronFortress(isRed = false) {
-                this.container.innerHTML = '';
-                const textWrapper = document.createElement('div');
-                textWrapper.className = 'iron-fortress-text';
-                
-                const iron = this.createVerticalText(CONTENT.ironFortress.iron, isRed);
-                const fortress = this.createVerticalText(CONTENT.ironFortress.fortress, isRed);
-                
-                textWrapper.appendChild(iron);
-                textWrapper.appendChild(fortress);
-                this.container.appendChild(textWrapper);
-            }
-
-            renderNoSurvivors() {
-                this.container.innerHTML = '';
-                const textWrapper = document.createElement('div');
-                textWrapper.className = 'iron-fortress-text no-survivors';
-                
-                const no = this.createVerticalText(CONTENT.ironFortress.no, true);
-                const survivors = this.createVerticalText(CONTENT.ironFortress.survivors, true);
-                
-                textWrapper.appendChild(no);
-                textWrapper.appendChild(survivors);
-                this.container.appendChild(textWrapper);
-            }
-
-            show() {
-                this.renderIronFortress(false);
-                this.container.classList.add('visible');
-            }
-
-            async glitch() {
-                if (this.isGlitching) return;
-                this.isGlitching = true;
-
-                this.renderNoSurvivors();
-                this.container.classList.add('visible');
-                
-                const glitchElement = this.container.querySelector('.no-survivors');
-                if (glitchElement) {
-                    glitchElement.classList.add('glitching');
-                }
-
-                await sleep(CONFIG.glitch.duration);
-
-                this.renderIronFortress(false);
-                this.isGlitching = false;
-            }
-
-            startGlitchLoop() {
-                const scheduleNext = () => {
-                    const delay = randomInt(CONFIG.glitch.minInterval, CONFIG.glitch.maxInterval);
-                    setTimeout(() => {
-                        this.glitch();
-                        scheduleNext();
-                    }, delay);
-                };
-                scheduleNext();
-            }
-        }
-
-        // ============================================
-        // EVA TELEMETRY
-        // ============================================
-        class EVATelemetry {
-            constructor() {
-                this.elements = {
-                    core1: document.getElementById('core1'),
-                    core2: document.getElementById('core2'),
-                    optics1: document.getElementById('optics1'),
-                    optics2: document.getElementById('optics2'),
-                    mobility: document.getElementById('mobility'),
-                    accuracy: document.getElementById('accuracy'),
-                    barSync: document.getElementById('barSync'),
-                    barStability: document.getElementById('barStability'),
-                    barPressure: document.getElementById('barPressure'),
-                    status: document.getElementById('evaStatus')
-                };
-
-                this.targets = {
-                    core1: 92,
-                    core2: 91,
-                    optics1: 94,
-                    optics2: 93,
-                    mobility: 25,
-                    accuracy: 94,
-                    sync: 92,
-                    stability: 95,
-                    pressure: 45
-                };
-
-                this.status = 'nominal';
-            }
-
-            randomWalk(key, range) {
-                const change = random(-2, 2);
-                this.targets[key] = clamp(this.targets[key] + change, range.min, range.max);
-                return this.targets[key];
-            }
-
-            calculateStatus() {
-                const t = CONFIG.thresholds;
-                let dangerCount = 0;
-                let cautionCount = 0;
-
-                if (this.targets.sync < t.sync.danger || 
-                    this.targets.stability < t.stability.danger ||
-                    this.targets.pressure > t.pressure.danger) {
-                    dangerCount++;
-                }
-
-                if (this.targets.core1 < t.core.danger || 
-                    this.targets.core2 < t.core.danger) {
-                    dangerCount++;
-                }
-
-                if (this.targets.sync < t.sync.caution || this.targets.sync >= t.sync.danger ||
-                    this.targets.stability < t.stability.caution || this.targets.stability >= t.stability.danger ||
-                    this.targets.pressure > t.pressure.caution && this.targets.pressure <= t.pressure.danger) {
-                    cautionCount++;
-                }
-
-                if (dangerCount >= 2) return 'danger';
-                if (cautionCount >= 2 || dangerCount >= 1) return 'caution';
-                return 'nominal';
-            }
-
-            updateStatus() {
-                const newStatus = this.calculateStatus();
-                
-                if (newStatus !== this.status) {
-                    this.status = newStatus;
-                    this.elements.status.className = `eva-status status-${newStatus}`;
-                    
-                    switch (newStatus) {
-                        case 'danger':
-                            this.elements.status.textContent = 'CRITICAL WARNING';
-                            break;
-                        case 'caution':
-                            this.elements.status.textContent = 'CAUTION: DEVIATION DETECTED';
-                            break;
-                        default:
-                            this.elements.status.textContent = 'SYSTEM NOMINAL';
+        function showElement(elementId, delay = 0) {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    const element = getElement(elementId);
+                    if (element) {
+                        element.classList.add('visible');
                     }
+                    resolve();
+                }, delay);
+            });
+        }
+
+        async function typeSection(sectionName, titleDelay = 0, contentDelay = 500) {
+            const section = SYSTEM_DATA[sectionName];
+
+            await showElement(`title-${sectionName}`, titleDelay);
+            await new Promise(r => setTimeout(r, 300));
+
+            const titleElement = getElement(`title-${sectionName}`);
+            titleElement.textContent = section.title;
+            titleElement.classList.add('typed');
+
+            await new Promise(r => setTimeout(r, contentDelay));
+
+            const contentElement = getElement(`content-${sectionName}`);
+            typeText(contentElement, section.content, 30);
+        }
+
+        function updateTelemetry() {
+            const coreValues = ['core1', 'core2', 'core3', 'core4'];
+            coreValues.forEach(id => {
+                const element = getElement(id);
+                if (element) {
+                    const currentValue = parseInt(element.textContent);
+                    const change = Math.random() > 0.5 ? 1 : -1;
+                    const newValue = Math.max(85, Math.min(100, currentValue + change));
+                    element.textContent = newValue + '%';
+                    element.classList.add('flickering');
+                    setTimeout(() => element.classList.remove('flickering'), 150);
                 }
+            });
+
+            const syncBar = getElement('syncBar');
+            if (syncBar) {
+                const currentWidth = parseFloat(syncBar.style.width) || 85;
+                const newWidth = Math.max(70, Math.min(100, currentWidth + (Math.random() * 4 - 2)));
+                syncBar.style.width = newWidth + '%';
             }
 
-            updateBar(element, value) {
-                element.style.width = `${value}%`;
-                
-                if (element.id === 'barPressure') {
-                    element.classList.remove('warning', 'danger');
-                    if (value > CONFIG.thresholds.pressure.danger) {
-                        element.classList.add('danger');
-                    } else if (value > CONFIG.thresholds.pressure.caution) {
-                        element.classList.add('warning');
-                    }
+            const stabilityBar = getElement('stabilityBar');
+            if (stabilityBar) {
+                const currentWidth = parseFloat(stabilityBar.style.width) || 92;
+                const newWidth = Math.max(80, Math.min(100, currentWidth + (Math.random() * 3 - 1.5)));
+                stabilityBar.style.width = newWidth + '%';
+            }
+
+            const pressureBar = getElement('pressureBar');
+            if (pressureBar) {
+                const currentWidth = parseFloat(pressureBar.style.width) || 15;
+                const newWidth = Math.max(5, Math.min(50, currentWidth + (Math.random() * 6 - 3)));
+                pressureBar.style.width = newWidth + '%';
+
+                pressureBar.classList.remove('warning', 'danger');
+                if (newWidth > 35) {
+                    pressureBar.classList.add('danger');
+                    updateEVAStatus('DANGER');
+                } else if (newWidth > 25) {
+                    pressureBar.classList.add('warning');
+                    updateEVAStatus('CAUTION');
+                } else {
+                    updateEVAStatus('NOMINAL');
                 }
-            }
-
-            update() {
-                this.elements.core1.textContent = Math.round(this.randomWalk('core1', CONFIG.ranges.core));
-                this.elements.core2.textContent = Math.round(this.randomWalk('core2', CONFIG.ranges.core));
-                this.elements.optics1.textContent = Math.round(this.randomWalk('optics1', CONFIG.ranges.optics));
-                this.elements.optics2.textContent = Math.round(this.randomWalk('optics2', CONFIG.ranges.optics));
-                this.elements.mobility.textContent = Math.round(this.randomWalk('mobility', CONFIG.ranges.mobility));
-                this.elements.accuracy.textContent = Math.round(this.randomWalk('accuracy', CONFIG.ranges.accuracy));
-
-                this.targets.sync = clamp(this.targets.sync + random(-1.5, 1.5), CONFIG.ranges.syncRatio.min, CONFIG.ranges.syncRatio.max);
-                this.targets.stability = clamp(this.targets.stability + random(-1, 1), CONFIG.ranges.stability.min, CONFIG.ranges.stability.max);
-                this.targets.pressure = clamp(this.targets.pressure + random(-1.5, 2), CONFIG.ranges.pressure.min, CONFIG.ranges.pressure.max);
-
-                this.updateBar(this.elements.barSync, this.targets.sync);
-                this.updateBar(this.elements.barStability, this.targets.stability);
-                this.updateBar(this.elements.barPressure, this.targets.pressure);
-
-                this.updateStatus();
-            }
-
-            start() {
-                this.update();
-                setInterval(() => this.update(), CONFIG.telemetry.updateInterval);
             }
         }
 
-        // ============================================
-        // BOOT SEQUENCE
-        // ============================================
-        class BootSequence {
-            constructor(containerId) {
-                this.container = document.getElementById(containerId);
+        function updateEVAStatus(status) {
+            const statusElement = getElement('evaStatus');
+            if (statusElement) {
+                statusElement.classList.remove('status-nominal', 'status-caution', 'status-danger');
+                statusElement.classList.add(`status-${status.toLowerCase()}`);
+                statusElement.textContent = status;
             }
+        }
 
-            async typeText(text, speed = CONFIG.typing.bootSpeed) {
+        function generateIronFortressText() {
+            const container = getElement('ironFortress');
+            if (!container) return;
+
+            const phrases = [
+                { text: 'IRON FORTRESS', class: 'iron-fortress-text' },
+                { text: 'NO SURVIVORS', class: 'no-survivors' }
+            ];
+
+            container.innerHTML = phrases.map((phrase, index) => {
+                const chars = phrase.text.split('').map((char, charIndex) => 
+                    `<span class="char" style="animation-delay: ${charIndex * 0.05}s">${char}</span>`
+                ).join('');
+
+                return `<div class="${phrase.class}" style="margin: ${index === 0 ? '0 0 1.5rem 0' : '0'};">
+                    <div class="vertical-text">${chars}</div>
+                </div>`;
+            }).join('');
+        }
+
+        async function startBootSequence() {
+            const bootScreen = getElement('bootScreen');
+            if (!bootScreen) return;
+
+            for (let i = 0; i < bootMessages.length; i++) {
                 const line = document.createElement('div');
                 line.className = 'boot-line';
-                this.container.appendChild(line);
+                line.textContent = bootMessages[i];
+                bootScreen.appendChild(line);
 
-                for (let i = 0; i < text.length; i++) {
-                    line.textContent = text.substring(0, i + 1);
-                    await sleep(speed);
-                }
-
-                await sleep(CONFIG.typing.bootPause);
+                await new Promise(r => setTimeout(r, 300 + Math.random() * 200));
             }
 
-            async run() {
-                this.container.classList.add('visible');
+            await new Promise(r => setTimeout(r, 500));
+            bootScreen.classList.add('fading');
 
-                for (const line of CONTENT.boot) {
-                    await this.typeText(line);
-                }
+            await new Promise(r => setTimeout(r, 600));
+            bootScreen.style.display = 'none';
 
-                await sleep(CONFIG.typing.bootFadeDelay);
-                this.container.classList.add('fading');
-                await sleep(500);
-                this.container.style.display = 'none';
+            getElement('systemSections').classList.add('visible');
+
+            const sections = ['cybernetic', 'tcunit', 'frame', 'chess', 'deployment'];
+            for (let i = 0; i < sections.length; i++) {
+                await typeSection(sections[i], i * 800, 600);
             }
+
+            await new Promise(r => setTimeout(r, 800));
+            generateIronFortressText();
+            showElement('ironFortress', 0);
+
+            await new Promise(r => setTimeout(r, 500));
+            showElement('evaPanel', 0);
+
+            setInterval(updateTelemetry, 800);
         }
 
-        // ============================================
-        // SYSTEM SECTIONS
-        // ============================================
-        class SystemSections {
-            constructor() {
-                this.sections = Object.keys(CONTENT.sections);
-            }
+        document.addEventListener('DOMContentLoaded', startBootSequence);
 
-            async typeText(element, text, speed = CONFIG.typing.contentSpeed) {
-                element.classList.add('typing');
-                
-                for (let i = 0; i < text.length; i++) {
-                    element.textContent = text.substring(0, i + 1);
-                    await sleep(speed);
-                }
-
-                element.classList.remove('typing');
-            }
-
-            async run() {
-                const container = document.getElementById('systemSections');
-                container.classList.add('visible');
-
-                for (const sectionId of this.sections) {
-                    const section = CONTENT.sections[sectionId];
-                    const titleEl = document.getElementById(`title-${sectionId}`);
-                    const contentEl = document.getElementById(`content-${sectionId}`);
-
-                    titleEl.textContent = section.title;
-                    titleEl.classList.add('typed');
-
-                    await sleep(CONFIG.typing.titlePause);
-
-                    await this.typeText(contentEl, section.content);
-                    await sleep(CONFIG.typing.contentPause);
-                }
-            }
-        }
-
-        // ============================================
-        // MAIN INITIALIZATION
-        // ============================================
-        async function init() {
-            const boot = new BootSequence('bootScreen');
-            const sections = new SystemSections();
-            const ironFortress = new IronFortressDisplay('ironFortress');
-            const eva = new EVATelemetry();
-
-            await boot.run();
-            await sleep(CONFIG.typing.sectionDelay);
-
-            ironFortress.show();
-            document.getElementById('evaPanel').classList.add('visible');
-            eva.start();
-            ironFortress.startGlitchLoop();
-
-            await sections.run();
-        }
-
-        // Start when DOM is ready
-        document.addEventListener('DOMContentLoaded', init);
+        window.addEventListener('beforeunload', () => {
+            console.log('GM-Unit Terminal session ended');
+        });
     </script>
 </body>
-</html>
