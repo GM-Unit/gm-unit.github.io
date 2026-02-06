@@ -46,44 +46,16 @@
 
         @keyframes glitchText {
             0%, 100% { 
-                transform: translate(0);
                 opacity: 1;
             }
-            10% { 
-                transform: translate(-2px, 1px);
-                opacity: 0.9;
-            }
-            20% { 
-                transform: translate(2px, -1px);
+            25% { 
                 opacity: 0.85;
             }
-            30% { 
-                transform: translate(-1px, 0);
+            50% { 
                 opacity: 0.95;
             }
-            40% { 
-                transform: translate(1px, 1px);
-                opacity: 0.88;
-            }
-            50% { 
-                transform: translate(-2px, -1px);
-                opacity: 0.92;
-            }
-            60% { 
-                transform: translate(2px, 1px);
-                opacity: 0.87;
-            }
-            70% { 
-                transform: translate(-1px, -1px);
-                opacity: 0.93;
-            }
-            80% { 
-                transform: translate(1px, -1px);
-                opacity: 0.89;
-            }
-            90% { 
-                transform: translate(-2px, 0);
-                opacity: 0.91;
+            75% { 
+                opacity: 0.8;
             }
         }
 
@@ -139,8 +111,7 @@
         .right-panel {
             position: fixed;
             right: 40px;
-            top: 25%;
-            transform: translateY(-50%);
+            top: 5%;
             text-align: right;
             z-index: 100;
         }
@@ -577,7 +548,10 @@
                 }
             }
             
-            return;
+            // Remove cursor after typing is complete
+            if (cursor.parentNode) {
+                cursor.parentNode.removeChild(cursor);
+            }
         }
 
         function delay(ms) {
