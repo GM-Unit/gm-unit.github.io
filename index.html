@@ -757,26 +757,3 @@
         });
     </script>
 </body>
-</html>        // ... (this is the end of your existing script) ...
-        ];
-
-        // PASTE THE NEW CODE HERE:
-        setInterval(() => {
-            const sections = document.querySelectorAll('.section-content');
-            sections.forEach(box => {
-                // We only update if the text is fully typed and contains the latency line
-                if (box.textContent.includes("Signal latency:")) {
-                    const randomLatency = Math.floor(Math.random() * 31) + 20;
-                    
-                    // Regex helps find the number between "latency: " and "ms"
-                    box.textContent = box.textContent.replace(
-                        /Signal latency: \d+ms/, 
-                        `Signal latency: ${randomLatency}ms`
-                    );
-                }
-            });
-        }, 1000); 
-    </script>
-</body>
-</html>
-
