@@ -22,11 +22,7 @@ body::after {
   pointer-events:none;
 }
 
-@keyframes flicker {
-  0%,97%{opacity:0}
-  98%{opacity:.15}
-  100%{opacity:0}
-}
+@keyframes flicker {0%,97%{opacity:0} 98%{opacity:.15} 100%{opacity:0}}
 
 .container {
   max-width: 65%;
@@ -37,29 +33,15 @@ body::after {
 
 .section { margin-top: 26px; }
 
-.section-title {
-  min-height: 1.2em;
-  white-space: pre;
-}
-
-.block {
-  white-space: pre-wrap;
-  line-height: 1.4;
-}
-
+.section-title { min-height: 1.2em; white-space: pre; }
+.block { white-space: pre-wrap; line-height: 1.4; min-height: 3em; }
 #boot { min-height: 9em; }
 
-.cursor::after {
-  content:"█";
-  animation:blink 1s infinite;
-}
-
+.cursor::after { content:"█"; animation:blink 1s infinite; }
 @keyframes blink {50%{opacity:0}}
-
 .flicker { animation:flick .08s linear; }
-@keyframes flick { 50%{opacity:.4} }
+@keyframes flick {50%{opacity:.4}}
 
-/* DOCTRINE */
 #doctrine {
   position: fixed;
   left: 68%;
@@ -71,7 +53,6 @@ body::after {
 }
 .red { color:#ff0000; font-weight:bold }
 
-/* EVA PANEL */
 #eva-panel {
   position: fixed;
   right: 30px;
@@ -81,21 +62,10 @@ body::after {
   opacity: 0;
   transition: opacity 1s;
 }
-
 .bar { height:6px; background:rgba(0,255,150,.15); }
 .fill { height:100%; background:rgba(0,255,150,.8); }
-
-#eva-status {
-  margin-top: 10px;
-  text-align: right;
-  animation: evaBlink 2.5s infinite;
-}
-
-@keyframes evaBlink {
-  0%,90%{opacity:.9}
-  92%{opacity:.2}
-  100%{opacity:.9}
-}
+#eva-status { margin-top:10px; text-align:right; animation: evaBlink 2.5s infinite; }
+@keyframes evaBlink {0%,90%{opacity:.9} 92%{opacity:.2} 100%{opacity:.9}}
 
 @media(max-width:900px){
   .container{max-width:90%}
@@ -108,48 +78,38 @@ body::after {
 <div id="doctrine"></div>
 
 <div class="container">
+  <div class="section"><div id="boot" class="block cursor"></div></div>
 
-<div class="section">
-<div id="boot" class="block cursor"></div>
-</div>
+  <div class="section">
+    <div id="tSystems" class="section-title"></div>
+    <div id="bSystems" class="block"></div>
+  </div>
 
-<div class="section">
-<div id="tSystems" class="section-title"></div>
-<div id="bSystems" class="block"></div>
-</div>
+  <div class="section">
+    <div id="tTC" class="section-title"></div>
+    <div id="bTC" class="block"></div>
+  </div>
 
-<div class="section">
-<div id="tTC" class="section-title"></div>
-<div id="bTC" class="block"></div>
-</div>
+  <div class="section">
+    <div id="tFrame" class="section-title"></div>
+    <div id="bFrame" class="block"></div>
+  </div>
 
-<div class="section">
-<div id="tFrame" class="section-title"></div>
-<div id="bFrame" class="block"></div>
-</div>
+  <div class="section">
+    <div id="tChess" class="section-title"></div>
+    <div id="bChess" class="block"></div>
+  </div>
 
-<div class="section">
-<div id="tChess" class="section-title"></div>
-<div id="bChess" class="block"></div>
-</div>
-
-<div class="section">
-<div id="tLore" class="section-title"></div>
-<div id="bLore" class="block"></div>
-</div>
-
+  <div class="section">
+    <div id="tLore" class="section-title"></div>
+    <div id="bLore" class="block"></div>
+  </div>
 </div>
 
 <div id="eva-panel">
-  <div>SYNC RATIO</div>
-  <div class="bar"><div class="fill" id="sync"></div></div><br>
-
-  <div>MENTAL STABILITY</div>
-  <div class="bar"><div class="fill" id="mental"></div></div><br>
-
-  <div>CORE PRESSURE</div>
-  <div class="bar"><div class="fill" id="core"></div></div>
-
+  <div>SYNC RATIO</div><div class="bar"><div class="fill" id="sync"></div></div><br>
+  <div>MENTAL STABILITY</div><div class="bar"><div class="fill" id="mental"></div></div><br>
+  <div>CORE PRESSURE</div><div class="bar"><div class="fill" id="core"></div></div>
   <div id="eva-status">STATUS: NOMINAL</div>
 </div>
 
@@ -157,18 +117,15 @@ body::after {
 /* ================= UTIL ================= */
 const sleep = ms => new Promise(r=>setTimeout(r,ms));
 
-async function typeClear(el,text,speed=32){
-  el.textContent="";
+async function typeText(el, text, speed=32){
   for(const c of text){ el.textContent+=c; await sleep(speed); }
 }
 
-async function typeAppend(el,text,speed=32){
-  for(const c of text){ el.textContent+=c; await sleep(speed); }
-}
-
-function span(el,id,val){
+async function typeTextSpan(el, pre, id, val){
+  await typeText(el, pre);
   const s=document.createElement("span");
-  s.id=id; s.textContent=val;
+  s.id=id;
+  s.textContent=val;
   el.appendChild(s);
 }
 
@@ -192,6 +149,7 @@ const bootLines=[
 "≻ SYSTEM ONLINE"
 ];
 
+const boot=document.getElementById("boot");
 (async()=>{
   for(const l of bootLines){
     boot.textContent+=l+"\n";
@@ -207,11 +165,12 @@ const bootLines=[
 })();
 
 /* ================= DOCTRINE ================= */
+const doctrine=document.getElementById("doctrine");
 function showDoctrine(){
   doctrine.textContent=vertical("IRON","FORTRESS");
   doctrine.style.opacity=1;
   setTimeout(()=>{
-    eva-panel.style.opacity=1;
+    document.getElementById("eva-panel").style.opacity=1;
     startSections();
     startDoctrineGlitch();
   },1400);
@@ -230,29 +189,27 @@ function startDoctrineGlitch(){
 
 /* ================= SECTIONS ================= */
 async function startSections(){
-  await typeClear(tSystems,"［CYBERNETIC SYSTEMS］");
-  await typeClear(bSystems,"");
-  await typeAppend(bSystems,"Core_001˸ "); span(bSystems,"core1","89");
-  await typeAppend(bSystems,"\nCore_002˸ "); span(bSystems,"core2","92");
-  await typeAppend(bSystems,"\nStatus˸ Suboptimal\nRuntime˸ 19 years\nFirmware˸ 2006\n");
+  await typeText(tSystems,"［CYBERNETIC SYSTEMS］");
+  await typeTextSpan(bSystems,"Core_001˸ ","core1","89");
+  await typeText(bSystems,"％\n");
+  await typeTextSpan(bSystems,"Core_002˸ ","core2","92");
+  await typeText(bSystems,"％\nStatus˸ Suboptimal\nRuntime˸ 19 years\nFirmware˸ 2006\n");
 
-  await typeClear(tTC,"［TC UNIT］");
-  await typeClear(bTC,"Piloting organic matter˸ 621\nPrediction_Subroutine_086˸ deviation detected\nStrategic_Recognition˸ degraded\n");
+  await typeText(tTC,"［TC UNIT］");
+  await typeText(bTC,"Piloting organic matter˸ 621\nPrediction_Subroutine_086˸ deviation detected\nStrategic_Recognition˸ degraded\n");
 
-  await typeClear(tFrame,"［FRAME ＆ SENSORS］");
-  await typeClear(bFrame,"");
-  await typeAppend(bFrame,"Optic_001˸ "); span(bFrame,"optic1","52");
-  await typeAppend(bFrame,"\nOptic_002˸ "); span(bFrame,"optic2","78");
-  await typeAppend(bFrame,"\nHydraulics˸ failing\nMobility_Delay˸ +0.41s\n");
+  await typeText(tFrame,"［FRAME ＆ SENSORS］");
+  await typeTextSpan(bFrame,"Optic_001˸ ","optic1","52");
+  await typeText(bFrame,"％\n");
+  await typeTextSpan(bFrame,"Optic_002˸ ","optic2","78");
+  await typeText(bFrame,"％\nHydraulics˸ failing\nMobility_Delay˸ +0.41s\n");
 
-  await typeClear(tChess,"［CHESS OPERATIONS］");
-  await typeClear(bChess,"");
-  await typeAppend(bChess,"Targeting_Accuracy˸ "); span(bChess,"accuracy","94");
-  await typeAppend(bChess,"\nOpening_Files˸ partial corruption\nEndgame_Protocol˸ INTACT\n");
+  await typeText(tChess,"［CHESS OPERATIONS］");
+  await typeTextSpan(bChess,"Targeting_Accuracy˸ ","accuracy","94");
+  await typeText(bChess,"％\nOpening_Files˸ partial corruption\nEndgame_Protocol˸ INTACT\n");
 
-  await typeClear(tLore,"≻ ARCHIVED DEPLOYMENT LOG");
-  await typeClear(bLore,
-"Confirmed_Eliminations˸ 43 357 892 souls\nPost-War Repurposing˸ Chess Domain\nLegacy_Status˸ Hallowed Artifact\n");
+  await typeText(tLore,"≻ ARCHIVED DEPLOYMENT LOG");
+  await typeText(bLore,"Confirmed_Eliminations˸ 43 357 892 souls\nPost-War Repurposing˸ Chess Domain\nLegacy_Status˸ Hallowed Artifact\n");
 
   startTelemetry();
 }
@@ -283,6 +240,5 @@ setInterval(()=>{
     "STATUS: NOMINAL";
 },1800);
 </script>
-
 </body>
-                     </html>
+</html>
