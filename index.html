@@ -22,7 +22,11 @@ body::after {
   pointer-events:none;
 }
 
-@keyframes flicker {0%,97%{opacity:0} 98%{opacity:.15} 100%{opacity:0}}
+@keyframes flicker {
+  0%,97%{opacity:0}
+  98%{opacity:.15}
+  100%{opacity:0}
+}
 
 .container {
   max-width: 65%;
@@ -33,15 +37,35 @@ body::after {
 
 .section { margin-top: 26px; }
 
-.section-title { min-height: 1.2em; white-space: pre; }
-.block { white-space: pre-wrap; line-height: 1.4; min-height: 3em; }
+.section-title {
+  white-space: pre;
+  min-height: 1.3em;
+}
+
+.block {
+  white-space: pre-wrap;
+  line-height: 1.4;
+  min-height: 4.5em;
+}
+
 #boot { min-height: 9em; }
 
-.cursor::after { content:"█"; animation:blink 1s infinite; }
-@keyframes blink {50%{opacity:0}}
-.flicker { animation:flick .08s linear; }
-@keyframes flick {50%{opacity:.4}}
+.cursor::after {
+  content:"█";
+  animation:blink 1s infinite;
+}
 
+@keyframes blink {50%{opacity:0}}
+
+.flicker {
+  animation: numFlicker .08s linear;
+}
+
+@keyframes numFlicker {
+  50%{opacity:.4}
+}
+
+/* DOCTRINE */
 #doctrine {
   position: fixed;
   left: 68%;
@@ -51,8 +75,10 @@ body::after {
   opacity: 0;
   transition: opacity 1s;
 }
-.red { color:#ff0000; font-weight:bold }
 
+.red { color: #ff0000; }
+
+/* EVA */
 #eva-panel {
   position: fixed;
   right: 30px;
@@ -62,14 +88,29 @@ body::after {
   opacity: 0;
   transition: opacity 1s;
 }
+
 .bar { height:6px; background:rgba(0,255,150,.15); }
 .fill { height:100%; background:rgba(0,255,150,.8); }
-#eva-status { margin-top:10px; text-align:right; animation: evaBlink 2.5s infinite; }
-@keyframes evaBlink {0%,90%{opacity:.9} 92%{opacity:.2} 100%{opacity:.9}}
+
+#eva-status {
+  margin-top: 18px;
+  text-align: right;
+  letter-spacing: 1px;
+  animation: evaBlink 2.5s infinite;
+}
+
+@keyframes evaBlink {
+  0%,90%{opacity:.9}
+  92%{opacity:.3}
+  100%{opacity:.9}
+}
+
+.danger { color:#ff4444; }
+.caution { color:#ffaa00; }
 
 @media(max-width:900px){
   .container{max-width:90%}
-  #doctrine{left:56%;font-size:34px}
+  #doctrine{left:60%;font-size:36px}
 }
 </style>
 </head>
@@ -78,65 +119,69 @@ body::after {
 <div id="doctrine"></div>
 
 <div class="container">
-  <div class="section"><div id="boot" class="block cursor"></div></div>
 
-  <div class="section">
-    <div id="tSystems" class="section-title"></div>
-    <div id="bSystems" class="block"></div>
-  </div>
+<div class="section">
+<div id="boot" class="block cursor"></div>
+</div>
 
-  <div class="section">
-    <div id="tTC" class="section-title"></div>
-    <div id="bTC" class="block"></div>
-  </div>
+<div class="section">
+<div id="tSystems" class="section-title"></div>
+<div id="bSystems" class="block"></div>
+</div>
 
-  <div class="section">
-    <div id="tFrame" class="section-title"></div>
-    <div id="bFrame" class="block"></div>
-  </div>
+<div class="section">
+<div id="tTC" class="section-title"></div>
+<div id="bTC" class="block"></div>
+</div>
 
-  <div class="section">
-    <div id="tChess" class="section-title"></div>
-    <div id="bChess" class="block"></div>
-  </div>
+<div class="section">
+<div id="tFrame" class="section-title"></div>
+<div id="bFrame" class="block"></div>
+</div>
 
-  <div class="section">
-    <div id="tLore" class="section-title"></div>
-    <div id="bLore" class="block"></div>
-  </div>
+<div class="section">
+<div id="tChess" class="section-title"></div>
+<div id="bChess" class="block"></div>
+</div>
+
+<div class="section">
+<div id="tLore" class="section-title"></div>
+<div id="bLore" class="block"></div>
+</div>
+
 </div>
 
 <div id="eva-panel">
-  <div>SYNC RATIO</div><div class="bar"><div class="fill" id="sync"></div></div><br>
-  <div>MENTAL STABILITY</div><div class="bar"><div class="fill" id="mental"></div></div><br>
-  <div>CORE PRESSURE</div><div class="bar"><div class="fill" id="core"></div></div>
+  <div>SYNC RATIO</div>
+  <div class="bar"><div class="fill" id="sync"></div></div><br>
+  <div>MENTAL STABILITY</div>
+  <div class="bar"><div class="fill" id="mental"></div></div><br>
+  <div>CORE PRESSURE</div>
+  <div class="bar"><div class="fill" id="coreBar"></div></div>
+
   <div id="eva-status">STATUS: NOMINAL</div>
 </div>
 
 <script>
-/* ================= UTIL ================= */
-const sleep = ms => new Promise(r=>setTimeout(r,ms));
-
-async function typeText(el, text, speed=32){
-  for(const c of text){ el.textContent+=c; await sleep(speed); }
-}
-
-async function typeTextSpan(el, pre, id, val){
-  await typeText(el, pre);
-  const s=document.createElement("span");
-  s.id=id;
-  s.textContent=val;
-  el.appendChild(s);
+/* ========= utilities ========= */
+function typeText(el, text, speed=28, cb){
+  let i=0;
+  (function tick(){
+    if(i<text.length){
+      el.textContent+=text[i++];
+      setTimeout(tick,speed);
+    } else cb && cb();
+  })();
 }
 
 function vertical(a,b){
+  const m=Math.max(a.length,b.length);
   let o=[];
-  for(let i=0;i<Math.max(a.length,b.length);i++)
-    o.push((a[i]||" ")+" "+(b[i]||" "));
+  for(let i=0;i<m;i++) o.push((a[i]||" ")+" "+(b[i]||" "));
   return o.join("\n");
 }
 
-/* ================= BOOT ================= */
+/* ========= boot ========= */
 const bootLines=[
 "≻ SYSTEM BOOT˸ GM-UNIT ⁄⁄",
 "GRANDMASTER CALCULATION-UNIT",
@@ -150,30 +195,37 @@ const bootLines=[
 ];
 
 const boot=document.getElementById("boot");
-(async()=>{
-  for(const l of bootLines){
-    boot.textContent+=l+"\n";
-    await sleep(520);
+let bi=0;
+
+(function bootType(){
+  if(bi<bootLines.length){
+    boot.textContent+=bootLines[bi++]+"\n";
+    setTimeout(bootType,550);
+  } else {
+    boot.classList.remove("cursor");
+    const h=boot.offsetHeight+"px";
+    boot.style.height=h;
+    boot.style.opacity=0;
+    setTimeout(()=>{
+      boot.style.display="none";
+      showDoctrine();
+    },700);
   }
-  boot.classList.remove("cursor");
-  const h=boot.offsetHeight+"px";
-  boot.style.height=h;
-  boot.style.opacity=0;
-  await sleep(700);
-  boot.style.display="none";
-  showDoctrine();
 })();
 
-/* ================= DOCTRINE ================= */
+/* ========= doctrine ========= */
 const doctrine=document.getElementById("doctrine");
+
 function showDoctrine(){
   doctrine.textContent=vertical("IRON","FORTRESS");
   doctrine.style.opacity=1;
+
   setTimeout(()=>{
     document.getElementById("eva-panel").style.opacity=1;
-    startSections();
+    startTyping();
+    startTelemetry();
     startDoctrineGlitch();
-  },1400);
+  },1500);
 }
 
 function startDoctrineGlitch(){
@@ -183,38 +235,48 @@ function startDoctrineGlitch(){
     setTimeout(()=>{
       doctrine.classList.remove("red");
       doctrine.textContent=vertical("IRON","FORTRESS");
-    },800);
-  },14000);
+    },650);
+  },12000);
 }
 
-/* ================= SECTIONS ================= */
-async function startSections(){
-  await typeText(tSystems,"［CYBERNETIC SYSTEMS］");
-  await typeTextSpan(bSystems,"Core_001˸ ","core1","89");
-  await typeText(bSystems,"％\n");
-  await typeTextSpan(bSystems,"Core_002˸ ","core2","92");
-  await typeText(bSystems,"％\nStatus˸ Suboptimal\nRuntime˸ 19 years\nFirmware˸ 2006\n");
-
-  await typeText(tTC,"［TC UNIT］");
-  await typeText(bTC,"Piloting organic matter˸ 621\nPrediction_Subroutine_086˸ deviation detected\nStrategic_Recognition˸ degraded\n");
-
-  await typeText(tFrame,"［FRAME ＆ SENSORS］");
-  await typeTextSpan(bFrame,"Optic_001˸ ","optic1","52");
-  await typeText(bFrame,"％\n");
-  await typeTextSpan(bFrame,"Optic_002˸ ","optic2","78");
-  await typeText(bFrame,"％\nHydraulics˸ failing\nMobility_Delay˸ +0.41s\n");
-
-  await typeText(tChess,"［CHESS OPERATIONS］");
-  await typeTextSpan(bChess,"Targeting_Accuracy˸ ","accuracy","94");
-  await typeText(bChess,"％\nOpening_Files˸ partial corruption\nEndgame_Protocol˸ INTACT\n");
-
-  await typeText(tLore,"≻ ARCHIVED DEPLOYMENT LOG");
-  await typeText(bLore,"Confirmed_Eliminations˸ 43 357 892 souls\nPost-War Repurposing˸ Chess Domain\nLegacy_Status˸ Hallowed Artifact\n");
-
-  startTelemetry();
+/* ========= typing ========= */
+function insert(parent,id,val){
+  const s=document.createElement("span");
+  s.id=id;
+  s.textContent=val;
+  parent.appendChild(s);
 }
 
-/* ================= TELEMETRY ================= */
+function startTyping(){
+  typeText(tSystems,"［CYBERNETIC SYSTEMS］",30,()=>{
+    bSystems.textContent+="Core_001˸ "; insert(bSystems,"core1","89"); bSystems.textContent+="％\n";
+    bSystems.textContent+="Core_002˸ "; insert(bSystems,"core2","92"); bSystems.textContent+="％\n";
+    bSystems.textContent+="Status˸ Suboptimal\nRuntime˸ 19 years\nFirmware˸ 2006\n";
+  });
+
+  typeText(tTC,"［TC UNIT］",30,()=>{
+    typeText(bTC,"Piloting organic matter˸ 621\nPrediction_Subroutine_086˸ deviation detected\nStrategic_Recognition˸ degraded\n");
+  });
+
+  typeText(tFrame,"［FRAME ＆ SENSORS］",30,()=>{
+    bFrame.textContent+="Optic_001˸ "; insert(bFrame,"optic1","52"); bFrame.textContent+="％\n";
+    bFrame.textContent+="Optic_002˸ "; insert(bFrame,"optic2","78"); bFrame.textContent+="％\n";
+    bFrame.textContent+="Hydraulics˸ failing\nMobility_Delay˸ +0.41s\n";
+  });
+
+  typeText(tChess,"［CHESS OPERATIONS］",30,()=>{
+    bChess.textContent+="Targeting_Accuracy˸ "; insert(bChess,"accuracy","94"); bChess.textContent+="％\n";
+    bChess.textContent+="Opening_Files˸ partial corruption\nEndgame_Protocol˸ INTACT\n";
+  });
+
+  typeText(tLore,"≻ ARCHIVED DEPLOYMENT LOG",30,()=>{
+    typeText(bLore,"Confirmed_Eliminations˸ 43 357 892 souls\nPost-War Repurposing˸ Chess Domain\nLegacy_Status˸ Hallowed Artifact\n");
+  });
+}
+
+/* ========= telemetry ========= */
+const evaStatus=document.getElementById("eva-status");
+
 function fluctuate(id,min,max){
   const el=document.getElementById(id);
   if(!el) return;
@@ -223,22 +285,35 @@ function fluctuate(id,min,max){
   setTimeout(()=>el.classList.remove("flicker"),80);
 }
 
-setInterval(()=>{
-  fluctuate("core1",87,91);
-  fluctuate("core2",90,94);
-  fluctuate("optic1",50,54);
-  fluctuate("optic2",76,80);
-  fluctuate("accuracy",93,95);
+function startTelemetry(){
+  setInterval(()=>{
+    const s=60+Math.random()*30;
+    const m=45+Math.random()*45;
+    const c=55+Math.random()*40;
 
-  sync.style.width=(60+Math.random()*30)+"%";
-  mental.style.width=(50+Math.random()*40)+"%";
-  core.style.width=(55+Math.random()*35)+"%";
+    sync.style.width=s+"%";
+    mental.style.width=m+"%";
+    coreBar.style.width=c+"%";
 
-  eva-status.textContent =
-    (Math.random()<0.15) ? "STATUS: DANGER" :
-    (Math.random()<0.35) ? "STATUS: CAUTION" :
-    "STATUS: NOMINAL";
-},1800);
+    fluctuate("core1",87,91);
+    fluctuate("core2",90,94);
+    fluctuate("optic1",50,54);
+    fluctuate("optic2",76,80);
+    fluctuate("accuracy",93,95);
+
+    evaStatus.className="";
+    if(m<45||c>85){
+      evaStatus.textContent="STATUS: DANGER";
+      evaStatus.classList.add("danger");
+    } else if(m<60||c>75){
+      evaStatus.textContent="STATUS: CAUTION";
+      evaStatus.classList.add("caution");
+    } else {
+      evaStatus.textContent="STATUS: NOMINAL";
+    }
+  },1800);
+}
 </script>
+
 </body>
-</html>
+  </html>
