@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -87,12 +88,18 @@
             }
         }
 
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
         body {
             background: black;
             font-family: 'Courier New', Courier, monospace;
             color: #00ff99;
             min-height: 100vh;
             overflow-x: hidden;
+            font-size: 16px;
         }
 
         body::before {
@@ -144,22 +151,15 @@
             font-weight: bold;
             letter-spacing: 8px;
             line-height: 1.8;
-            transition: all 0.3s ease;
-        }
-
-        .doctrine-container.glitch #normal-columns {
-            opacity: 0;
-        }
-
-        .doctrine-container.glitch #glitch-columns {
-            display: flex;
-            animation: glitchText 0.3s ease;
-            color: #ff3333;
+            position: relative;
         }
 
         .doctrine-columns {
             display: flex;
             gap: 40px;
+            position: absolute;
+            right: 0;
+            top: 0;
         }
 
         .doctrine-column {
@@ -172,6 +172,24 @@
             line-height: 1.8;
         }
 
+        #normal-columns {
+            transition: opacity 0.3s ease;
+        }
+
+        #glitch-columns {
+            display: none;
+            animation: glitchText 0.3s ease;
+            color: #ff3333;
+        }
+
+        .doctrine-container.glitch #normal-columns {
+            display: none;
+        }
+
+        .doctrine-container.glitch #glitch-columns {
+            display: flex;
+        }
+
         .boot-sequence {
             margin-bottom: 40px;
         }
@@ -179,10 +197,15 @@
         .boot-line {
             opacity: 0;
             transition: opacity 0.3s ease;
+            font-size: 16px;
         }
 
         .boot-line.visible {
             opacity: 1;
+        }
+
+        .boot-line.faded {
+            opacity: 0;
         }
 
         .boot-line .cursor {
@@ -227,6 +250,12 @@
             top: 50%;
             transform: translateY(-50%);
             z-index: 100;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .eva-panel.visible {
+            opacity: 1;
         }
 
         @media (max-width: 900px) {
@@ -279,11 +308,6 @@
                 transparent 100%
             );
             animation: shimmer 1s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
         }
 
         .eva-value {
@@ -348,7 +372,7 @@
     </style>
 </head>
 <body>
-    <div class="eva-panel">
+    <div class="eva-panel" id="eva-panel">
         <div class="eva-section">
             <div class="eva-label">SYNC RATIO</div>
             <div class="eva-bar-container">
@@ -376,7 +400,7 @@
     </div>
 
     <div class="right-panel">
-        <div class="doctrine-container fading-in" id="doctrine">
+        <div class="doctrine-container" id="doctrine">
             <div class="doctrine-columns" id="normal-columns">
                 <div class="doctrine-column">
                     <span>I</span>
@@ -416,7 +440,9 @@
     </div>
 
     <div class="main-container">
-        <div class="boot-sequence" id="boot-sequence"></div>
+        <div class="boot-sequence" id="boot-sequence">
+            <div class="boot-line" id="boot-line-1">≻ SYSTEM BOOT<span class="cursor"></span></div>
+        </div>
         
         <div id="main-content" class="hidden">
             <div class="section" id="cybernetic-systems">
@@ -442,6 +468,7 @@
                 <div class="section-title"></div>
                 <div class="section-content"></div>
                 <div class="section-content"></div>
+                <div class="section-content"></div>
             </div>
 
             <div class="section archived-section" id="archived-log">
@@ -456,17 +483,6 @@
     </div>
 
     <script>
-        // Boot sequence lines
-        const bootLines = [
-            '≻ SYSTEM BOOT˸ GM-UNIT ⁄⁄',
-            'GRANDMASTER CALCULATION-UNIT',
-            'Initializing cores...',
-            'Loading strategic matrices...',
-            'Synchronizing endgame tables...',
-            'Warnings detected',
-            '≻ SYSTEM ONLINE'
-        ];
-
         // Section data
         const sectionsData = {
             'cybernetic-systems': {
@@ -486,205 +502,334 @@
                 ]
             },
             'frame-sensors': {
-                title: 'FRAME & SENSORS',
+                title: 'FRAME SENSORS',
                 content: [
-                    'Mobility_Delay: <span id="mobility-delay">23</span>ms // Motor response',
-                    'Targeting_Accuracy: <span id="targeting-accuracy">97</span>% // Precision index'
+                    'Gyro_001: <span id="gyro-001">94</span>% // Balance control',
+                    'Gyro_002: <span id="gyro-002">91</span>% // Orientation tracking',
+                    'Vibro_Sensors: ACTIVE // Terrain analysis'
                 ]
             },
             'chess-operations': {
                 title: 'CHESS OPERATIONS',
                 content: [
-                    'Depth_Search: 18 plies // Full calculation',
-                    'Branch_Factor: ≈42 // Position evaluation',
-                    'Eval_Function: OPTIMIZED // Win probability'
+                    'Board_State: CHECKMATE_THREAT // Final phase',
+                    'Enemy_Units: 2 // Command and Artillery',
+                    'Friendly_Units: 1 // Combat capable'
                 ]
             },
             'archived-log': {
                 title: 'ARCHIVED DEPLOYMENT LOG',
                 content: [
-                    'designation: GM-Unit',
-                    'origin: military tactical supercomputer',
-                    'firmware_epoch: 2006',
-                    'runtime_duration: 19 years',
-                    'legacy_status: Hallowed Computational Artifact'
+                    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+                    'OPERATION: IRON FORTRESS',
+                    'STATUS: DEPLOYED',
+                    'TIME: 0347 HOURS',
+                    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
                 ]
             }
         };
 
-        // Typing function
-        function typeText(element, text, speed = 30, cursor = false) {
-            return new Promise(resolve => {
-                element.innerHTML = '';
-                let index = 0;
-                
-                function type() {
-                    if (index < text.length) {
-                        element.innerHTML = text.substring(0, index + 1);
-                        index++;
-                        setTimeout(type, speed);
-                    } else {
-                        if (cursor && !element.querySelector('.cursor')) {
-                            const newCursor = document.createElement('span');
-                            newCursor.className = 'cursor';
-                            element.appendChild(newCursor);
-                        }
-                        resolve();
-                    }
+        // Dynamic values for glitch effect
+        const dynamicIds = ['core-001', 'core-002', 'optic-001', 'optic-002', 'gyro-001', 'gyro-002'];
+        const dynamicRanges = {
+            'core-001': { min: 85, max: 92 },
+            'core-002': { min: 88, max: 95 },
+            'optic-001': { min: 75, max: 82 },
+            'optic-002': { min: 80, max: 88 },
+            'gyro-001': { min: 90, max: 96 },
+            'gyro-002': { min: 88, max: 94 }
+        };
+
+        // Boot sequence messages
+        const bootMessages = [
+            '≻ SYSTEM BOOT',
+            '≻ KERNEL: LOADING...',
+            '≻ HARDWARE: CHECK',
+            '≻ NETWORK: CONNECTING...',
+            '≻ SYNC: ESTABLISHING...',
+            '≻ SYSTEM ONLINE'
+        ];
+
+        // Fill section titles
+        Object.keys(sectionsData).forEach(sectionId => {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                const titleEl = section.querySelector('.section-title');
+                if (titleEl) {
+                    titleEl.textContent = sectionsData[sectionId].title;
                 }
-                type();
+            }
+        });
+
+        // Typing effect function
+        async function typeText(element, text, cursorElement, speed = 30) {
+            // Clear any existing content
+            if (element.dataset.originalContent === undefined) {
+                element.dataset.originalContent = element.innerHTML;
+            }
+            element.innerHTML = '';
+            
+            let i = 0;
+            
+            function typeChar() {
+                if (i < text.length) {
+                    const char = text.charAt(i);
+                    element.innerHTML += char;
+                    i++;
+                    setTimeout(typeChar, speed);
+                } else if (cursorElement) {
+                    cursorElement.style.display = 'inline-block';
+                }
+            }
+            
+            typeChar();
+            return new Promise(resolve => {
+                setTimeout(resolve, text.length * speed + 200);
             });
         }
 
-        // Boot sequence
-        async function runBootSequence() {
-            const bootContainer = document.getElementById('boot-sequence');
-            
-            for (const line of bootLines) {
-                const lineDiv = document.createElement('div');
-                lineDiv.className = 'boot-line';
-                lineDiv.innerHTML = line + (line === bootLines[bootLines.length - 1] ? '<span class="cursor"></span>' : '');
-                bootContainer.appendChild(lineDiv);
-                
-                await new Promise(r => setTimeout(r, 500));
-                lineDiv.classList.add('visible');
-                await new Promise(r => setTimeout(r, 300));
-            }
-            
-            await new Promise(r => setTimeout(r, 1000));
-            
-            // Fade out boot sequence
-            bootContainer.classList.add('faded');
-            
-            await new Promise(r => setTimeout(r, 600));
-            bootContainer.style.display = 'none';
-            
-            // Show main content
-            document.getElementById('main-content').classList.remove('hidden');
-            document.getElementById('main-content').classList.add('fading-in');
-            
-            // Start typing sections
-            typeSections();
+        // Random number generator
+        function randomInRange(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
         }
 
-        // Type all sections
-        async function typeSections() {
-            for (const [id, data] of Object.entries(sectionsData)) {
-                const section = document.getElementById(id);
-                const titleEl = section.querySelector('.section-title');
-                const contentEls = section.querySelectorAll('.section-content');
-                
-                await typeText(titleEl, data.title, 30);
-                await new Promise(r => setTimeout(r, 200));
-                
-                for (let i = 0; i < contentEls.length; i++) {
-                    await typeText(contentEls[i], data.content[i], 28, i === contentEls.length - 1);
-                    await new Promise(r => setTimeout(r, 150));
-                }
-                
-                await new Promise(r => setTimeout(r, 300));
-            }
-        }
-
-        // Doctrine glitch effect
-        function startDoctrineGlitch() {
+        // Update dynamic values with glitch effect
+        function triggerGlitch() {
+            // Apply glitch class to doctrine
             const doctrine = document.getElementById('doctrine');
+            doctrine.classList.add('glitch');
             
-            function triggerGlitch() {
-                setTimeout(() => {
-                    doctrine.classList.add('glitch');
-                    
-                    setTimeout(() => {
-                        doctrine.classList.remove('glitch');
-                    }, 400);
-                    
-                    // Next glitch in 12 seconds
-                    setTimeout(triggerGlitch, 12000);
-                }, Math.random() * 3000 + 1000);
-            }
-            
-            triggerGlitch();
-        }
-
-        // EVA panel updates
-        function updateEVAPanel() {
-            const bars = {
-                'sync': { element: 'sync-bar', value: 'sync-value', status: 'sync-status', base: 94, range: 8 },
-                'mental': { element: 'mental-bar', value: 'mental-value', status: 'mental-status', base: 89, range: 12 },
-                'core': { element: 'core-bar', value: 'core-value', status: 'core-status', base: 76, range: 15 }
-            };
-            
-            function getRandomValue(base, range) {
-                return Math.floor(base + (Math.random() - 0.5) * range * 2);
-            }
-            
-            function getStatusClass(value, type) {
-                if (type === 'sync') {
-                    if (value < 70) return 'danger';
-                    if (value < 85) return 'caution';
-                    return 'nominal';
-                } else if (type === 'mental') {
-                    if (value < 65) return 'danger';
-                    if (value < 80) return 'caution';
-                    return 'nominal';
-                } else {
-                    if (value > 90) return 'danger';
-                    if (value > 80) return 'caution';
-                    return 'nominal';
-                }
-            }
-            
-            function updateBar(key, type) {
-                const config = bars[key];
-                const value = getRandomValue(config.base, config.range);
-                const clampedValue = Math.max(0, Math.min(100, value));
-                
-                document.getElementById(config.element).style.width = clampedValue + '%';
-                document.getElementById(config.value).textContent = clampedValue + '%';
-                
-                const statusEl = document.getElementById(config.status);
-                statusEl.textContent = getStatusClass(clampedValue, type).charAt(0).toUpperCase() + getStatusClass(clampedValue, type).slice(1);
-                statusEl.className = 'eva-status ' + getStatusClass(clampedValue, type);
-            }
-            
-            setInterval(() => updateBar('sync', 'sync'), 1500);
-            setInterval(() => updateBar('mental', 'mental'), 2000);
-            setInterval(() => updateBar('core', 'core'), 1800);
-        }
-
-        // Dynamic number updates
-        function startDynamicUpdates() {
-            function getFlickerValue(base, range) {
-                return Math.floor(base + (Math.random() - 0.5) * range * 2);
-            }
-            
-            function updateNumber(id, base, range) {
+            // Randomize values
+            dynamicIds.forEach(id => {
                 const el = document.getElementById(id);
                 if (el) {
-                    const value = getFlickerValue(base, range);
-                    el.textContent = Math.max(0, Math.min(100, value));
+                    const range = dynamicRanges[id];
+                    el.textContent = randomInRange(range.min, range.max);
+                }
+            });
+
+            // Add glitch effect to EVA panel
+            const evaPanel = document.getElementById('eva-panel');
+            evaPanel.style.opacity = '0.5';
+            evaPanel.style.filter = 'hue-rotate(90deg)';
+
+            // Randomize EVA bars
+            ['sync-bar', 'mental-bar', 'core-bar'].forEach((barId, index) => {
+                const bar = document.getElementById(barId);
+                const valueEl = document.getElementById(barId.replace('bar', 'value'));
+                const statusEl = document.getElementById(barId.replace('bar', 'status'));
+                
+                const newValue = randomInRange(40, 95);
+                bar.style.setProperty('--bar-width', newValue + '%');
+                valueEl.textContent = newValue + '%';
+                
+                // Randomize status
+                const statuses = ['nominal', 'caution', 'danger'];
+                const randomStatus = statuses[Math.floor(Math.random() * 3)];
+                statusEl.className = 'eva-status ' + randomStatus;
+                statusEl.textContent = randomStatus.toUpperCase();
+            });
+
+            // Reset after random time
+            setTimeout(() => {
+                doctrine.classList.remove('glitch');
+                evaPanel.style.opacity = '1';
+                evaPanel.style.filter = 'none';
+                
+                // Reset EVA panel
+                const syncBar = document.getElementById('sync-bar');
+                const mentalBar = document.getElementById('mental-bar');
+                const coreBar = document.getElementById('core-bar');
+                
+                syncBar.style.setProperty('--bar-width', '94%');
+                mentalBar.style.setProperty('--bar-width', '89%');
+                coreBar.style.setProperty('--bar-width', '76%');
+                
+                document.getElementById('sync-value').textContent = '94%';
+                document.getElementById('sync-status').textContent = 'NOMINAL';
+                document.getElementById('sync-status').className = 'eva-status nominal';
+                
+                document.getElementById('mental-value').textContent = '89%';
+                document.getElementById('mental-status').textContent = 'NOMINAL';
+                document.getElementById('mental-status').className = 'eva-status nominal';
+                
+                document.getElementById('core-value').textContent = '76%';
+                document.getElementById('core-status').textContent = 'NOMINAL';
+                document.getElementById('core-status').className = 'eva-status nominal';
+
+                // Reset dynamic values
+                const core001 = document.getElementById('core-001');
+                const core002 = document.getElementById('core-002');
+                const optic001 = document.getElementById('optic-001');
+                const optic002 = document.getElementById('optic-002');
+                const gyro001 = document.getElementById('gyro-001');
+                const gyro002 = document.getElementById('gyro-002');
+                
+                if (core001) core001.textContent = '89';
+                if (core002) core002.textContent = '92';
+                if (optic001) optic001.textContent = '78';
+                if (optic002) optic002.textContent = '85';
+                if (gyro001) gyro001.textContent = '94';
+                if (gyro002) gyro002.textContent = '91';
+            }, randomInRange(800, 2000));
+        }
+
+        // Delay helper
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Create boot lines
+        function createBootLine(text) {
+            const line = document.createElement('div');
+            line.className = 'boot-line';
+            line.innerHTML = text;
+            return line;
+        }
+
+        // Boot sequence function
+        async function runBootSequence() {
+            const bootSequence = document.getElementById('boot-sequence');
+            
+            // Create all boot lines
+            for (let i = 1; i < bootMessages.length; i++) {
+                const line = createBootLine(bootMessages[i]);
+                bootSequence.appendChild(line);
+            }
+            
+            // Show boot line 1 with cursor
+            const bootLine1 = document.getElementById('boot-line-1');
+            bootLine1.classList.add('visible');
+            await delay(800);
+            
+            // Type each boot line
+            const bootLines = bootSequence.querySelectorAll('.boot-line');
+            for (let i = 1; i < bootLines.length; i++) {
+                bootLines[i].classList.add('visible');
+                await delay(300);
+            }
+            
+            // Wait after SYSTEM ONLINE
+            await delay(1500);
+            
+            // Fade out all boot lines
+            for (const line of bootLines) {
+                line.classList.remove('visible');
+                line.classList.add('faded');
+            }
+            
+            await delay(600);
+            
+            // Fade in IRON FORTRESS
+            const doctrine = document.getElementById('doctrine');
+            doctrine.classList.add('fading-in');
+            
+            await delay(1500);
+            
+            // Show EVA panel
+            const evaPanel = document.getElementById('eva-panel');
+            evaPanel.classList.add('visible');
+            
+            await delay(1500);
+            
+            // Start typing main content
+            document.getElementById('main-content').classList.remove('hidden');
+            
+            // Type each section
+            const sections = ['cybernetic-systems', 'tc-unit', 'frame-sensors', 'chess-operations', 'archived-log'];
+            
+            for (const sectionId of sections) {
+                const section = document.getElementById(sectionId);
+                if (!section) continue;
+                
+                const contentElements = section.querySelectorAll('.section-content');
+                const titleElement = section.querySelector('.section-title');
+                
+                if (titleElement && sectionId !== 'archived-log') {
+                    await typeText(titleElement, sectionsData[sectionId].title, null, 25);
+                    await delay(200);
+                }
+                
+                for (let i = 0; i < contentElements.length; i++) {
+                    const cursor = document.createElement('span');
+                    cursor.className = 'cursor';
+                    cursor.style.display = 'none';
+                    contentElements[i].appendChild(cursor);
+                    
+                    await typeText(contentElements[i], sectionsData[sectionId].content[i], cursor, 20);
+                    
+                    if (i < contentElements.length - 1) {
+                        await delay(150);
+                    }
+                }
+                
+                // Random delay between sections (except last)
+                if (sections.indexOf(sectionId) < sections.length - 1) {
+                    await delay(randomInRange(500, 1500));
                 }
             }
             
-            // Core values (87-91%)
-            setInterval(() => updateNumber('core-001', 89, 2), 1500);
-            setInterval(() => updateNumber('core-002', 90, 2), 1800);
-            
-            // Optic values
-            setInterval(() => updateNumber('optic-001', 77, 4), 2000);
-            setInterval(() => updateNumber('optic-002', 84, 3), 2200);
-            
-            // Other values
-            setInterval(() => updateNumber('mobility-delay', 22, 3), 2500);
-            setInterval(() => updateNumber('targeting-accuracy', 96, 2), 3000);
+            // Start glitch cycle after content finishes
+            await delay(2000);
+            startGlitchCycle();
         }
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
+        // Random glitch cycle
+        function startGlitchCycle() {
+            function scheduleGlitch() {
+                const delay = randomInRange(5000, 12000);
+                setTimeout(() => {
+                    triggerGlitch();
+                    scheduleGlitch();
+                }, delay);
+            }
+            scheduleGlitch();
+        }
+
+        // Update EVA values periodically
+        function updateEVA() {
+            const bars = ['sync-bar', 'mental-bar', 'core-bar'];
+            const ranges = [
+                { min: 90, max: 98 },
+                { min: 85, max: 95 },
+                { min: 70, max: 85 }
+            ];
+            
+            bars.forEach((barId, index) => {
+                const bar = document.getElementById(barId);
+                const valueEl = document.getElementById(barId.replace('bar', 'value'));
+                const statusEl = document.getElementById(barId.replace('bar', 'status'));
+                
+                const range = ranges[index];
+                const currentValue = parseInt(valueEl.textContent);
+                const change = randomInRange(-3, 3);
+                let newValue = currentValue + change;
+                
+                newValue = Math.max(range.min, Math.min(range.max, newValue));
+                
+                bar.style.setProperty('--bar-width', newValue + '%');
+                valueEl.textContent = newValue + '%';
+                
+                // Update status based on value
+                if (newValue >= 85) {
+                    statusEl.className = 'eva-status nominal';
+                    statusEl.textContent = 'NOMINAL';
+                } else if (newValue >= 60) {
+                    statusEl.className = 'eva-status caution';
+                    statusEl.textContent = 'CAUTION';
+                } else {
+                    statusEl.className = 'eva-status danger';
+                    statusEl.textContent = 'DANGER';
+                }
+            });
+        }
+
+        // Start the boot sequence when page loads
+        window.addEventListener('load', () => {
             runBootSequence();
-            startDoctrineGlitch();
-            updateEVAPanel();
-            startDynamicUpdates();
+            
+            // Update EVA values every 3 seconds
+            setInterval(updateEVA, 3000);
         });
     </script>
 </body>
