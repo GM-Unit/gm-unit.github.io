@@ -45,10 +45,18 @@
         }
 
         @keyframes glitchText {
-            0%, 100% { opacity: 1; }
-            25% { opacity: 0.85; }
-            50% { opacity: 0.95; }
-            75% { opacity: 0.8; }
+            0%, 100% { 
+                opacity: 1;
+            }
+            25% { 
+                opacity: 0.85;
+            }
+            50% { 
+                opacity: 0.95;
+            }
+            75% { 
+                opacity: 0.8;
+            }
         }
 
         @keyframes shimmer {
@@ -246,7 +254,12 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%);
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(255, 255, 255, 0.2) 50%,
+                transparent 100%
+            );
             animation: shimmer 1s infinite;
         }
 
@@ -264,9 +277,18 @@
             animation: statusBlink 1s infinite;
         }
 
-        .eva-status.nominal { color: #00ff99; }
-        .eva-status.caution { color: #ff9900; }
-        .eva-status.danger { color: #ff3333; animation: statusBlink 0.3s infinite; }
+        .eva-status.nominal {
+            color: #00ff99;
+        }
+
+        .eva-status.caution {
+            color: #ff9900;
+        }
+
+        .eva-status.danger {
+            color: #ff3333;
+            animation: statusBlink 0.3s infinite;
+        }
 
         .archived-section {
             margin-top: 40px;
@@ -274,23 +296,71 @@
             border-top: 1px solid rgba(0, 255, 153, 0.3);
         }
 
-        .hidden { display: none; }
-        .faded { animation: fadeOut 0.5s ease forwards; }
-        .fading-in { animation: fadeIn 1s ease forwards; }
+        .hidden {
+            display: none;
+        }
 
+        .faded {
+            animation: fadeOut 0.5s ease forwards;
+        }
+
+        .fading-in {
+            animation: fadeIn 1s ease forwards;
+        }
+
+        /* Responsive styles */
         @media (max-width: 900px) {
-            .main-container { max-width: 90%; padding: 20px; }
-            .right-panel { right: 15px; top: 2%; }
-            .doctrine-container { font-size: 20px; letter-spacing: 4px; }
-            .doctrine-columns { gap: 15px; }
-            .eva-panel { position: static; transform: none; margin: 20px auto; max-width: 90%; }
+            .main-container {
+                max-width: 90%;
+                padding: 20px;
+            }
+            
+            .right-panel {
+                position: fixed;
+                right: 15px;
+                top: 2%;
+            }
+            
+            .doctrine-container {
+                font-size: 20px;
+                letter-spacing: 4px;
+                opacity: 0;
+                transition: opacity 1s ease;
+            }
+            
+            .doctrine-container.fading-in {
+                opacity: 1;
+            }
+            
+            .doctrine-columns {
+                gap: 15px;
+            }
+            
+            .eva-panel {
+                position: static;
+                transform: none;
+                margin: 20px auto;
+                max-width: 90%;
+            }
         }
 
         @media (max-width: 600px) {
-            .doctrine-container { font-size: 20px; letter-spacing: 3px; }
-            .doctrine-columns { gap: 15px; }
-            .section-title { font-size: 18px; }
-            .section-content { font-size: 16px; }
+            .doctrine-container {
+                font-size: 20px;
+                letter-spacing: 3px;
+            }
+            
+            .doctrine-columns {
+                gap: 15px;
+            }
+            
+            .section-title {
+                font-size: 18px;
+            }
+            
+            .section-content {
+                font-size: 16px;
+            }
         }
     </style>
 </head>
@@ -326,18 +396,37 @@
         <div class="doctrine-container" id="doctrine">
             <div class="doctrine-columns" id="normal-columns">
                 <div class="doctrine-column">
-                    <span>I</span><span>R</span><span>O</span><span>N</span>
+                    <span>I</span>
+                    <span>R</span>
+                    <span>O</span>
+                    <span>N</span>
                 </div>
                 <div class="doctrine-column">
-                    <span>F</span><span>O</span><span>R</span><span>T</span><span>R</span><span>E</span><span>S</span><span>S</span>
+                    <span>F</span>
+                    <span>O</span>
+                    <span>R</span>
+                    <span>T</span>
+                    <span>R</span>
+                    <span>E</span>
+                    <span>S</span>
+                    <span>S</span>
                 </div>
             </div>
             <div class="doctrine-columns" id="glitch-columns">
                 <div class="doctrine-column">
-                    <span>N</span><span>O</span>
+                    <span>N</span>
+                    <span>O</span>
                 </div>
                 <div class="doctrine-column">
-                    <span>S</span><span>U</span><span>R</span><span>V</span><span>I</span><span>V</span><span>O</span><span>R</span><span>S</span>
+                    <span>S</span>
+                    <span>U</span>
+                    <span>R</span>
+                    <span>V</span>
+                    <span>I</span>
+                    <span>V</span>
+                    <span>O</span>
+                    <span>R</span>
+                    <span>S</span>
                 </div>
             </div>
         </div>
@@ -387,6 +476,7 @@
     </div>
 
     <script>
+        // Section data
         const sectionsData = {
             'cybernetic-systems': {
                 title: 'CYBERNETIC SYSTEMS',
@@ -408,21 +498,26 @@
                 title: 'FRAME & SENSORS',
                 content: [
                     'Mobility_Delay: <span id="mobility-delay">23</span>ms // Motor response',
-                    'Gyro_Stabilizer: <span id="gyro-stabilizer">94</span>% // Balance maintenance',
-                    'Structural_Integrity: <span id="structural-integrity">91</span>% // Frame status'
+                    'Skeleton_Stress: <span id="skeleton-stress">67</span>% // Structural integrity',
+                    'Total_G-Force: <span id="total-g">12.4</span>G // Max tolerance'
                 ]
             },
             'chess-operations': {
                 title: 'CHESS OPERATIONS',
                 content: [
-                    'Unit_Designation: GM_UNIT-00 // Guardian Mode',
-                    'Directive: PROTECT_PROXIMA // Priority alpha',
-                    'Combat_Status: <span id="combat-status">DORMANT</span> // Awaiting activation'
+                    'Match_001: LOST // Opponent: <span id="opponent-001">UNK</span>',
+                    'Match_002: WON // Opponent: <span id="opponent-002">UNK</span>',
+                    'Match_003: PENDING // Opponent: <span id="opponent-003">UNK</span>'
                 ]
             },
             'archived-log': {
-                title: '// ARCHIVED LOG: PROXIMA FALL',
+                title: '// ARCHIVED LOG: EPOCH 2006',
                 content: [
+                    '// EPOCH 2006: INITIAL CONTACT',
+                    'Date: 2006.01.15 // Event: First signal detected',
+                    'Origin: UNKNOWN // Distance: measuring',
+                    'Unit_Loss: 12% // Fleet designation: Pathfinder',
+                    '// EPOCH 2147',
                     'Date: 2147.03.15 // Event: Contact confirmed',
                     'Unit_Loss: 73% // Fleet designation: Alpha',
                     'Status: RECOVERING // Operation: Enduring'
@@ -430,126 +525,195 @@
             }
         };
 
-        function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+        // Boot sequence
+        const bootSequence = [
+            '≻ Initializing system...',
+            '≻ Loading neural interface...',
+            '≻ Establishing sync...',
+            '≻ Calibrating sensors...',
+            '≻ Connecting to GM-Unit...',
+            '≻ System ready.'
+        ];
 
-        async function typeText(element, text, speed = 30) {
-            element.querySelectorAll('.cursor').forEach(c => c.remove());
-            let currentContent = '';
-            for (let i = 0; i < text.length; i++) {
-                currentContent += text[i];
-                element.innerHTML = currentContent;
-                const cursor = document.createElement('span');
-                cursor.className = 'cursor';
-                element.appendChild(cursor);
-                await delay(speed);
-                element.querySelectorAll('.cursor').forEach(c => c.remove());
-            }
-            element.innerHTML = text;
-        }
+        let bootLineIndex = 0;
+        let contentIndex = 0;
+        let charIndex = 0;
+        let isTyping = false;
+        let mainContentVisible = false;
 
-        function fluctuateBars() {
-            const names = ['sync', 'mental', 'core'];
-            names.forEach(name => {
-                const bar = document.getElementById(`${name}-bar`);
-                const status = document.getElementById(`${name}-status`);
-                const value = document.getElementById(`${name}-value`);
-                const currentWidth = parseFloat(bar.style.getPropertyValue('--bar-width')) || 85;
-                const fluctuation = (Math.random() - 0.5) * 10;
-                let newWidth = Math.max(50, Math.min(100, currentWidth + fluctuation));
-                bar.style.setProperty('--bar-width', `${newWidth}%`);
-                value.textContent = `${Math.round(newWidth)}%`;
-                if (newWidth < 60) {
-                    status.textContent = 'DANGER';
-                    status.className = 'eva-status danger';
-                } else if (newWidth < 80) {
-                    status.textContent = 'CAUTION';
-                    status.className = 'eva-status caution';
+        function typeText(element, text, callback) {
+            isTyping = true;
+            charIndex = 0;
+            element.innerHTML = '';
+
+            function typeChar() {
+                if (charIndex < text.length) {
+                    const currentText = text.substring(0, charIndex + 1);
+                    element.innerHTML = currentText + '<span class="cursor"></span>';
+                    charIndex++;
+                    setTimeout(typeChar, 30);
                 } else {
-                    status.textContent = 'NOMINAL';
-                    status.className = 'eva-status nominal';
+                    element.innerHTML = text;
+                    isTyping = false;
+                    if (callback) {
+                        setTimeout(callback, 300);
+                    }
+                }
+            }
+            typeChar();
+        }
+
+        function typeContent(sectionId, lineIndex, callback) {
+            const section = sectionsData[sectionId];
+            const elements = document.querySelectorAll(`#${sectionId} .section-${lineIndex === 'title' ? 'title' : 'content'}`);
+            
+            elements.forEach((element, index) => {
+                const text = lineIndex === 'title' ? section.title : section.content[index];
+                if (text) {
+                    typeText(element, text, index === elements.length - 1 ? callback : null);
                 }
             });
-            setTimeout(fluctuateBars, 2000);
         }
 
-        function fluctuateCoreValues() {
-            const ids = ['core-001', 'core-002', 'optic-001', 'optic-002', 'mobility-delay', 'gyro-stabilizer', 'structural-integrity'];
-            ids.forEach(id => {
-                const element = document.getElementById(id);
-                if (element) {
-                    const currentValue = parseInt(element.textContent) || 85;
-                    const fluctuation = (Math.random() - 0.5) * 6;
-                    let newValue = Math.max(10, Math.min(100, currentValue + fluctuation));
-                    element.textContent = `${Math.round(newValue)}`;
-                }
-            });
-            const combatStatus = document.getElementById('combat-status');
-            if (combatStatus) {
-                combatStatus.textContent = ['DORMANT', 'ACTIVE', 'STANDBY', 'ALERT'][Math.floor(Math.random() * 4)];
-            }
-            setTimeout(fluctuateCoreValues, 3000);
+        function startBootSequence() {
+            const bootLine = document.getElementById('boot-line-1');
+            bootLine.classList.add('visible');
+            
+            setTimeout(() => {
+                typeText(bootLine, bootSequence[0], () => {
+                    fadeOutBootLine(() => {
+                        bootLineIndex = 1;
+                        showNextBootLine();
+                    });
+                });
+            }, 800);
         }
 
-        function triggerGlitch() {
-            const doctrine = document.getElementById('doctrine');
-            doctrine.classList.add('glitch');
-            setTimeout(() => doctrine.classList.remove('glitch'), 400);
+        function fadeOutBootLine(callback) {
+            const bootLine = document.getElementById('boot-line-1');
+            bootLine.classList.add('faded');
+            setTimeout(() => {
+                bootLine.classList.remove('visible', 'faded');
+                callback();
+            }, 500);
         }
 
-        async function typeSectionTitles() {
-            for (const id of ['cybernetic-systems', 'tc-unit', 'frame-sensors', 'chess-operations', 'archived-log']) {
-                await typeText(document.querySelector(`#${id} .section-title`), sectionsData[id].title, 20);
-            }
-        }
-
-        async function typeAllContent() {
-            for (const id of ['cybernetic-systems', 'tc-unit', 'frame-sensors', 'chess-operations', 'archived-log']) {
-                const section = document.querySelector(`#${id}`);
-                await typeText(section.querySelector('.section-title'), sectionsData[id].title, 20);
-                await delay(200);
-                const contents = section.querySelectorAll('.section-content');
-                for (let i = 0; i < contents.length; i++) {
-                    await typeText(contents[i], sectionsData[id].content[i], 15);
-                    await delay(150);
-                }
+        function showNextBootLine() {
+            if (bootLineIndex < bootSequence.length) {
+                const bootLine = document.getElementById('boot-line-1');
+                bootLine.textContent = bootSequence[bootLineIndex];
+                bootLine.classList.add('visible');
+                
+                setTimeout(() => {
+                    fadeOutBootLine(() => {
+                        bootLineIndex++;
+                        showNextBootLine();
+                    });
+                }, 600);
+            } else {
+                showMainContent();
             }
         }
 
-        async function runBootSequence() {
-            const bootLine1 = document.getElementById('boot-line-1');
-            bootLine1.innerHTML = '≻ SYSTEM BOOT<span class="cursor"></span>';
-            bootLine1.classList.remove('visible', 'faded');
-            bootLine1.style.opacity = '1';
-            bootLine1.classList.add('visible');
-            await delay(300);
-            const textToType = '≻ SYSTEM BOOT: GM-UNIT ';
-            bootLine1.innerHTML = '';
-            for (let i = 0; i < textToType.length; i++) {
-                bootLine1.textContent += textToType[i];
-                const cursor = document.createElement('span');
-                cursor.className = 'cursor';
-                bootLine1.appendChild(cursor);
-                await delay(30);
-            }
-            bootLine1.querySelectorAll('.cursor').forEach(c => c.remove());
-            await delay(800);
-            bootLine1.classList.add('faded');
-            await delay(600);
-            document.getElementById('doctrine').classList.add('fading-in');
-            await delay(1500);
-            document.getElementById('eva-panel').classList.add('visible');
+        function showMainContent() {
+            mainContentVisible = true;
             document.getElementById('main-content').classList.remove('hidden');
-            await delay(800);
-            await typeAllContent();
-            setTimeout(() => { triggerGlitch(); }, 3000 + Math.random() * 5000);
+            document.getElementById('main-content').classList.add('fading-in');
+            
+            setTimeout(() => {
+                document.getElementById('eva-panel').classList.add('visible');
+                document.getElementById('doctrine').classList.add('fading-in');
+                
+                setTimeout(() => {
+                    typeSectionContent('cybernetic-systems', 0, () => {
+                        typeSectionContent('tc-unit', 0, () => {
+                            typeSectionContent('frame-sensors', 0, () => {
+                                typeSectionContent('chess-operations', 0, () => {
+                                    typeSectionContent('archived-log', 0, () => {
+                                        startFluctuatingBars();
+                                        startGlitchCycle();
+                                    });
+                                });
+                            });
+                        });
+                    });
+                }, 500);
+            }, 500);
         }
 
-        window.addEventListener('DOMContentLoaded', async () => {
-            await delay(500);
-            await runBootSequence();
-            fluctuateBars();
-            fluctuateCoreValues();
-        });
+        function typeSectionContent(sectionId, contentIndex, callback) {
+            const section = sectionsData[sectionId];
+            const titleElement = document.querySelector(`#${sectionId} .section-title`);
+            const contentElements = document.querySelectorAll(`#${sectionId} .section-content`);
+            
+            typeText(titleElement, section.title, () => {
+                let currentIndex = 0;
+                
+                function typeNextLine() {
+                    if (currentIndex < contentElements.length) {
+                        const text = section.content[currentIndex];
+                        typeText(contentElements[currentIndex], text, () => {
+                            currentIndex++;
+                            typeNextLine();
+                        });
+                    } else {
+                        if (callback) {
+                            callback();
+                        }
+                    }
+                }
+                
+                typeNextLine();
+            });
+        }
+
+        function startFluctuatingBars() {
+            setInterval(() => {
+                const bars = ['sync', 'mental', 'core'];
+                bars.forEach(bar => {
+                    const barElement = document.getElementById(`${bar}-bar`);
+                    const valueElement = document.getElementById(`${bar}-value`);
+                    const statusElement = document.getElementById(`${bar}-status`);
+                    
+                    const currentWidth = parseFloat(barElement.style.getPropertyValue('--bar-width'));
+                    const fluctuation = (Math.random() - 0.5) * 10;
+                    let newWidth = currentWidth + fluctuation;
+                    newWidth = Math.max(50, Math.min(100, newWidth));
+                    
+                    barElement.style.setProperty('--bar-width', `${newWidth}%`);
+                    valueElement.textContent = `${Math.round(newWidth)}%`;
+                    
+                    if (newWidth < 60) {
+                        statusElement.textContent = 'DANGER';
+                        statusElement.className = 'eva-status danger';
+                    } else if (newWidth < 80) {
+                        statusElement.textContent = 'CAUTION';
+                        statusElement.className = 'eva-status caution';
+                    } else {
+                        statusElement.textContent = 'NOMINAL';
+                        statusElement.className = 'eva-status nominal';
+                    }
+                });
+            }, 2000);
+        }
+
+        function startGlitchCycle() {
+            function triggerGlitch() {
+                const doctrine = document.getElementById('doctrine');
+                doctrine.classList.add('glitch');
+                
+                setTimeout(() => {
+                    doctrine.classList.remove('glitch');
+                    const randomDelay = Math.random() * 10000 + 5000;
+                    setTimeout(triggerGlitch, randomDelay);
+                }, 500);
+            }
+            
+            const initialDelay = Math.random() * 15000 + 10000;
+            setTimeout(triggerGlitch, initialDelay);
+        }
+
+        // Start the system
+        document.addEventListener('DOMContentLoaded', startBootSequence);
     </script>
 </body>
-</html>
