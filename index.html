@@ -3,19 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GM-Unit Terminal</title>
+    <title>TACTICAL COMMAND TERMINAL</title>
     <style>
-        :root {
-            --terminal-green: #00ff41;
-            --terminal-dark: #0a0a0a;
-            --terminal-dim: #003b00;
-            --terminal-red: #ff3333;
-            --terminal-orange: #ff9500;
-            --flicker-opacity: 0.15;
-            --font-size-base: 14px;
-            --font-size-title: 18px;
-            --font-size-large: 46px;
-            --font-size-mobile: 22px;
+        @keyframes crtFlicker {
+            0%, 100% { opacity: 0.97; }
+            50% { opacity: 0.94; }
+            92% { opacity: 0.98; }
+            96% { opacity: 0.93; }
+        }
+
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100vh); }
+        }
+
+        @keyframes textGlitch {
+            0%, 100% { transform: translate(0); filter: hue-rotate(0deg); }
+            20% { transform: translate(-2px, 2px); filter: hue-rotate(90deg); }
+            40% { transform: translate(2px, -2px); filter: hue-rotate(180deg); }
+            60% { transform: translate(-2px, -2px); filter: hue-rotate(270deg); }
+            80% { transform: translate(2px, 2px); filter: hue-rotate(360deg); }
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        @keyframes barFluctuate {
+            0%, 100% { width: var(--target-width); }
+            50% { width: var(--next-width); }
+        }
+
+        @keyframes bootFade {
+            0% { opacity: 1; }
+            70% { opacity: 1; }
+            100% { opacity: 0; pointer-events: none; }
+        }
+
+        @keyframes glitchFlash {
+            0%, 100% { color: #00ff99; text-shadow: 0 0 10px #00ff99; }
+            25% { color: #ff0000; text-shadow: 0 0 20px #ff0000; }
+            50% { color: #ff0000; text-shadow: 0 0 15px #ff0000, 0 0 30px #ff0000; }
+            75% { color: #ff0000; text-shadow: 0 0 25px #ff0000; }
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { text-shadow: 0 0 8px currentColor; }
+            50% { text-shadow: 0 0 15px currentColor, 0 0 25px currentColor; }
         }
 
         * {
@@ -24,23 +59,30 @@
             box-sizing: border-box;
         }
 
-        body {
-            background-color: var(--terminal-dark);
-            color: var(--terminal-green);
-            font-family: 'Courier New', monospace;
-            min-height: 100vh;
-            overflow-x: hidden;
-            line-height: 1.6;
+        html, body {
+            height: 100%;
+            overflow: hidden;
         }
 
-        /* Flicker Overlay */
-        .flicker-overlay {
+        body {
+            background: #000;
+            color: #00ff99;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            line-height: 1.4;
+            text-transform: uppercase;
+            -webkit-font-smoothing: none;
+            image-rendering: pixelated;
+        }
+
+        .crt-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             pointer-events: none;
+            z-index: 9999;
             background: repeating-linear-gradient(
                 0deg,
                 rgba(0, 0, 0, 0.15),
@@ -48,454 +90,637 @@
                 transparent 1px,
                 transparent 2px
             );
-            z-index: 1000;
-            animation: flicker 0.1s infinite;
+            animation: crtFlicker 0.1s infinite;
         }
 
-        @keyframes flicker {
-            0% { opacity: 0.85; }
-            5% { opacity: 0.9; }
-            10% { opacity: 0.8; }
-            15% { opacity: 0.85; }
-            20% { opacity: 0.9; }
-            100% { opacity: 0.85; }
-        }
-
-        .scanlines {
+        .screen-glow {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             pointer-events: none;
-            background: linear-gradient(
-                to bottom,
-                rgba(255,255,255,0),
-                rgba(255,255,255,0) 50%,
-                rgba(0,0,0,0.1) 50%,
-                rgba(0,0,0,0.1)
-            );
-            background-size: 100% 4px;
-            z-index: 999;
+            z-index: 9998;
+            background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 255, 153, 0.03) 50%, transparent 100%);
         }
 
-        /* Container Layout */
-        .terminal-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-            padding: 2rem;
-            min-height: 100vh;
+        .boot-sequence {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: bootFade 1s ease-in forwards;
+            animation-delay: 8s;
+        }
+
+        .boot-text {
+            font-size: 24px;
+            line-height: 2;
+            text-align: left;
+        }
+
+        .boot-line {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        .main-container {
+            display: flex;
+            height: 100vh;
+            padding: 20px;
+            gap: 40px;
             position: relative;
             z-index: 1;
         }
 
-        /* Left Panel - Boot & Sections */
-        .left-panel {
-            max-width: 600px;
+        .left-column {
+            flex: 0 0 62%;
+            max-width: 62%;
+            overflow-y: auto;
+            padding-right: 20px;
+            scrollbar-width: none;
         }
 
-        .boot-screen {
-            margin-bottom: 2rem;
-            opacity: 0;
+        .left-column::-webkit-scrollbar {
+            display: none;
+        }
 
-[...448 lines omitted...]
+        .right-column {
+            flex: 0 0 35%;
+            max-width: 35%;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
 
-        // ==========================================
-        const CONFIG = {
-            // Typing speeds (ms per character)
-            bootTypingSpeed: 30,
-            sectionTitleSpeed: 50,
-            subtextTypingSpeed: 40,
+        .doctrine-container {
+            position: fixed;
+            right: 40px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 100;
+        }
 
-            // Delays between sections (ms)
-            bootFadeDelay: 1500,
-            sectionDelay: 800,
+        .doctrine-text {
+            font-size: 48px;
+            font-weight: bold;
+            letter-spacing: 8px;
+            display: none;
+        }
 
-            // Telemetry update intervals (ms)
-            barUpdateInterval: 100,
-            numberUpdateInterval: 150,
+        .doctrine-text.active {
+            display: block;
+        }
 
-            // Glitch settings
-            glitchChance: 0.008,  // Chance per frame to glitch
-            glitchDuration: 650,  // ms
+        .doctrine-text.glitching {
+            animation: glitchFlash 0.15s ease-in-out infinite, textGlitch 0.1s ease-in-out infinite;
+        }
 
-            // Value ranges for telemetry
-            ranges: {
-                core1: { min: 2200, max: 2800 },
-                core2: { min: 2100, max: 2900 },
-                optics1: { min: 85, max: 100 },
-                optics2: { min: 80, max: 100 },
-                mobility: { min: 120, max: 180 },
-                targeting: { min: 75, max: 100 },
-                syncRatio: { min: 70, max: 100 },
-                stability: { min: 80, max: 100 },
-                pressure: { min: 40, max: 95 }
-            },
+        .vertical-phrase {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            line-height: 1.2;
+        }
 
-            // Status thresholds
-            thresholds: {
-                sync: { caution: 80, danger: 60 },
-                stability: { caution: 85, danger: 70 },
-                pressure: { caution: 70, danger: 85 }
+        .vertical-phrase span {
+            min-width: 28px;
+            text-align: center;
+        }
+
+        .eva-panel {
+            position: fixed;
+            right: 40px;
+            bottom: 40px;
+            width: 320px;
+            border: 1px solid #00ff99;
+            padding: 15px;
+            background: rgba(0, 20, 10, 0.8);
+            display: none;
+        }
+
+        .eva-panel.active {
+            display: block;
+        }
+
+        .eva-title {
+            font-size: 12px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #00ff99;
+            padding-bottom: 8px;
+        }
+
+        .eva-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .eva-bar-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .eva-bar-label {
+            font-size: 10px;
+            min-width: 100px;
+        }
+
+        .eva-bar-track {
+            flex: 1;
+            height: 12px;
+            background: rgba(0, 50, 25, 0.5);
+            border: 1px solid #00ff99;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .eva-bar-fill {
+            height: 100%;
+            background: #00ff99;
+            transition: width 0.5s ease-out, background-color 0.3s;
+            box-shadow: 0 0 8px currentColor;
+        }
+
+        .eva-bar-value {
+            font-size: 11px;
+            min-width: 45px;
+            text-align: right;
+        }
+
+        .eva-status {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 14px;
+            animation: blink 2s ease-in-out infinite;
+        }
+
+        .terminal-section {
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #00ff99;
+            padding-bottom: 4px;
+        }
+
+        .section-content {
+            font-size: 13px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .section-content span {
+            display: block;
+        }
+
+        .telemetry-value {
+            display: inline-block;
+            min-width: 50px;
+            text-align: right;
+            transition: color 0.1s;
+        }
+
+        .telemetry-value.changing {
+            text-shadow: 0 0 10px currentColor;
+        }
+
+        .status-nominal { color: #00ff99; }
+        .status-caution { color: #ffaa00; }
+        .status-danger { color: #ff0000; }
+
+        @media (max-width: 900px) {
+            .main-container {
+                flex-direction: column;
+                padding: 15px;
+                gap: 20px;
             }
-        };
 
-        // ==========================================
-        // CONTENT - Lore and text content
-        // ==========================================
-        const CONTENT = {
-            bootMessages: [
-                "GM-UNIT TERMINAL v3.1.4",
-                "Initializing neural link...",
-                "Loading cybernetic interface...",
-                "Establishing TC connection...",
-                "Calibrating frame sensors...",
-                "Chess protocol engaged.",
-                "Deployment log mounted.",
-                "EVA telemetry active.",
-                "System ready."
-            ],
-
-            sections: {
-                cybernetic: {
-                    title: "CYBERNETIC SYSTEMS",
-                    subtext: "Neural interface connected. Synapse sync at 94.2%. Cybernetic enhancements online. No rejection detected. Pupil dilation normal. Heart rate stable at 72 BPM. Adrenaline levels within expected parameters."
-                },
-                tcunit: {
-                    title: "TC UNIT",
-                    subtext: "Tactical computer operational. Target acquisition systems active. Priority targets loaded. No friendly units in field of fire. Thermal signature detection online. Radar sweep complete."
-                },
-                frame: {
-                    title: "FRAME & SENSORS",
-                    subtext: "Frame integrity at 100%. Servo motors responsive. Gyroscope calibrated. Environmental sensors active. Atmosphere breathable. Radiation levels minimal. Temperature within normal range."
-                },
-                chess: {
-                    title: "CHESS OPERATIONS",
-                    subtext: "Chess protocol engaged. Enemy movements tracked. Predictive algorithms running. No survivors confirmed in operational zone. Tactical advantage maintained. Proceed with caution."
-                },
-                deployment: {
-                    title: "DEPLOYMENT LOG",
-                    subtext: "Mission: Operation Iron Fortress. Deployment time: 0342 hours. Unit status: Active. Coordinates locked. Objective: Secure and hold. Rules of engagement: No survivors."
-                }
-            },
-
-            ironFortress: {
-                primary: ["IRON", "FORTRESS"],
-                glitch: ["NO", "SURVIVORS"]
+            .left-column {
+                flex: 1;
+                max-width: 90%;
+                overflow-y: auto;
             }
-        };
 
-        // ==========================================
-        // UTILITY FUNCTIONS
-        // ==========================================
-        function randomInRange(min, max) {
-            return Math.floor(Math.random() * (max - min + 1)) + min;
+            .right-column {
+                display: none;
+            }
+
+            .doctrine-container {
+                right: 15px;
+                top: 30%;
+            }
+
+            .doctrine-text {
+                font-size: 22px;
+                letter-spacing: 4px;
+            }
+
+            .vertical-phrase {
+                gap: 6px;
+            }
+
+            .vertical-phrase span {
+                min-width: 14px;
+            }
+
+            .eva-panel {
+                right: 15px;
+                bottom: 20px;
+                width: calc(100% - 30px);
+                max-width: 320px;
+            }
         }
 
-        function randomFloat(min, max) {
-            return (Math.random() * (max - min) + min).toFixed(1);
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
-        function delay(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
+        .terminal-section {
+            animation: fadeIn 0.3s ease-out forwards;
         }
+    </style>
+</head>
+<body>
+    <div class="crt-overlay"></div>
+    <div class="screen-glow"></div>
 
-        function typeText(element, text, speed, callback) {
-            let index = 0;
-            element.classList.add('typing');
+    <div class="boot-sequence" id="bootSequence">
+        <div class="boot-text" id="bootText"></div>
+    </div>
 
+    <div class="main-container" id="mainContainer" style="opacity: 0;">
+        <div class="left-column" id="leftColumn">
+            <!-- Sections will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <div class="doctrine-container" id="doctrineContainer">
+        <div class="doctrine-text active" id="doctrineIronFortress">
+            <div class="vertical-phrase">
+                <span>I</span><span>F</span>
+                <span>R</span><span>O</span>
+                <span>O</span><span>R</span>
+                <span>N</span><span>T</span>
+                <span>&nbsp;</span><span>R</span>
+                <span>&nbsp;</span><span>E</span>
+                <span>&nbsp;</span><span>S</span>
+                <span>&nbsp;</span><span>S</span>
+            </div>
+        </div>
+        <div class="doctrine-text" id="doctrineNoSurvivors">
+            <div class="vertical-phrase">
+                <span>N</span><span>S</span>
+                <span>O</span><span>U</span>
+                <span>&nbsp;</span><span>R</span>
+                <span>&nbsp;</span><span>V</span>
+                <span>&nbsp;</span><span>I</span>
+                <span>&nbsp;</span><span>V</span>
+                <span>&nbsp;</span><span>O</span>
+                <span>&nbsp;</span><span>S</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="eva-panel" id="evaPanel">
+        <div class="eva-title">/// EVA STATUS ///</div>
+        <div class="eva-bars">
+            <div class="eva-bar-row">
+                <div class="eva-bar-label">SYNC RATIO</div>
+                <div class="eva-bar-track">
+                    <div class="eva-bar-fill" id="syncFill" style="width: 87%;"></div>
+                </div>
+                <div class="eva-bar-value" id="syncValue">87%</div>
+            </div>
+            <div class="eva-bar-row">
+                <div class="eva-bar-label">MENTAL STABILITY</div>
+                <div class="eva-bar-track">
+                    <div class="eva-bar-fill" id="mentalFill" style="width: 92%;"></div>
+                </div>
+                <div class="eva-bar-value" id="mentalValue">92%</div>
+            </div>
+            <div class="eva-bar-row">
+                <div class="eva-bar-label">CORE PRESSURE</div>
+                <div class="eva-bar-track">
+                    <div class="eva-bar-fill" id="pressureFill" style="width: 78%;"></div>
+                </div>
+                <div class="eva-bar-value" id="pressureValue">78%</div>
+            </div>
+        </div>
+        <div class="eva-status" id="evaStatus">STATUS: NOMINAL</div>
+    </div>
+
+    <script>
+        // Terminal sections data
+        const terminalSections = [
+            {
+                title: "CYBERNETIC SYSTEMS",
+                content: [
+                    "Core_001: <span class='telemetry' data-min='67' data-max='94'>87%</span>",
+                    "Core_002: <span class='telemetry' data-min='52' data-max='89'>73%</span>",
+                    "Runtime: 2847:12:33:41",
+                    "Firmware: v4.2.1-EXODUS",
+                    "Status: ALL SYSTEMS NOMINAL"
+                ]
+            },
+            {
+                title: "TC UNIT",
+                content: [
+                    "Organic pilots: 1/1 CONNECTED",
+                    "Prediction deviation: 0.7%",
+                    "Warning: ELEVATED THREAT INDICATORS",
+                    "Strategic recognition: CLASS-ALPHA"
+                ]
+            },
+            {
+                title: "FRAME & SENSORS",
+                content: [
+                    "Optic_001: <span class='telemetry' data-min='88' data-max='99'>95%</span>",
+                    "Optic_002: <span class='telemetry' data-min='82' data-max='98'>91%</span>",
+                    "Hydraulics: PRESSURE STABLE",
+                    "Mobility delay: 0.003ms"
+                ]
+            },
+            {
+                title: "CHESS OPERATIONS",
+                content: [
+                    "Targeting accuracy: <span class='telemetry' data-min='94' data-max='99'>97%</span>",
+                    "Opening files: OPTIMIZED",
+                    "Endgame protocol: DEPLOYED"
+                ]
+            },
+            {
+                title: "ARCHIVED DEPLOYMENT LOG",
+                content: [
+                    "Kill count: 847,293",
+                    "Post-war repurposing: AUTHORIZED",
+                    "Legacy status: OPERATIONAL"
+                ]
+            }
+        ];
+
+        // Typing animation
+        function typeText(element, text, speed = 30, callback) {
+            let i = 0;
+            element.style.opacity = '1';
             function type() {
-                if (index < text.length) {
-                    element.textContent = text.substring(0, index + 1);
-                    index++;
+                if (i < text.length) {
+                    element.textContent += text.charAt(i);
+                    i++;
                     setTimeout(type, speed);
                 } else if (callback) {
-                    callback();
+                    setTimeout(callback, 200);
                 }
             }
             type();
         }
 
-        function createVerticalText(words) {
-            let html = '';
-            const maxLength = Math.max(...words.map(w => w.length));
+        // Boot sequence
+        function runBootSequence() {
+            const bootLines = [
+                "SYSTEM BOOT",
+                "INITIALIZING CORES",
+                "LOADING STRATEGIC MATRICES",
+                "SYNCHRONIZING ENDGAME TABLES",
+                "WARNINGS DETECTED",
+                "SYSTEM ONLINE"
+            ];
 
-            for (let row = 0; row < maxLength; row++) {
-                html += '<div class="vertical-text">';
-                for (const word of words) {
-                    const char = word[row] || ' ';
-                    html += `<span class="char">${char}</span><br>`;
-                }
-                html += '</div>';
-            }
-            return html;
-        }
+            const bootText = document.getElementById('bootText');
+            let lineIndex = 0;
 
-        // ==========================================
-        // IRON FORTRESS DISPLAY
-        // ==========================================
-        class IronFortressDisplay {
-            constructor(container) {
-                this.container = container;
-                this.isGlitching = false;
-                this.glitchTimeout = null;
-            }
-
-            render(isGlitch = false) {
-                const words = isGlitch ? CONTENT.ironFortress.glitch : CONTENT.ironFortress.primary;
-                const className = isGlitch ? 'iron-fortress-text no-survivors' : 'iron-fortress-text';
-
-                this.container.innerHTML = `<div class="${className}">${createVerticalText(words)}</div>`;
-            }
-
-            show() {
-                this.render(false);
-                this.container.classList.add('visible');
-            }
-
-            async glitch() {
-                if (this.isGlitching) return;
-
-                this.isGlitching = true;
-                this.render(true);
-
-                const textElement = this.container.querySelector('.no-survivors');
-                if (textElement) {
-                    textElement.classList.add('glitching');
-                }
-
-                await delay(CONFIG.glitchDuration);
-
-                this.render(false);
-                this.isGlitching = false;
-            }
-
-            startGlitchLoop() {
-                const glitchLoop = () => {
-                    if (Math.random() < CONFIG.glitchChance) {
-                        this.glitch().then(() => {
-                            setTimeout(glitchLoop, randomInRange(3000, 8000));
-                        });
-                    } else {
-                        setTimeout(glitchLoop, 1000);
-                    }
-                };
-                setTimeout(glitchLoop, 3000);
-            }
-        }
-
-        // ==========================================
-        // EVA TELEMETRY
-        // ==========================================
-        class EVATelemetry {
-            constructor() {
-                this.elements = {
-                    core1: document.getElementById('core1'),
-                    core2: document.getElementById('core2'),
-                    optics1: document.getElementById('optics1'),
-                    optics2: document.getElementById('optics2'),
-                    mobility: document.getElementById('mobility'),
-                    targeting: document.getElementById('targeting'),
-                    barSync: document.getElementById('barSync'),
-                    barStability: document.getElementById('barStability'),
-                    barPressure: document.getElementById('barPressure'),
-                    status: document.getElementById('evaStatus')
-                };
-
-                this.values = {
-                    sync: 85,
-                    stability: 90,
-                    pressure: 55
-                };
-
-                this.barIntervals = [];
-                this.numberInterval = null;
-            }
-
-            show() {
-                document.getElementById('evaPanel').classList.add('visible');
-            }
-
-            updateNumber(element, min, max) {
-                const value = randomInRange(min, max);
-                element.textContent = value;
-
-                if (Math.random() < 0.3) {
-                    element.classList.add('flickering');
-                    setTimeout(() => element.classList.remove('flickering'), 200);
-                }
-            }
-
-            updateBar(element, value, type) {
-                element.style.width = `${value}%`;
-
-                // Update color based on thresholds
-                element.classList.remove('warning', 'danger');
-
-                if (type === 'pressure') {
-                    if (value >= CONFIG.thresholds.pressure.danger) {
-                        element.classList.add('danger');
-                    } else if (value >= CONFIG.thresholds.pressure.caution) {
-                        element.classList.add('warning');
-                    }
-                }
-            }
-
-            updateStatus() {
-                const { sync, stability, pressure } = this.values;
-
-                // Determine overall status
-                let status = 'nominal';
-                let statusText = 'SYSTEM NOMINAL';
-
-                if (sync <= CONFIG.thresholds.sync.danger ||
-                    stability <= CONFIG.thresholds.stability.danger ||
-                    pressure >= CONFIG.thresholds.pressure.danger) {
-                    status = 'danger';
-                    statusText = 'CRITICAL WARNING';
-                } else if (sync <= CONFIG.thresholds.sync.caution ||
-                           stability <= CONFIG.thresholds.stability.caution ||
-                           pressure >= CONFIG.thresholds.pressure.caution) {
-                    status = 'caution';
-                    statusText = 'CAUTION: DEVIATION DETECTED';
-                }
-
-                // Only update if changed
-                if (this.currentStatus !== status) {
-                    this.currentStatus = status;
-                    this.elements.status.textContent = statusText;
-                    this.elements.status.className = `eva-status status-${status}`;
-                }
-            }
-
-            startUpdates() {
-                // Bar fluctuations
-                const updateBars = () => {
-                    this.values.sync = Math.max(50, Math.min(100,
-                        this.values.sync + randomInRange(-3, 3)));
-                    this.values.stability = Math.max(60, Math.min(100,
-                        this.values.stability + randomInRange(-2, 2)));
-                    this.values.pressure = Math.max(30, Math.min(100,
-                        this.values.pressure + randomInRange(-2, 2)));
-
-                    this.updateBar(this.elements.barSync, this.values.sync, 'sync');
-                    this.updateBar(this.elements.barStability, this.values.stability, 'stability');
-                    this.updateBar(this.elements.barPressure, this.values.pressure, 'pressure');
-                    this.updateStatus();
-                };
-
-                this.barIntervals.push(setInterval(updateBars, CONFIG.barUpdateInterval));
-
-                // Number updates
-                const updateNumbers = () => {
-                    const ranges = CONFIG.ranges;
-                    this.updateNumber(this.elements.core1, ranges.core1.min, ranges.core1.max);
-                    this.updateNumber(this.elements.core2, ranges.core2.min, ranges.core2.max);
-                    this.updateNumber(this.elements.optics1, ranges.optics1.min, ranges.optics1.max);
-                    this.updateNumber(this.elements.optics2, ranges.optics2.min, ranges.optics2.max);
-                    this.updateNumber(this.elements.mobility, ranges.mobility.min, ranges.mobility.max);
-                    this.updateNumber(this.elements.targeting, ranges.targeting.min, ranges.targeting.max);
-                };
-
-                this.numberInterval = setInterval(updateNumbers, CONFIG.numberUpdateInterval);
-            }
-
-            stopUpdates() {
-                this.barIntervals.forEach(clearInterval);
-                clearInterval(this.numberInterval);
-            }
-        }
-
-        // ==========================================
-        // BOOT SEQUENCE
-        // ==========================================
-        class BootSequence {
-            constructor() {
-                this.bootScreen = document.getElementById('bootScreen');
-                this.systemSections = document.getElementById('systemSections');
-            }
-
-            async run() {
-                // Type boot messages
-                for (const message of CONTENT.bootMessages) {
+            function showNextLine() {
+                if (lineIndex < bootLines.length) {
                     const line = document.createElement('div');
                     line.className = 'boot-line';
-                    this.bootScreen.appendChild(line);
-                    this.bootScreen.classList.add('visible');
+                    bootText.appendChild(line);
 
-                    await new Promise(resolve => {
-                        typeText(line, message, CONFIG.bootTypingSpeed, resolve);
-                    });
+                    setTimeout(() => {
+                        line.style.opacity = '1';
+                        line.style.transition = 'opacity 0.3s';
+                    }, 50);
 
-                    await delay(randomInRange(200, 500));
-                }
-
-                // Fade out boot screen
-                await delay(CONFIG.bootFadeDelay);
-                this.bootScreen.classList.add('fading');
-
-                await delay(1000);
-                this.bootScreen.classList.remove('visible');
-                this.bootScreen.innerHTML = '';
-
-                // Show system sections
-                this.systemSections.classList.add('visible');
-
-                // Animate sections
-                await this.animateSections();
-            }
-
-            async animateSections() {
-                const sectionOrder = ['cybernetic', 'tcunit', 'frame', 'chess', 'deployment'];
-
-                for (const sectionId of sectionOrder) {
-                    await this.animateSection(sectionId);
-                    await delay(CONFIG.sectionDelay);
+                    lineIndex++;
+                    setTimeout(showNextLine, 800);
                 }
             }
 
-            animateSection(sectionId) {
-                return new Promise(resolve => {
-                    const titleEl = document.getElementById(`title-${sectionId}`);
-                    const contentEl = document.getElementById(`content-${sectionId}`);
-                    const sectionData = CONTENT.sections[sectionId];
+            showNextLine();
 
-                    // Type title
-                    typeText(titleEl, sectionData.title, CONFIG.sectionTitleSpeed, () => {
-                        titleEl.classList.add('typed');
-
-                        // Type subtext
-                        typeText(contentEl, sectionData.subtext, CONFIG.subtextTypingSpeed, () => {
-                            resolve();
-                        });
-                    });
-                });
-            }
+            // After boot fades, show main interface
+            setTimeout(() => {
+                document.getElementById('mainContainer').style.opacity = '1';
+                document.getElementById('mainContainer').style.transition = 'opacity 1s';
+                renderTerminalSections();
+                startEVA();
+                startDoctrineGlitch();
+            }, 9000);
         }
 
-        // ==========================================
-        // INITIALIZATION
-        // ==========================================
-        document.addEventListener('DOMContentLoaded', async () => {
-            const ironFortress = new IronFortressDisplay(
-                document.getElementById('ironFortress')
-            );
-            const telemetry = new EVATelemetry();
-            const boot = new BootSequence();
+        // Render terminal sections with typing
+        function renderTerminalSections() {
+            const leftColumn = document.getElementById('leftColumn');
+            let sectionIndex = 0;
 
-            // Start boot sequence
-            await boot.run();
+            function renderNextSection() {
+                if (sectionIndex < terminalSections.length) {
+                    const section = terminalSections[sectionIndex];
+                    const sectionDiv = document.createElement('div');
+                    sectionDiv.className = 'terminal-section';
+                    sectionDiv.style.opacity = '0';
 
-            // Show EVA panel and Iron Fortress
-            ironFortress.show();
-            telemetry.show();
+                    const title = document.createElement('div');
+                    title.className = 'section-title';
+                    sectionDiv.appendChild(title);
 
-            // Start telemetry updates
-            telemetry.startUpdates();
+                    leftColumn.appendChild(sectionDiv);
 
-            // Start glitch loop
-            ironFortress.startGlitchLoop();
+                    // Type title
+                    typeText(title, section.title, 40, () => {
+                        // Type content
+                        const contentDiv = document.createElement('div');
+                        contentDiv.className = 'section-content';
+                        sectionDiv.appendChild(contentDiv);
+
+                        let contentIndex = 0;
+
+                        function typeNextLine() {
+                            if (contentIndex < section.content.length) {
+                                const line = document.createElement('span');
+                                contentDiv.appendChild(line);
+
+                                // Parse telemetry values
+                                let text = section.content[contentIndex];
+                                const telemetryMatch = text.match(/<span class='telemetry' data-min='(\d+)' data-max='(\d+)'>([^<]*)<\/span>/);
+                                if (telemetryMatch) {
+                                    const before = text.split('<span class="telemetry" data-min=\'\d+\' data-max=\'\d+\'>')[0];
+                                    const min = telemetryMatch[1];
+                                    const max = telemetryMatch[2];
+                                    const value = telemetryMatch[3];
+                                    line.innerHTML = before + '<span class="telemetry-value" data-min="' + min + '" data-max="' + max + '">' + value + '</span>';
+                                } else {
+                                    line.textContent = text;
+                                }
+
+                                contentIndex++;
+                                setTimeout(typeNextLine, 50);
+                            } else {
+                                sectionIndex++;
+                                setTimeout(renderNextSection, 500);
+                            }
+                        }
+
+                        typeNextLine();
+                    });
+
+                    setTimeout(() => {
+                        sectionDiv.style.opacity = '1';
+                    }, 100);
+                } else {
+                    // All sections rendered, start telemetry updates
+                    startTelemetryUpdates();
+                }
+            }
+
+            renderNextSection();
+        }
+
+        // Telemetry value updates
+        function startTelemetryUpdates() {
+            const teleValues = document.querySelectorAll('.telemetry-value');
+
+            function updateTelemetry() {
+                teleValues.forEach(el => {
+                    const min = parseInt(el.dataset.min);
+                    const max = parseInt(el.dataset.max);
+
+                    const currentText = el.textContent.replace('%', '');
+                    const currentVal = parseInt(currentText);
+                    const change = Math.floor(Math.random() * 7) - 3;
+                    let newVal = currentVal + change;
+                    newVal = Math.max(min, Math.min(max, newVal));
+
+                    el.classList.add('changing');
+                    el.textContent = newVal + '%';
+
+                    setTimeout(() => {
+                        el.classList.remove('changing');
+                    }, 150);
+                });
+            }
+
+            setInterval(updateTelemetry, 2000);
+        }
+
+        // EVA Status panel
+        function startEVA() {
+            const syncFill = document.getElementById('syncFill');
+            const syncValue = document.getElementById('syncValue');
+            const mentalFill = document.getElementById('mentalFill');
+            const mentalValue = document.getElementById('mentalValue');
+            const pressureFill = document.getElementById('pressureFill');
+            const pressureValue = document.getElementById('pressureValue');
+            const evaStatus = document.getElementById('evaStatus');
+
+            let sync = 87, mental = 92, pressure = 78;
+
+            function updateEVA() {
+                // Fluctuate values
+                sync += (Math.random() - 0.5) * 6;
+                mental += (Math.random() - 0.5) * 8;
+                pressure += (Math.random() - 0.5) * 10;
+
+                sync = Math.max(60, Math.min(99, sync));
+                mental = Math.max(55, Math.min(98, mental));
+                pressure = Math.max(40, Math.min(95, pressure));
+
+                // Update bars
+                syncFill.style.width = sync + '%';
+                syncValue.textContent = Math.round(sync) + '%';
+                mentalFill.style.width = mental + '%';
+                mentalValue.textContent = Math.round(mental) + '%';
+                pressureFill.style.width = pressure + '%';
+                pressureValue.textContent = Math.round(pressure) + '%';
+
+                // Determine status
+                let status = 'NOMINAL';
+                let statusClass = 'status-nominal';
+                let color = '#00ff99';
+
+                if (pressure > 85 || mental < 70) {
+                    status = 'DANGER';
+                    statusClass = 'status-danger';
+                    color = '#ff0000';
+                } else if (pressure > 70 || mental < 80) {
+                    status = 'CAUTION';
+                    statusClass = 'status-caution';
+                    color = '#ffaa00';
+                }
+
+                evaStatus.textContent = 'STATUS: ' + status;
+                evaStatus.className = 'eva-status ' + statusClass;
+
+                syncFill.style.backgroundColor = color;
+                syncFill.style.boxShadow = '0 0 8px ' + color;
+                mentalFill.style.backgroundColor = color;
+                mentalFill.style.boxShadow = '0 0 8px ' + color;
+                pressureFill.style.backgroundColor = color;
+                pressureFill.style.boxShadow = '0 0 8px ' + color;
+            }
+
+            // Show EVA panel
+            document.getElementById('evaPanel').classList.add('active');
+
+            setInterval(updateEVA, 1500);
+        }
+
+        // Doctrine glitch
+        function startDoctrineGlitch() {
+            const ironFortress = document.getElementById('doctrineIronFortress');
+            const noSurvivors = document.getElementById('doctrineNoSurvivors');
+
+            // Show doctrine
+            document.getElementById('doctrineContainer').style.display = 'block';
+
+            function triggerGlitch() {
+                // Random interval between 3-8 seconds
+                const delay = 3000 + Math.random() * 5000;
+
+                setTimeout(() => {
+                    // Glitch to NO SURVIVORS
+                    ironFortress.classList.remove('active');
+                    noSurvivors.classList.add('active', 'glitching');
+
+                    // Random glitch duration
+                    setTimeout(() => {
+                        noSurvivors.classList.remove('glitching');
+                        ironFortress.classList.add('active');
+                        noSurvivors.classList.remove('active');
+
+                        // Next glitch
+                        triggerGlitch();
+                    }, 400 + Math.random() * 600);
+                }, delay);
+            }
+
+            triggerGlitch();
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            runBootSequence();
         });
     </script>
 </body>
+</html>
