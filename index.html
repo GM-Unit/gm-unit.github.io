@@ -498,65 +498,60 @@
                 title: 'FRAME & SENSORS',
                 content: [
                     'Mobility_Delay: <span id="mobility-delay">23</span>ms // Motor response',
-                    'Gyro_Stabilizer: <span id="gyro-stabilizer">94</span>% // Balance maintenance',
-                    'Structural_Integrity: <span id="structural-integrity">91</span>% // Frame status'
+                    'Gyro_Stabilizer: <span id="gyro-stabilizer">91</span>% // Balance matrix'
                 ]
             },
             'chess-operations': {
                 title: 'CHESS OPERATIONS',
                 content: [
-                    'Unit_Designation: GM_UNIT-00 // Guardian Mode',
-                    'Directive: PROTECT_PROXIMA // Priority alpha',
-                    'Combat_Status: <span id="combat-status">DORMANT</span> // Awaiting activation'
+                    'Operation_001: BLACK KNIGHT // TACTICAL RECONNAISSANCE',
+                    'Operation_002: QUEEN GAMBIT // STRATEGIC WITHDRAWAL',
+                    'Operation_003: SCHOLAR MATE // PRECISION STRIKE'
                 ]
             },
             'archived-log': {
-                title: '// ARCHIVED LOG: PROXIMA FALL',
+                title: 'ARCHIVED LOG',
                 content: [
-                    'Date: 2147.03.15 // Event: Contact confirmed',
-                    'Unit_Loss: 73% // Fleet designation: Alpha',
-                    'Status: RECOVERING // Operation: Enduring'
+                    '[DATA CORRUPTED] - [UNREADABLE]',
+                    '[DATA CORRUPTED] - [UNREADABLE]',
+                    '> REBOOT REQUIRED',
+                    '> REBOOT REQUIRED',
+                    '> REBOOT REQUIRED'
                 ]
             }
         };
 
-        // Typing function
+        // Fluctuation ranges for each metric
+        const fluctuationRanges = {
+            'sync': { min: 92, max: 97, step: 1 },
+            'mental': { min: 86, max: 93, step: 1 },
+            'core': { min: 72, max: 82, step: 2 }
+        };
+
+        // Current values
+        const currentValues = {
+            'sync': 94,
+            'mental': 89,
+            'core': 76
+        };
+
+        // DOM elements
+        const bootLine1 = document.getElementById('boot-line-1');
+        const bootSequence = document.getElementById('boot-sequence');
+        const doctrine = document.getElementById('doctrine');
+        const mainContent = document.getElementById('main-content');
+
+        // Utility functions
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Typing animation function
         async function typeText(element, text, speed = 30) {
-            const cursor = element.querySelector('.cursor') || document.createElement('span');
-            if (!element.querySelector('.cursor')) {
-                cursor.className = 'cursor';
-                element.appendChild(cursor);
-            }
+            // Clear any existing cursors first
+            element.querySelectorAll('.cursor').forEach(c => c.remove());
             
-            // Get existing content and cursor
-            const existingContent = element.innerHTML.replace(/<span class="cursor"><\/span>/g, '');
-            
-            // Clear element and rebuild with cursor
-            element.innerHTML = '';
-            
-            // Rebuild existing content character by character with new cursor
-            for (let i = 0; i < existingContent.length; i++) {
-                const char = existingContent[i];
-                if (char === '<') {
-                    const tagEnd = existingContent.indexOf('>', i);
-                    if (tagEnd !== -1) {
-                        element.innerHTML += existingContent.substring(i, tagEnd + 1);
-                        i = tagEnd;
-                    }
-                } else if (char === '&') {
-                    const entityEnd = existingContent.indexOf(';', i);
-                    if (entityEnd !== -1) {
-                        element.innerHTML += existingContent.substring(i, entityEnd + 1);
-                        i = entityEnd;
-                    }
-                } else {
-                    element.textContent += char;
-                }
-                element.appendChild(cursor.cloneNode(false));
-                await delay(speed);
-            }
-            
-            // Type new text
+            // Type character by character
             for (let i = 0; i < text.length; i++) {
                 const char = text[i];
                 if (char === '<') {
@@ -574,183 +569,168 @@
                 } else {
                     element.textContent += char;
                 }
-                element.appendChild(cursor.cloneNode(false));
+                // Add cursor at current position
+                const cursor = document.createElement('span');
+                cursor.className = 'cursor';
+                element.appendChild(cursor);
                 await delay(speed);
             }
             
-            // Clean up cursor elements
+            // Clean up cursors at the end
             element.querySelectorAll('.cursor').forEach(c => c.remove());
         }
 
-        function delay(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
+        // Fluctuate EVA bars
+        function fluctuateValue(type) {
+            const range = fluctuationRanges[type];
+            if (!range) return;
+            
+            const change = (Math.random() > 0.5 ? 1 : -1) * range.step;
+            let newValue = currentValues[type] + change;
+            newValue = Math.max(range.min, Math.min(range.max, newValue));
+            currentValues[type] = newValue;
+            
+            const bar = document.getElementById(`${type}-bar`);
+            const valueEl = document.getElementById(`${type}-value`);
+            const statusEl = document.getElementById(`${type}-status`);
+            
+            if (bar) {
+                bar.style.setProperty('--bar-width', `${newValue}%`);
+            }
+            if (valueEl) {
+                valueEl.textContent = `${newValue}%`;
+            }
+            
+            // Update status based on value
+            if (statusEl) {
+                if (newValue >= 85) {
+                    statusEl.textContent = 'NOMINAL';
+                    statusEl.className = 'eva-status nominal';
+                } else if (newValue >= 70) {
+                    statusEl.textContent = 'CAUTION';
+                    statusEl.className = 'eva-status caution';
+                } else {
+                    statusEl.textContent = 'DANGER';
+                    statusEl.className = 'eva-status danger';
+                }
+            }
         }
 
-        // Boot sequence - Stage 1: Just BOOT
-        async function runBootSequence() {
-            const bootSequence = document.getElementById('boot-sequence');
-            const bootLine1 = document.getElementById('boot-line-1');
+        // Start fluctuations
+        function startFluctuations() {
+            const types = ['sync', 'mental', 'core'];
             
-            // Reset state
-            bootLine1.innerHTML = '≻ SYSTEM BOOT<span class="cursor"></span>';
-            bootLine1.classList.remove('visible', 'faded');
-            bootLine1.style.opacity = '1';
+            // Initial random delays for each type
+            types.forEach(type => {
+                const initialDelay = Math.random() * 2000 + 500;
+                setTimeout(() => {
+                    fluctuateValue(type);
+                    setInterval(() => fluctuateValue(type), Math.random() * 3000 + 2000);
+                }, initialDelay);
+            });
+        }
+
+        // Random glitch effect
+        function triggerGlitch() {
+            const rand = Math.random();
+            if (rand < 0.03) {
+                doctrine.classList.add('glitch');
+                setTimeout(() => {
+                    doctrine.classList.remove('glitch');
+                }, 150);
+            }
+        }
+
+        // Start glitch monitoring
+        function startGlitchMonitoring() {
+            setInterval(triggerGlitch, 100);
+        }
+
+        // Type section content
+        async function typeSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (!section || !sectionsData[sectionId]) return;
             
-            // Show first line
-            bootLine1.classList.add('visible');
+            const data = sectionsData[sectionId];
+            const titleEl = section.querySelector('.section-title');
+            const contentEls = section.querySelectorAll('.section-content');
+            
+            // Type title
+            await typeText(titleEl, data.title, 25);
             await delay(300);
             
-            // Type and update
-            const textToType = '≻ SYSTEM BOOT: GM-UNIT ';
-            bootLine1.innerHTML = '';
+            // Type each content line
+            for (let i = 0; i < data.content.length; i++) {
+                await typeText(contentEls[i], data.content[i], 20);
+                await delay(150);
+            }
+        }
+
+        // Type all content
+        async function typeAllContent() {
+            await typeSection('cybernetic-systems');
+            await delay(400);
+            await typeSection('tc-unit');
+            await delay(400);
+            await typeSection('frame-sensors');
+            await delay(400);
+            await typeSection('chess-operations');
+            await delay(400);
+            await typeSection('archived-log');
+        }
+
+        // Boot sequence
+        async function bootSequence() {
+            // Show first boot line
+            bootLine1.classList.add('visible');
+            
+            // Type it out
+            const textToType = bootLine1.textContent;
+            bootLine1.textContent = '≻ ';
+            
+            // Type character by character
             for (let i = 0; i < textToType.length; i++) {
-                bootLine1.innerHTML += textToType[i];
-                const cursor = document.createElement('span');
-                cursor.className = 'cursor';
-                bootLine1.appendChild(cursor);
+                if (textToType[i] !== ' ' || i > 2) {
+                    bootLine1.textContent += textToType[i];
+                }
                 await delay(30);
             }
-            bootLine1.querySelectorAll('.cursor').forEach(c => c.remove());
             
-            await delay(800);
+            await delay(500);
             
-            // Fade out boot sequence
+            // Fade out boot line
             bootLine1.classList.add('faded');
-            await delay(600);
+            await delay(500);
             
-            // Stage 2: Fade in IRON FORTRESS
-            const doctrine = document.getElementById('doctrine');
+            // Hide boot sequence container
+            bootSequence.style.display = 'none';
+            
+            // Fade in IRON FORTRESS
             doctrine.classList.add('fading-in');
+            await delay(1000);
             
-            await delay(1500);
-            
-            // Stage 3: Show EVA panel
+            // Show EVA panel
             const evaPanel = document.getElementById('eva-panel');
             evaPanel.classList.add('visible');
+            
+            // Show main content
+            mainContent.classList.remove('hidden');
             
             await delay(800);
             
             // Start typing main content
             await typeAllContent();
-            
-            // Random glitch after everything loads
-            setTimeout(() => {
-                triggerGlitch();
-            }, 3000 + Math.random() * 5000);
         }
 
-        async function typeSectionTitles() {
-            const order = ['cybernetic-systems', 'tc-unit', 'frame-sensors', 'chess-operations', 'archived-log'];
-            
-            for (const id of order) {
-                const section = document.getElementById(id);
-                const title = section.querySelector('.section-title');
-                await typeText(title, sectionsData[id].title, 20);
-            }
+        // Start everything
+        async function init() {
+            await delay(1000);
+            startFluctuations();
+            startGlitchMonitoring();
+            await bootSequence();
         }
 
-        async function typeAllContent() {
-            const order = ['cybernetic-systems', 'tc-unit', 'frame-sensors', 'chess-operations', 'archived-log'];
-            
-            for (const id of order) {
-                const section = document.getElementById(id);
-                const title = section.querySelector('.section-title');
-                const contents = section.querySelectorAll('.section-content');
-                
-                // Type title first
-                await typeText(title, sectionsData[id].title, 20);
-                await delay(200);
-                
-                // Type each content line
-                for (let i = 0; i < contents.length; i++) {
-                    await typeText(contents[i], sectionsData[id].content[i], 15);
-                    await delay(150);
-                }
-            }
-        }
-
-        function triggerGlitch() {
-            const doctrine = document.getElementById('doctrine');
-            doctrine.classList.add('glitch');
-            
-            setTimeout(() => {
-                doctrine.classList.remove('glitch');
-            }, 400);
-        }
-
-        function fluctuateBars() {
-            const bars = ['sync-bar', 'mental-bar', 'core-bar'];
-            const statuses = ['sync-status', 'mental-status', 'core-status'];
-            const values = ['sync-value', 'mental-value', 'core-value'];
-            
-            const names = ['sync', 'mental', 'core'];
-            
-            names.forEach((name, index) => {
-                const bar = document.getElementById(`${name}-bar`);
-                const status = document.getElementById(`${name}-status`);
-                const value = document.getElementById(`${name}-value`);
-                
-                // Fluctuate bar
-                const currentWidth = parseFloat(bar.style.getPropertyValue('--bar-width')) || 85;
-                const fluctuation = (Math.random() - 0.5) * 10;
-                let newWidth = currentWidth + fluctuation;
-                newWidth = Math.max(50, Math.min(100, newWidth));
-                
-                bar.style.setProperty('--bar-width', `${newWidth}%`);
-                value.textContent = `${Math.round(newWidth)}%`;
-                
-                // Update status
-                if (newWidth < 60) {
-                    status.textContent = 'DANGER';
-                    status.className = 'eva-status danger';
-                } else if (newWidth < 80) {
-                    status.textContent = 'CAUTION';
-                    status.className = 'eva-status caution';
-                } else {
-                    status.textContent = 'NOMINAL';
-                    status.className = 'eva-status nominal';
-                }
-            });
-            
-            setTimeout(fluctuateBars, 2000);
-        }
-
-        function fluctuateCoreValues() {
-            const ids = ['core-001', 'core-002', 'optic-001', 'optic-002', 'mobility-delay', 'gyro-stabilizer', 'structural-integrity'];
-            
-            ids.forEach(id => {
-                const element = document.getElementById(id);
-                if (element) {
-                    const currentValue = parseInt(element.textContent) || 85;
-                    const fluctuation = (Math.random() - 0.5) * 6;
-                    let newValue = currentValue + fluctuation;
-                    newValue = Math.max(10, Math.min(100, newValue));
-                    
-                    if (id === 'mobility-delay') {
-                        element.textContent = `${Math.round(newValue)}`;
-                    } else {
-                        element.textContent = `${Math.round(newValue)}`;
-                    }
-                }
-            });
-            
-            // Fluctuate combat status
-            const combatStatus = document.getElementById('combat-status');
-            if (combatStatus) {
-                const states = ['DORMANT', 'ACTIVE', 'STANDBY', 'ALERT'];
-                combatStatus.textContent = states[Math.floor(Math.random() * states.length)];
-            }
-            
-            setTimeout(fluctuateCoreValues, 3000);
-        }
-
-        // Initialize
-        window.addEventListener('DOMContentLoaded', async () => {
-            await delay(500);
-            await runBootSequence();
-            fluctuateBars();
-            fluctuateCoreValues();
-        });
+        init();
     </script>
 </body>
 </html>
