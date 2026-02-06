@@ -11,79 +11,92 @@ html, body {
   color: #00ff99;
   font-family: monospace;
   overflow-x: hidden;
-  font-size: 16px;
 }
 
 body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background: rgba(255,255,255,0.03);
-  pointer-events: none;
-  animation: flicker 3s infinite;
+  content:"";
+  position:fixed;
+  inset:0;
+  background:rgba(255,255,255,0.03);
+  animation:flicker 3s infinite;
+  pointer-events:none;
 }
-@keyframes flicker {0%,97%{opacity:0} 98%{opacity:.15} 100%{opacity:0}}
+
+@keyframes flicker {
+  0%,97%{opacity:0}
+  98%{opacity:.15}
+  100%{opacity:0}
+}
 
 .container {
-  max-width: 60%;
-  padding: 30px;
-  overflow-y: auto;
+  max-width: 65%;
+  padding: 28px;
   height: 100vh;
+  overflow-y: auto;
 }
 
 .section { margin-top: 26px; }
+
 .section-title {
-  opacity:0;
-  margin-bottom:6px;
-  transition: opacity 0.6s;
-  font-weight:bold;
+  min-height: 1.2em;
+  white-space: pre;
 }
+
 .block {
   white-space: pre-wrap;
-  word-break: break-word;
-  line-height:1.4em;
-  min-height: 3em; /* ensures space for typing */
+  min-height: 4em;
+  line-height: 1.4;
 }
 
-#boot { display: block; min-height: 9em; line-height: 1.4; }
-.cursor::after { content:"█"; animation: blink 1s infinite; }
-@keyframes blink {50%{opacity:0}}
-.flicker { animation:flick 0.08s linear; }
-@keyframes flick {50%{opacity:.5}}
+#boot {
+  min-height: 9em;
+}
 
+.cursor::after {
+  content:"█";
+  animation:blink 1s infinite;
+}
+
+@keyframes blink {50%{opacity:0}}
+
+.flicker {
+  animation: flick .08s linear;
+}
+
+@keyframes flick {
+  50%{opacity:.4}
+}
+
+/* DOCTRINE */
 #doctrine {
   position: fixed;
-  left: 65%;
-  top: 60px;
-  font-size: 48px;
-  line-height: 1.2em;
+  left: 68%;
+  top: 80px;
+  font-size: 46px;
   white-space: pre;
-  color: #00ff99;
-  opacity:0;
+  opacity: 0;
   transition: opacity 1s;
 }
 
+.red { color: #ff0000; }
+
+/* EVA PANEL */
 #eva-panel {
   position: fixed;
   right: 30px;
   top: 120px;
   width: 220px;
   font-size: 12px;
-  opacity:0;
+  opacity: 0;
   transition: opacity 1s;
 }
-.eva-title { text-align:right; margin-bottom:12px; letter-spacing:2px; }
-.eva-block { margin-bottom:18px; }
-.eva-block span { display:block; text-align:right; margin-bottom:4px; }
+
 .bar { height:6px; background:rgba(0,255,150,.15); }
 .fill { height:100%; background:rgba(0,255,150,.8); }
-.eva-warning { text-align:right; margin-top:20px; animation:evaBlink 2.5s infinite; }
-@keyframes evaBlink {0%,90%{opacity:.9} 92%{opacity:.2} 100%{opacity:.9}}
 
-@media (max-width: 900px) {
-  html, body { font-size: 12px; }
-  #doctrine { font-size: 36px; top: 40px; left: 60%; }
-  .container { max-width: 80%; padding: 20px; }
+@media(max-width:900px){
+  .container{max-width:90%}
+  #doctrine{left:60%;font-size:36px}
 }
 </style>
 </head>
@@ -98,41 +111,62 @@ body::after {
 </div>
 
 <div class="section">
-<div class="section-title" id="titleSystems">［CYBERNETIC SYSTEMS］</div>
-<div class="block" id="systemsBlock"></div>
+<div id="tSystems" class="section-title"></div>
+<div id="bSystems" class="block"></div>
 </div>
 
 <div class="section">
-<div class="section-title" id="titleTUnit">［TC UNIT］</div>
-<div class="block" id="tunitBlock"></div>
+<div id="tTC" class="section-title"></div>
+<div id="bTC" class="block"></div>
 </div>
 
 <div class="section">
-<div class="section-title" id="titleFrame">［FRAME ＆ SENSORS］</div>
-<div class="block" id="frameBlock"></div>
+<div id="tFrame" class="section-title"></div>
+<div id="bFrame" class="block"></div>
 </div>
 
 <div class="section">
-<div class="section-title" id="titleChess">［CHESS OPERATIONS］</div>
-<div class="block" id="chessBlock"></div>
+<div id="tChess" class="section-title"></div>
+<div id="bChess" class="block"></div>
 </div>
 
 <div class="section">
-<div class="section-title" id="titleLore">≻ ARCHIVED DEPLOYMENT LOG</div>
-<div class="block" id="loreText"></div>
+<div id="tLore" class="section-title"></div>
+<div id="bLore" class="block"></div>
 </div>
 
 </div>
 
 <div id="eva-panel">
-<div class="eva-title">SYSTEM DIAGNOSTICS</div>
-<div class="eva-block"><span>SYNC RATIO</span><div class="bar"><div class="fill" id="sync"></div></div></div>
-<div class="eva-block"><span>MENTAL STABILITY</span><div class="bar"><div class="fill" id="mental"></div></div></div>
-<div class="eva-block"><span>CORE PRESSURE</span><div class="bar"><div class="fill" id="core"></div></div></div>
-<div class="eva-warning" id="evaWarning">STATUS: NOMINAL</div>
+  <div>SYNC RATIO</div>
+  <div class="bar"><div class="fill" id="sync"></div></div><br>
+  <div>MENTAL STABILITY</div>
+  <div class="bar"><div class="fill" id="mental"></div></div><br>
+  <div>CORE PRESSURE</div>
+  <div class="bar"><div class="fill" id="core"></div></div>
 </div>
 
 <script>
+/* ================= UTIL ================= */
+function typeText(el, text, speed=35, cb){
+  let i=0;
+  function tick(){
+    if(i<text.length){
+      el.textContent += text[i++];
+      setTimeout(tick,speed);
+    } else cb && cb();
+  }
+  tick();
+}
+
+function vertical(a,b){
+  const m=Math.max(a.length,b.length);
+  let o=[];
+  for(let i=0;i<m;i++) o.push((a[i]||" ")+" "+(b[i]||" "));
+  return o.join("\n");
+}
+
+/* ================= BOOT ================= */
 const bootLines=[
 "≻ SYSTEM BOOT˸ GM-UNIT ⁄⁄",
 "GRANDMASTER CALCULATION-UNIT",
@@ -144,135 +178,118 @@ const bootLines=[
 "",
 "≻ SYSTEM ONLINE"
 ];
-let i=0;
+
 const boot=document.getElementById("boot");
-function typeBoot(){ 
-  if(i<bootLines.length){ 
-    boot.textContent+=bootLines[i++]+"\n"; 
-    setTimeout(typeBoot,550); 
-  } else { boot.classList.remove("cursor"); afterBoot(); } 
+let bi=0;
+
+function bootType(){
+  if(bi<bootLines.length){
+    boot.textContent+=bootLines[bi++]+"\n";
+    setTimeout(bootType,550);
+  } else {
+    boot.classList.remove("cursor");
+    finishBoot();
+  }
 }
-typeBoot();
+bootType();
 
-let chessWins=2382;
-const doctrine=document.getElementById("doctrine");
-
-function afterBoot(){
-  // LOCK boot height to prevent jump during fade
-  const bootHeight = boot.offsetHeight + "px";
-  boot.style.height = bootHeight;
-  boot.style.transition="opacity 0.6s";
+function finishBoot(){
+  const h=boot.offsetHeight+"px";
+  boot.style.height=h;
   boot.style.opacity=0;
   setTimeout(()=>{
     boot.style.display="none";
-    doctrine.textContent = verticalSplit("IRON","FORTRESS");
-    doctrine.style.opacity=0;
-    setTimeout(()=>{ doctrine.style.opacity=1; },50);
-    setTimeout(()=>{ document.getElementById("eva-panel").style.opacity=0.85; },1500);
-    setTimeout(()=>{ typeTitlesAndSubtext(); startDoctrine(); startTelemetry(); },2500);
-  },650);
-}
-
-const sections=[
-  {title:"titleSystems", block:"systemsBlock", lines:[
-    "Core_001˸ 89％","Core_002˸ 92％","Status˸ Suboptimal","Runtime_Duration˸ 19 years","Firmware_Epoch˸ 2006"
-  ]},
-  {title:"titleTUnit", block:"tunitBlock", lines:[
-    "Piloting organic matter˸ 621","Prediction_Subroutine_086˸ deviation detected","Strategic_Recognition˸ degraded"
-  ]},
-  {title:"titleFrame", block:"frameBlock", lines:[
-    "Optic_001˸ 52％","Optic_002˸ 78％","Hydraulics˸ failing","Mobility_Delay˸ ＋0․41s"
-  ]},
-  {title:"titleChess", block:"chessBlock", lines:[
-    "Targeting_Accuracy˸ 94％","Opening_Files˸ partial corruption","Endgame_Protocol˸ INTACT"
-  ]},
-  {title:"titleLore", block:"loreText", lines:[
-    "Designation˸ GM-UNIT","Origin˸ Military tactical supercomputer","Firmware_Epoch˸ 2006","Primary Domain˸ Chess","Runtime_Duration˸ 19 years","Legacy_Status˸ Hallowed Computational Artifact"
-  ]}
-];
-
-function typeTitlesAndSubtext(){
-  sections.forEach(s=>{
-    document.getElementById(s.title).style.opacity=1;
-    typeBlockLetters(s.block,s.lines,0,0);
-  });
-}
-
-function typeBlockLetters(id,lines,lineIndex,charIndex){
-  const el=document.getElementById(id);
-  if(lineIndex<lines.length){
-    if(charIndex<lines[lineIndex].length){
-      el.innerHTML += lines[lineIndex][charIndex];
-      setTimeout(()=>typeBlockLetters(id,lines,lineIndex,charIndex+1),40);
-    } else {
-      el.innerHTML += "\n";
-      setTimeout(()=>typeBlockLetters(id,lines,lineIndex+1,0),150);
-    }
-  }
-}
-
-function verticalSplit(left,right){
-  const maxLen=Math.max(left.length,right.length);
-  let lines=[];
-  for(let i=0;i<maxLen;i++){ lines.push((left[i]||" ")+" "+(right[i]||" ")); }
-  return lines.join("\n");
-}
-
-/* ================= TELEMETRY WITH REACTIVE FLICKER ================= */
-let sv=72,mv=64,cv=58;
-function drift(v,r){return Math.max(5,Math.min(95,v+(Math.random()*r-r/2)));}
-
-function startTelemetry(){
-  setInterval(()=>{
-    sv=drift(sv,6); mv=drift(mv,8); cv=drift(cv,10);
-    document.getElementById("sync").style.width=sv+"%";
-    document.getElementById("mental").style.width=mv+"%";
-    document.getElementById("core").style.width=cv+"%";
-    const evaWarning=document.getElementById("evaWarning");
-    evaWarning.textContent=(mv<40||cv>80)?"STATUS: DANGER":(mv<55?"STATUS: CAUTION":"STATUS: NOMINAL");
-    reactiveFlicker("core1",87,91,mv,cv);
-    reactiveFlicker("core2",90,94,mv,cv);
-    reactiveFlicker("optic1",50,54,mv,cv);
-    reactiveFlicker("optic2",76,80,mv,cv);
-    reactiveFlicker("accuracy",93,95,mv,cv);
-  },1800);
-}
-
-function reactiveFlicker(id,min,max,mv,cv){
-  const el=document.getElementById(id);
-  const val=Math.floor(Math.random()*(max-min+1))+min;
-  el.textContent=val;
-  let flickChance=0.3;
-  if(mv<55) flickChance=0.55;
-  if(mv<40||cv>80) flickChance=0.85;
-  if(Math.random()<flickChance){
-    el.classList.add("flicker");
-    setTimeout(()=>el.classList.remove("flicker"),40+Math.random()*120);
-  }
+    showDoctrine();
+  },700);
 }
 
 /* ================= DOCTRINE ================= */
-function chaoticFlicker(leftText,rightText){
-  const flickDuration=1200;
-  const startTime=Date.now();
-  function flick(){
-    const elapsed=Date.now()-startTime;
-    const display=(Math.random()<0.5)? verticalSplit(leftText,rightText) : verticalSplit("IRON","FORTRESS");
-    doctrine.textContent = display;
-    doctrine.style.color=(display===verticalSplit(leftText,rightText))?"#ff0000":"#00ff99";
-    if(elapsed<flickDuration){ setTimeout(flick,60+Math.random()*60); }
-    else{ doctrine.textContent = verticalSplit("IRON","FORTRESS"); doctrine.style.color="#00ff99"; doctrine.style.opacity=1; }
-  }
-  flick();
+const doctrine=document.getElementById("doctrine");
+
+function showDoctrine(){
+  doctrine.textContent=vertical("IRON","FORTRESS");
+  doctrine.style.opacity=1;
+  setTimeout(()=>{
+    document.getElementById("eva-panel").style.opacity=1;
+    startTyping();
+    startDoctrineGlitch();
+    startTelemetry();
+  },1500);
 }
 
-function startDoctrine(){
-  doctrine.textContent = verticalSplit("IRON","FORTRESS");
-  doctrine.style.color="#00ff99";
-  doctrine.style.opacity=1;
-  setInterval(()=>{ if(Math.random()<0.22){ chaoticFlicker("NO","SURVIVORS"); } },10000);
+function startDoctrineGlitch(){
+  setInterval(()=>{
+    doctrine.classList.add("red");
+    doctrine.textContent=vertical("NO","SURVIVORS");
+    setTimeout(()=>{
+      doctrine.classList.remove("red");
+      doctrine.textContent=vertical("IRON","FORTRESS");
+    },350);
+  },12000);
+}
+
+/* ================= TYPING SECTIONS ================= */
+function startTyping(){
+  typeText(tSystems,"［CYBERNETIC SYSTEMS］",30,()=>{
+    typeText(bSystems,
+`Core_001˸ `); insertSpan(bSystems,"core1","89");
+    typeText(bSystems,"％\nCore_002˸ "); insertSpan(bSystems,"core2","92");
+    typeText(bSystems,"％\nStatus˸ Suboptimal\nRuntime˸ 19 years\nFirmware˸ 2006\n");
+  });
+
+  typeText(tTC,"［TC UNIT］",30,()=>{
+    typeText(bTC,
+"Piloting organic matter˸ 621\nPrediction_Subroutine_086˸ deviation detected\nStrategic_Recognition˸ degraded\n");
+  });
+
+  typeText(tFrame,"［FRAME ＆ SENSORS］",30,()=>{
+    typeText(bFrame,"Optic_001˸ "); insertSpan(bFrame,"optic1","52");
+    typeText(bFrame,"％\nOptic_002˸ "); insertSpan(bFrame,"optic2","78");
+    typeText(bFrame,"％\nHydraulics˸ failing\nMobility_Delay˸ +0.41s\n");
+  });
+
+  typeText(tChess,"［CHESS OPERATIONS］",30,()=>{
+    typeText(bChess,"Targeting_Accuracy˸ "); insertSpan(bChess,"accuracy","94");
+    typeText(bChess,"％\nOpening_Files˸ partial corruption\nEndgame_Protocol˸ INTACT\n");
+  });
+
+  typeText(tLore,"≻ ARCHIVED DEPLOYMENT LOG",30,()=>{
+    typeText(bLore,
+"Confirmed_Eliminations˸ 43 357 892 souls\nPost-War Repurposing˸ Chess Domain\nLegacy_Status˸ Hallowed Artifact\n");
+  });
+}
+
+function insertSpan(el,id,val){
+  const s=document.createElement("span");
+  s.id=id;
+  s.textContent=val;
+  el.appendChild(s);
+}
+
+/* ================= TELEMETRY ================= */
+function fluctuate(id,min,max){
+  const el=document.getElementById(id);
+  if(!el) return;
+  const v=Math.floor(Math.random()*(max-min+1))+min;
+  el.textContent=v;
+  el.classList.add("flicker");
+  setTimeout(()=>el.classList.remove("flicker"),80);
+}
+
+function startTelemetry(){
+  setInterval(()=>{
+    fluctuate("core1",87,91);
+    fluctuate("core2",90,94);
+    fluctuate("optic1",50,54);
+    fluctuate("optic2",76,80);
+    fluctuate("accuracy",93,95);
+
+    document.getElementById("sync").style.width=(60+Math.random()*30)+"%";
+    document.getElementById("mental").style.width=(50+Math.random()*40)+"%";
+    document.getElementById("core").style.width=(55+Math.random()*35)+"%";
+  },1800);
 }
 </script>
 
 </body>
-  </html>
+</html>
