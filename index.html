@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>GM-UNIT TERMINAL</title>
-
 <style>
 html, body {
   margin: 0;
@@ -22,11 +21,7 @@ body::after {
   pointer-events:none;
 }
 
-@keyframes flicker {
-  0%,97%{opacity:0}
-  98%{opacity:.15}
-  100%{opacity:0}
-}
+@keyframes flicker {0%,97%{opacity:0} 98%{opacity:.15} 100%{opacity:0}}
 
 .container {
   max-width: 65%;
@@ -40,14 +35,14 @@ body::after {
 .section-title {
   white-space: pre;
   min-height: 1.3em;
-  font-size: 18px;
+  font-size: 18px; /* fixed size for all titles */
 }
 
 .block {
   white-space: pre-wrap;
   line-height: 1.4;
   min-height: 4.5em;
-  font-size: 16px;
+  font-size: 16px; /* fixed size for all blocks */
 }
 
 #boot { min-height: 9em; }
@@ -91,10 +86,14 @@ body::after {
 }
 
 @keyframes evaBlink {0%,90%{opacity:.9} 92%{opacity:.3} 100%{opacity:.9}}
+
 .danger { color:#ff4444; }
 .caution { color:#ffaa00; }
 
-@media(max-width:900px){ .container{max-width:90%} #doctrine{left:60%;font-size:36px} }
+@media(max-width:900px){
+  .container{max-width:90%}
+  #doctrine{left:60%;font-size:36px}
+}
 </style>
 </head>
 <body>
@@ -103,31 +102,33 @@ body::after {
 
 <div class="container">
 
-<div class="section"><div id="boot" class="block cursor"></div></div>
-
 <div class="section">
-<div id="tSystems" class="section-title"></div>
-<div id="bSystems" class="block"></div>
+  <div id="boot" class="block cursor"></div>
 </div>
 
 <div class="section">
-<div id="tTC" class="section-title"></div>
-<div id="bTC" class="block"></div>
+  <div id="tSystems" class="section-title"></div>
+  <div id="bSystems" class="block"></div>
 </div>
 
 <div class="section">
-<div id="tFrame" class="section-title"></div>
-<div id="bFrame" class="block"></div>
+  <div id="tTC" class="section-title"></div>
+  <div id="bTC" class="block"></div>
 </div>
 
 <div class="section">
-<div id="tChess" class="section-title"></div>
-<div id="bChess" class="block"></div>
+  <div id="tFrame" class="section-title"></div>
+  <div id="bFrame" class="block"></div>
 </div>
 
 <div class="section">
-<div id="tLore" class="section-title"></div>
-<div id="bLore" class="block"></div>
+  <div id="tChess" class="section-title"></div>
+  <div id="bChess" class="block"></div>
+</div>
+
+<div class="section">
+  <div id="tLore" class="section-title"></div>
+  <div id="bLore" class="block"></div>
 </div>
 
 </div>
@@ -277,21 +278,14 @@ function startTelemetry(){
     fluctuate("optic1",50,54);
     fluctuate("optic2",76,80);
     fluctuate("accuracy",93,95);
-    fluctuate("mobility",0,1); // optional small flicker
+    fluctuate("mobility",0,1); // optional flicker
 
     evaStatus.className="";
-    if(m<45||c>85){
-      evaStatus.textContent="STATUS: DANGER";
-      evaStatus.classList.add("danger");
-    } else if(m<60||c>75){
-      evaStatus.textContent="STATUS: CAUTION";
-      evaStatus.classList.add("caution");
-    } else {
-      evaStatus.textContent="STATUS: NOMINAL";
-    }
+    if(m<45||c>85){ evaStatus.textContent="STATUS: DANGER"; evaStatus.classList.add("danger");
+    } else if(m<60||c>75){ evaStatus.textContent="STATUS: CAUTION"; evaStatus.classList.add("caution");
+    } else { evaStatus.textContent="STATUS: NOMINAL"; }
   },1800);
 }
 </script>
-
 </body>
-  </html>
+</html>
