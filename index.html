@@ -45,18 +45,10 @@
         }
 
         @keyframes glitchText {
-            0%, 100% { 
-                opacity: 1;
-            }
-            25% { 
-                opacity: 0.85;
-            }
-            50% { 
-                opacity: 0.95;
-            }
-            75% { 
-                opacity: 0.8;
-            }
+            0%, 100% { opacity: 1; }
+            25% { opacity: 0.85; }
+            50% { opacity: 0.95; }
+            75% { opacity: 0.8; }
         }
 
         @keyframes shimmer {
@@ -254,12 +246,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: linear-gradient(
-                90deg,
-                transparent 0%,
-                rgba(255, 255, 255, 0.2) 50%,
-                transparent 100%
-            );
+            background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%);
             animation: shimmer 1s infinite;
         }
 
@@ -277,18 +264,9 @@
             animation: statusBlink 1s infinite;
         }
 
-        .eva-status.nominal {
-            color: #00ff99;
-        }
-
-        .eva-status.caution {
-            color: #ff9900;
-        }
-
-        .eva-status.danger {
-            color: #ff3333;
-            animation: statusBlink 0.3s infinite;
-        }
+        .eva-status.nominal { color: #00ff99; }
+        .eva-status.caution { color: #ff9900; }
+        .eva-status.danger { color: #ff3333; animation: statusBlink 0.3s infinite; }
 
         .archived-section {
             margin-top: 40px;
@@ -296,71 +274,23 @@
             border-top: 1px solid rgba(0, 255, 153, 0.3);
         }
 
-        .hidden {
-            display: none;
-        }
+        .hidden { display: none; }
+        .faded { animation: fadeOut 0.5s ease forwards; }
+        .fading-in { animation: fadeIn 1s ease forwards; }
 
-        .faded {
-            animation: fadeOut 0.5s ease forwards;
-        }
-
-        .fading-in {
-            animation: fadeIn 1s ease forwards;
-        }
-
-        /* Responsive styles */
         @media (max-width: 900px) {
-            .main-container {
-                max-width: 90%;
-                padding: 20px;
-            }
-            
-            .right-panel {
-                position: fixed;
-                right: 15px;
-                top: 2%;
-            }
-            
-            .doctrine-container {
-                font-size: 20px;
-                letter-spacing: 4px;
-                opacity: 0;
-                transition: opacity 1s ease;
-            }
-            
-            .doctrine-container.fading-in {
-                opacity: 1;
-            }
-            
-            .doctrine-columns {
-                gap: 15px;
-            }
-            
-            .eva-panel {
-                position: static;
-                transform: none;
-                margin: 20px auto;
-                max-width: 90%;
-            }
+            .main-container { max-width: 90%; padding: 20px; }
+            .right-panel { right: 15px; top: 2%; }
+            .doctrine-container { font-size: 20px; letter-spacing: 4px; }
+            .doctrine-columns { gap: 15px; }
+            .eva-panel { position: static; transform: none; margin: 20px auto; max-width: 90%; }
         }
 
         @media (max-width: 600px) {
-            .doctrine-container {
-                font-size: 16px;
-                letter-spacing: 3px;
-            }
-            
-            .doctrine-columns {
-                gap: 10px;
-            }
-            
-            .section-title {
-                font-size: 16px;
-            }
-            
-            .section-content {
-                font-size: 14px;
-            }
+            .doctrine-container { font-size: 16px; letter-spacing: 3px; }
+            .doctrine-columns { gap: 10px; }
+            .section-title { font-size: 16px; }
+            .section-content { font-size: 14px; }
         }
     </style>
 </head>
@@ -396,37 +326,18 @@
         <div class="doctrine-container" id="doctrine">
             <div class="doctrine-columns" id="normal-columns">
                 <div class="doctrine-column">
-                    <span>I</span>
-                    <span>R</span>
-                    <span>O</span>
-                    <span>N</span>
+                    <span>I</span><span>R</span><span>O</span><span>N</span>
                 </div>
                 <div class="doctrine-column">
-                    <span>F</span>
-                    <span>O</span>
-                    <span>R</span>
-                    <span>T</span>
-                    <span>R</span>
-                    <span>E</span>
-                    <span>S</span>
-                    <span>S</span>
+                    <span>F</span><span>O</span><span>R</span><span>T</span><span>R</span><span>E</span><span>S</span><span>S</span>
                 </div>
             </div>
             <div class="doctrine-columns" id="glitch-columns">
                 <div class="doctrine-column">
-                    <span>N</span>
-                    <span>O</span>
+                    <span>N</span><span>O</span>
                 </div>
                 <div class="doctrine-column">
-                    <span>S</span>
-                    <span>U</span>
-                    <span>R</span>
-                    <span>V</span>
-                    <span>I</span>
-                    <span>V</span>
-                    <span>O</span>
-                    <span>R</span>
-                    <span>S</span>
+                    <span>S</span><span>U</span><span>R</span><span>V</span><span>I</span><span>V</span><span>O</span><span>R</span><span>S</span>
                 </div>
             </div>
         </div>
@@ -476,7 +387,6 @@
     </div>
 
     <script>
-        // Section data
         const sectionsData = {
             'cybernetic-systems': {
                 title: 'CYBERNETIC SYSTEMS',
@@ -521,37 +431,22 @@
             }
         };
 
-        // Fluctuation ranges for each metric
         const fluctuationRanges = {
             'sync': { min: 92, max: 97, step: 1 },
             'mental': { min: 86, max: 93, step: 1 },
             'core': { min: 72, max: 82, step: 2 }
         };
 
-        // Current values
-        const currentValues = {
-            'sync': 94,
-            'mental': 89,
-            'core': 76
-        };
-
-        // DOM elements
+        const currentValues = { 'sync': 94, 'mental': 89, 'core': 76 };
         const bootLine1 = document.getElementById('boot-line-1');
         const bootSequence = document.getElementById('boot-sequence');
         const doctrine = document.getElementById('doctrine');
         const mainContent = document.getElementById('main-content');
 
-        // Utility functions
-        function delay(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
+        function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
-        // Typing animation function
         async function typeText(element, text, speed = 30) {
-            // Clear any existing cursors first
             element.querySelectorAll('.cursor').forEach(c => c.remove());
-            
-            // Type character by character
             for (let i = 0; i < text.length; i++) {
                 const char = text[i];
                 if (char === '<') {
@@ -569,39 +464,28 @@
                 } else {
                     element.textContent += char;
                 }
-                // Add cursor at current position
                 const cursor = document.createElement('span');
                 cursor.className = 'cursor';
                 element.appendChild(cursor);
                 await delay(speed);
             }
-            
-            // Clean up cursors at the end
             element.querySelectorAll('.cursor').forEach(c => c.remove());
         }
 
-        // Fluctuate EVA bars
         function fluctuateValue(type) {
             const range = fluctuationRanges[type];
             if (!range) return;
-            
             const change = (Math.random() > 0.5 ? 1 : -1) * range.step;
-            let newValue = currentValues[type] + change;
-            newValue = Math.max(range.min, Math.min(range.max, newValue));
+            let newValue = Math.max(range.min, Math.min(range.max, currentValues[type] + change));
             currentValues[type] = newValue;
             
             const bar = document.getElementById(`${type}-bar`);
             const valueEl = document.getElementById(`${type}-value`);
             const statusEl = document.getElementById(`${type}-status`);
             
-            if (bar) {
-                bar.style.setProperty('--bar-width', `${newValue}%`);
-            }
-            if (valueEl) {
-                valueEl.textContent = `${newValue}%`;
-            }
+            if (bar) bar.style.setProperty('--bar-width', `${newValue}%`);
+            if (valueEl) valueEl.textContent = `${newValue}%`;
             
-            // Update status based on value
             if (statusEl) {
                 if (newValue >= 85) {
                     statusEl.textContent = 'NOMINAL';
@@ -616,37 +500,24 @@
             }
         }
 
-        // Start fluctuations
         function startFluctuations() {
-            const types = ['sync', 'mental', 'core'];
-            
-            // Initial random delays for each type
-            types.forEach(type => {
-                const initialDelay = Math.random() * 2000 + 500;
+            ['sync', 'mental', 'core'].forEach(type => {
                 setTimeout(() => {
                     fluctuateValue(type);
                     setInterval(() => fluctuateValue(type), Math.random() * 3000 + 2000);
-                }, initialDelay);
+                }, Math.random() * 2000 + 500);
             });
         }
 
-        // Random glitch effect
         function triggerGlitch() {
-            const rand = Math.random();
-            if (rand < 0.03) {
+            if (Math.random() < 0.03) {
                 doctrine.classList.add('glitch');
-                setTimeout(() => {
-                    doctrine.classList.remove('glitch');
-                }, 150);
+                setTimeout(() => doctrine.classList.remove('glitch'), 150);
             }
         }
 
-        // Start glitch monitoring
-        function startGlitchMonitoring() {
-            setInterval(triggerGlitch, 100);
-        }
+        function startGlitchMonitoring() { setInterval(triggerGlitch, 100); }
 
-        // Type section content
         async function typeSection(sectionId) {
             const section = document.getElementById(sectionId);
             if (!section || !sectionsData[sectionId]) return;
@@ -655,18 +526,15 @@
             const titleEl = section.querySelector('.section-title');
             const contentEls = section.querySelectorAll('.section-content');
             
-            // Type title
             await typeText(titleEl, data.title, 25);
             await delay(300);
             
-            // Type each content line
             for (let i = 0; i < data.content.length; i++) {
                 await typeText(contentEls[i], data.content[i], 20);
                 await delay(150);
             }
         }
 
-        // Type all content
         async function typeAllContent() {
             await typeSection('cybernetic-systems');
             await delay(400);
@@ -679,16 +547,11 @@
             await typeSection('archived-log');
         }
 
-        // Boot sequence
-        async function bootSequence() {
-            // Show first boot line
+        async function runBootSequence() {
             bootLine1.classList.add('visible');
-            
-            // Type it out
             const textToType = bootLine1.textContent;
             bootLine1.textContent = '≻ ';
             
-            // Type character by character
             for (let i = 0; i < textToType.length; i++) {
                 if (textToType[i] !== ' ' || i > 2) {
                     bootLine1.textContent += textToType[i];
@@ -697,37 +560,26 @@
             }
             
             await delay(500);
-            
-            // Fade out boot line
             bootLine1.classList.add('faded');
             await delay(500);
-            
-            // Hide boot sequence container
             bootSequence.style.display = 'none';
             
-            // Fade in IRON FORTRESS
             doctrine.classList.add('fading-in');
             await delay(1000);
             
-            // Show EVA panel
             const evaPanel = document.getElementById('eva-panel');
             evaPanel.classList.add('visible');
-            
-            // Show main content
             mainContent.classList.remove('hidden');
             
             await delay(800);
-            
-            // Start typing main content
             await typeAllContent();
         }
 
-        // Start everything
         async function init() {
             await delay(1000);
             startFluctuations();
             startGlitchMonitoring();
-            await bootSequence();
+            await runBootSequence();
         }
 
         init();
