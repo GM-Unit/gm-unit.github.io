@@ -158,6 +158,9 @@ let chessWins=2382;
 const doctrine=document.getElementById("doctrine");
 
 function afterBoot(){
+  // LOCK boot height to prevent jump during fade
+  const bootHeight = boot.offsetHeight + "px";
+  boot.style.height = bootHeight;
   boot.style.transition="opacity 0.6s";
   boot.style.opacity=0;
   setTimeout(()=>{
@@ -166,11 +169,11 @@ function afterBoot(){
     doctrine.style.opacity=0;
     setTimeout(()=>{ doctrine.style.opacity=1; },50);
     setTimeout(()=>{ document.getElementById("eva-panel").style.opacity=0.85; },1500);
-    setTimeout(()=>{ typeTitlesAndBlocks(); startDoctrine(); startTelemetry(); },2500);
+    setTimeout(()=>{ typeTitlesAndSubtext(); startDoctrine(); startTelemetry(); },2500);
   },650);
 }
 
-const titlesAndBlocks=[
+const sections=[
   {title:"titleSystems", block:"systemsBlock", lines:[
     "Core_001˸ 89％","Core_002˸ 92％","Status˸ Suboptimal","Runtime_Duration˸ 19 years","Firmware_Epoch˸ 2006"
   ]},
@@ -188,19 +191,23 @@ const titlesAndBlocks=[
   ]}
 ];
 
-function typeTitlesAndBlocks(){
-  titlesAndBlocks.forEach(tb=>{
-    const titleEl=document.getElementById(tb.title);
-    titleEl.style.opacity=1;
-    typeBlock(tb.block,tb.lines,0);
+function typeTitlesAndSubtext(){
+  sections.forEach(s=>{
+    document.getElementById(s.title).style.opacity=1;
+    typeBlockLetters(s.block,s.lines,0,0);
   });
 }
 
-function typeBlock(id,lines,index){
-  if(index<lines.length){
-    const el=document.getElementById(id);
-    el.innerHTML += lines[index]+"\n";
-    setTimeout(()=>typeBlock(id,lines,index+1),250);
+function typeBlockLetters(id,lines,lineIndex,charIndex){
+  const el=document.getElementById(id);
+  if(lineIndex<lines.length){
+    if(charIndex<lines[lineIndex].length){
+      el.innerHTML += lines[lineIndex][charIndex];
+      setTimeout(()=>typeBlockLetters(id,lines,lineIndex,charIndex+1),40);
+    } else {
+      el.innerHTML += "\n";
+      setTimeout(()=>typeBlockLetters(id,lines,lineIndex+1,0),150);
+    }
   }
 }
 
