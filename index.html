@@ -22,11 +22,7 @@ body::after {
   pointer-events: none;
   animation: flicker 3s infinite;
 }
-@keyframes flicker {
-  0%,97%{opacity:0}
-  98%{opacity:.15}
-  100%{opacity:0}
-}
+@keyframes flicker {0%,97%{opacity:0} 98%{opacity:.15} 100%{opacity:0}}
 
 .container {
   max-width: 60%;
@@ -36,16 +32,25 @@ body::after {
 }
 
 .section { margin-top: 26px; }
-.section-title { opacity:0; margin-bottom:6px; transition: opacity 0.6s; font-weight:bold; }
-.block { white-space: pre-wrap; word-break: break-word; line-height:1.4; }
+.section-title {
+  opacity:0;
+  margin-bottom:6px;
+  transition: opacity 0.6s;
+  font-weight:bold;
+}
+.block {
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height:1.4em;
+  min-height: 3em; /* ensures space for typing */
+}
 
+#boot { display: block; min-height: 9em; line-height: 1.4; }
 .cursor::after { content:"█"; animation: blink 1s infinite; }
 @keyframes blink {50%{opacity:0}}
-
 .flicker { animation:flick 0.08s linear; }
 @keyframes flick {50%{opacity:.5}}
 
-/* doctrine vertical text - side by side letters */
 #doctrine {
   position: fixed;
   left: 65%;
@@ -54,11 +59,10 @@ body::after {
   line-height: 1.2em;
   white-space: pre;
   color: #00ff99;
-  opacity:0; /* fade in initially */
+  opacity:0;
   transition: opacity 1s;
 }
 
-/* EVA PANEL */
 #eva-panel {
   position: fixed;
   right: 30px;
@@ -93,27 +97,27 @@ body::after {
 <div id="boot" class="block cursor"></div>
 </div>
 
-<div class="section" id="systems">
+<div class="section">
 <div class="section-title" id="titleSystems">［CYBERNETIC SYSTEMS］</div>
 <div class="block" id="systemsBlock"></div>
 </div>
 
-<div class="section" id="tunit">
+<div class="section">
 <div class="section-title" id="titleTUnit">［TC UNIT］</div>
 <div class="block" id="tunitBlock"></div>
 </div>
 
-<div class="section" id="frame">
+<div class="section">
 <div class="section-title" id="titleFrame">［FRAME ＆ SENSORS］</div>
 <div class="block" id="frameBlock"></div>
 </div>
 
-<div class="section" id="chess">
+<div class="section">
 <div class="section-title" id="titleChess">［CHESS OPERATIONS］</div>
 <div class="block" id="chessBlock"></div>
 </div>
 
-<div class="section" id="lore">
+<div class="section">
 <div class="section-title" id="titleLore">≻ ARCHIVED DEPLOYMENT LOG</div>
 <div class="block" id="loreText"></div>
 </div>
@@ -129,7 +133,6 @@ body::after {
 </div>
 
 <script>
-/* BOOT LINES */
 const bootLines=[
 "≻ SYSTEM BOOT˸ GM-UNIT ⁄⁄",
 "GRANDMASTER CALCULATION-UNIT",
@@ -143,136 +146,115 @@ const bootLines=[
 ];
 let i=0;
 const boot=document.getElementById("boot");
-function typeBoot(){
-  if(i<bootLines.length){
-    boot.textContent+=bootLines[i++]+"\n";
-    setTimeout(typeBoot,550);
-  }else{
-    boot.classList.remove("cursor");
-    boot.textContent = "≻ SYSTEM ONLINE\n";
-    setTimeout(afterBoot,500);
-  }
+function typeBoot(){ 
+  if(i<bootLines.length){ 
+    boot.textContent+=bootLines[i++]+"\n"; 
+    setTimeout(typeBoot,550); 
+  } else { boot.classList.remove("cursor"); afterBoot(); } 
 }
 typeBoot();
 
-/* POST-BOOT SEQUENCE */
 let chessWins=2382;
+const doctrine=document.getElementById("doctrine");
+
 function afterBoot(){
-  // Fade-in doctrine first
-  doctrine.textContent = verticalSplit("IRON","FORTRESS");
-  doctrine.style.opacity=0;
-  setTimeout(()=>{ doctrine.style.opacity=1; },50);
-
-  setTimeout(()=>{ document.getElementById("eva-panel").style.opacity=0.85; },1500);
-
-  // Delay 2.5s -> type titles in parallel
-  setTimeout(()=>{ typeAllTitles(); startDoctrine(); },2500);
+  boot.style.transition="opacity 0.6s";
+  boot.style.opacity=0;
+  setTimeout(()=>{
+    boot.style.display="none";
+    doctrine.textContent = verticalSplit("IRON","FORTRESS");
+    doctrine.style.opacity=0;
+    setTimeout(()=>{ doctrine.style.opacity=1; },50);
+    setTimeout(()=>{ document.getElementById("eva-panel").style.opacity=0.85; },1500);
+    setTimeout(()=>{ typeTitlesAndBlocks(); startDoctrine(); startTelemetry(); },2500);
+  },650);
 }
 
-/* TYPE SECTION TITLES IN PARALLEL */
-const titles = [
-  {id:"titleSystems", text:"［CYBERNETIC SYSTEMS］"},
-  {id:"titleTUnit", text:"［TC UNIT］"},
-  {id:"titleFrame", text:"［FRAME ＆ SENSORS］"},
-  {id:"titleChess", text:"［CHESS OPERATIONS］"},
-  {id:"titleLore", text:"≻ ARCHIVED DEPLOYMENT LOG"}
+const titlesAndBlocks=[
+  {title:"titleSystems", block:"systemsBlock", lines:[
+    "Core_001˸ 89％","Core_002˸ 92％","Status˸ Suboptimal","Runtime_Duration˸ 19 years","Firmware_Epoch˸ 2006"
+  ]},
+  {title:"titleTUnit", block:"tunitBlock", lines:[
+    "Piloting organic matter˸ 621","Prediction_Subroutine_086˸ deviation detected","Strategic_Recognition˸ degraded"
+  ]},
+  {title:"titleFrame", block:"frameBlock", lines:[
+    "Optic_001˸ 52％","Optic_002˸ 78％","Hydraulics˸ failing","Mobility_Delay˸ ＋0․41s"
+  ]},
+  {title:"titleChess", block:"chessBlock", lines:[
+    "Targeting_Accuracy˸ 94％","Opening_Files˸ partial corruption","Endgame_Protocol˸ INTACT"
+  ]},
+  {title:"titleLore", block:"loreText", lines:[
+    "Designation˸ GM-UNIT","Origin˸ Military tactical supercomputer","Firmware_Epoch˸ 2006","Primary Domain˸ Chess","Runtime_Duration˸ 19 years","Legacy_Status˸ Hallowed Computational Artifact"
+  ]}
 ];
 
-function typeAllTitles(){
-  titles.forEach(t=>{
-    const el = document.getElementById(t.id);
-    el.style.opacity=1;
-    typeText(el,t.text,0,50);
-  });
-  setTimeout(typeAllBlocks, titles.length*200+500);
-}
-
-/* TYPE SUBTEXT LINE BY LINE */
-function typeAllBlocks(){
-  const blocks = [
-    {id:"systemsBlock", lines:[
-      "Core_001˸ 89％",
-      "Core_002˸ 92％",
-      "Status˸ Suboptimal",
-      "Runtime_Duration˸ 19 years",
-      "Firmware_Epoch˸ 2006"
-    ]},
-    {id:"tunitBlock", lines:[
-      "Piloting organic matter˸ 621",
-      "Prediction_Subroutine_086˸ deviation detected",
-      "Strategic_Recognition˸ degraded"
-    ]},
-    {id:"frameBlock", lines:[
-      "Optic_001˸ 52％",
-      "Optic_002˸ 78％",
-      "Hydraulics˸ failing",
-      "Mobility_Delay˸ ＋0․41s"
-    ]},
-    {id:"chessBlock", lines:[
-      "Targeting_Accuracy˸ 94％",
-      "Opening_Files˸ partial corruption",
-      "Endgame_Protocol˸ INTACT"
-    ]},
-    {id:"loreText", lines:[
-      "Designation˸ GM-UNIT",
-      "Origin˸ Military tactical supercomputer",
-      "Firmware_Epoch˸ 2006",
-      "Primary Domain˸ Chess",
-      "Runtime_Duration˸ 19 years",
-      "Legacy_Status˸ Hallowed Computational Artifact"
-    ]}
-  ];
-  blocks.forEach(b=>{
-    typeLines(b.id,b.lines,0);
+function typeTitlesAndBlocks(){
+  titlesAndBlocks.forEach(tb=>{
+    const titleEl=document.getElementById(tb.title);
+    titleEl.style.opacity=1;
+    typeBlock(tb.block,tb.lines,0);
   });
 }
 
-/* HELPER: TYPE TEXT */
-function typeText(el,text,index=0,delay=60){
-  if(index<=text.length){
-    el.textContent = text.slice(0,index);
-    setTimeout(()=>typeText(el,text,index+1,delay),delay);
-  }
-}
-
-/* HELPER: TYPE MULTIPLE LINES */
-function typeLines(id,lines,index){
+function typeBlock(id,lines,index){
   if(index<lines.length){
     const el=document.getElementById(id);
-    el.textContent += lines[index]+"\n";
-    setTimeout(()=>typeLines(id,lines,index+1),250);
+    el.innerHTML += lines[index]+"\n";
+    setTimeout(()=>typeBlock(id,lines,index+1),250);
   }
 }
 
-/* DOCTRINE */
-const doctrine=document.getElementById("doctrine");
 function verticalSplit(left,right){
   const maxLen=Math.max(left.length,right.length);
   let lines=[];
-  for(let i=0;i<maxLen;i++){
-    const l = left[i]||" ";
-    const r = right[i]||" ";
-    lines.push(l+" "+r);
-  }
+  for(let i=0;i<maxLen;i++){ lines.push((left[i]||" ")+" "+(right[i]||" ")); }
   return lines.join("\n");
 }
 
-/* CHAOTIC FLICKER FOR NO SURVIVORS */
+/* ================= TELEMETRY WITH REACTIVE FLICKER ================= */
+let sv=72,mv=64,cv=58;
+function drift(v,r){return Math.max(5,Math.min(95,v+(Math.random()*r-r/2)));}
+
+function startTelemetry(){
+  setInterval(()=>{
+    sv=drift(sv,6); mv=drift(mv,8); cv=drift(cv,10);
+    document.getElementById("sync").style.width=sv+"%";
+    document.getElementById("mental").style.width=mv+"%";
+    document.getElementById("core").style.width=cv+"%";
+    const evaWarning=document.getElementById("evaWarning");
+    evaWarning.textContent=(mv<40||cv>80)?"STATUS: DANGER":(mv<55?"STATUS: CAUTION":"STATUS: NOMINAL");
+    reactiveFlicker("core1",87,91,mv,cv);
+    reactiveFlicker("core2",90,94,mv,cv);
+    reactiveFlicker("optic1",50,54,mv,cv);
+    reactiveFlicker("optic2",76,80,mv,cv);
+    reactiveFlicker("accuracy",93,95,mv,cv);
+  },1800);
+}
+
+function reactiveFlicker(id,min,max,mv,cv){
+  const el=document.getElementById(id);
+  const val=Math.floor(Math.random()*(max-min+1))+min;
+  el.textContent=val;
+  let flickChance=0.3;
+  if(mv<55) flickChance=0.55;
+  if(mv<40||cv>80) flickChance=0.85;
+  if(Math.random()<flickChance){
+    el.classList.add("flicker");
+    setTimeout(()=>el.classList.remove("flicker"),40+Math.random()*120);
+  }
+}
+
+/* ================= DOCTRINE ================= */
 function chaoticFlicker(leftText,rightText){
-  const flickDuration=1200; // total readable time ~1.2s
+  const flickDuration=1200;
   const startTime=Date.now();
   function flick(){
     const elapsed=Date.now()-startTime;
-    const display = (Math.random()<0.5)? verticalSplit(leftText,rightText) : verticalSplit("IRON","FORTRESS");
+    const display=(Math.random()<0.5)? verticalSplit(leftText,rightText) : verticalSplit("IRON","FORTRESS");
     doctrine.textContent = display;
     doctrine.style.color=(display===verticalSplit(leftText,rightText))?"#ff0000":"#00ff99";
-    if(elapsed<flickDuration){
-      setTimeout(flick,60+Math.random()*60);
-    }else{
-      doctrine.textContent = verticalSplit("IRON","FORTRESS");
-      doctrine.style.color="#00ff99";
-      doctrine.style.opacity=1;
-    }
+    if(elapsed<flickDuration){ setTimeout(flick,60+Math.random()*60); }
+    else{ doctrine.textContent = verticalSplit("IRON","FORTRESS"); doctrine.style.color="#00ff99"; doctrine.style.opacity=1; }
   }
   flick();
 }
@@ -281,30 +263,8 @@ function startDoctrine(){
   doctrine.textContent = verticalSplit("IRON","FORTRESS");
   doctrine.style.color="#00ff99";
   doctrine.style.opacity=1;
-  setInterval(()=>{
-    if(Math.random()<0.22){ chaoticFlicker("NO","SURVIVORS"); }
-  },10000);
+  setInterval(()=>{ if(Math.random()<0.22){ chaoticFlicker("NO","SURVIVORS"); } },10000);
 }
-
-/* CHESS COUNTER */
-let chessCounter = 2382;
-setInterval(()=>{
-  if(Math.random()<0.35){
-    chessCounter++;
-  }
-},12000);
-
-/* EVA */
-let sv=72,mv=64,cv=58;
-function drift(v,r){return Math.max(5,Math.min(95,v+(Math.random()*r-r/2)));}
-setInterval(()=>{
-  sv=drift(sv,6); mv=drift(mv,8); cv=drift(cv,10);
-  document.getElementById("sync").style.width=sv+"%";
-  document.getElementById("mental").style.width=mv+"%";
-  document.getElementById("core").style.width=cv+"%";
-  document.getElementById("evaWarning").textContent=
-    (mv<40||cv>80)?"STATUS: DANGER":(mv<55?"STATUS: CAUTION":"STATUS: NOMINAL");
-},1800);
 </script>
 
 </body>
