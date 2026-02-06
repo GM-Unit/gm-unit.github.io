@@ -693,25 +693,45 @@
             }
         }
 
-        function generateIronFortressText() {
-            const container = getElement('ironFortress');
-            if (!container) return;
+        <script>
+function generateIronFortressText() {
+    const container = getElement('ironFortress');
+    if (!container) return;
 
-            const phrases = [
-                { text: 'IRON FORTRESS', class: 'iron-fortress-text' },
-                { text: 'NO SURVIVORS', class: 'no-survivors' }
-            ];
+    function renderText(text, extraClass = '') {
+        const chars = text.split('').map((char, i) =>
+            `<span class="char" style="animation-delay:${i * 0.05}s">${char}</span>`
+        ).join('');
 
-            container.innerHTML = phrases.map((phrase, index) => {
-                const chars = phrase.text.split('').map((char, charIndex) => 
-                    `<span class="char" style="animation-delay: ${charIndex * 0.05}s">${char}</span>`
-                ).join('');
+        container.innerHTML = `
+            <div class="${extraClass}">
+                <div class="vertical-text">${chars}</div>
+            </div>
+        `;
+    }
 
-                return `<div class="${phrase.class}" style="margin: ${index === 0 ? '0 0 1.5rem 0' : '0'};">
-                    <div class="vertical-text">${chars}</div>
-                </div>`;
-            }).join('');
+    // Initial state
+    renderText('IRON FORTRESS', 'iron-fortress-text');
+
+    // Occasional glitch + text swap
+    setInterval(() => {
+        const glitchChance = Math.random();
+
+        // ~25% chance to glitch
+        if (glitchChance > 0.75) {
+            container.classList.add('glitching');
+            renderText('NO SURVIVORS', 'no-survivors glitching');
+
+            // Revert back after glitch
+            setTimeout(() => {
+                container.classList.remove('glitching');
+                renderText('IRON FORTRESS', 'iron-fortress-text');
+            }, 600);
         }
+    }, 2500 + Math.random() * 2000);
+}
+</script>
+
 
         async function startBootSequence() {
             const bootScreen = getElement('bootScreen');
