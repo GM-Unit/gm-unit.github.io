@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GM-Unit Terminal</title>
+<title>GM-UNIT TERMINAL</title>
 
 <style>
-:root {
+:root{
   --green:#00ff41;
-  --dark:#050505;
+  --dark:#000;
   --dim:#003b00;
   --red:#ff3333;
   --orange:#ff9500;
@@ -45,11 +45,8 @@ body::after{
   padding:24px;
 }
 
-.left{
-  max-width:640px;
-}
-
-.section{margin-bottom:20px}
+.left{max-width:640px}
+.section{margin-bottom:22px}
 
 .section-title{
   font-size:var(--title);
@@ -68,14 +65,13 @@ body::after{
   content:"█";
   animation:blink 1s infinite;
 }
-
 @keyframes blink{50%{opacity:0}}
 
 #boot{min-height:10em}
 
 .right{
   display:flex;
-  gap:20px;
+  gap:22px;
 }
 
 #doctrine{
@@ -102,6 +98,11 @@ body::after{
   margin-top:14px;
   text-align:right;
 }
+
+.flicker-num{
+  animation:numFlicker .12s linear;
+}
+@keyframes numFlicker{50%{opacity:.4}}
 
 .danger{color:var(--red)}
 .caution{color:var(--orange)}
@@ -166,17 +167,14 @@ body::after{
 <script>
 /* typing */
 function type(el,text,speed=28,cb){
-  let i=0;
-  el.textContent="";
+  let i=0; el.textContent="";
   (function t(){
-    if(i<text.length){
-      el.textContent+=text[i++];
-      setTimeout(t,speed);
-    } else cb&&cb();
+    if(i<text.length){ el.textContent+=text[i++]; setTimeout(t,speed); }
+    else cb&&cb();
   })();
 }
 
-/* doctrine text */
+/* doctrine */
 function doctrine(a,b){
   let m=Math.max(a.length,b.length),o=[];
   for(let i=0;i<m;i++)o.push((a[i]||" ")+" "+(b[i]||" "));
@@ -193,20 +191,14 @@ const bootLines=[
 "",
 "≻ SYSTEM ONLINE"
 ];
-
-const boot=document.getElementById("boot");
-let bi=0;
-
+const boot=document.getElementById("boot"); let bi=0;
 (function bootSeq(){
   if(bi<bootLines.length){
     boot.textContent+=bootLines[bi++]+"\n";
     setTimeout(bootSeq,520);
-  } else {
+  }else{
     boot.classList.remove("cursor");
-    setTimeout(()=>{
-      boot.style.display="none";
-      start();
-    },600);
+    setTimeout(()=>{boot.style.display="none";start();},600);
   }
 })();
 
@@ -215,8 +207,7 @@ function start(){
   const d=document.getElementById("doctrine");
   const e=document.getElementById("eva");
   d.textContent=doctrine("IRON","FORTRESS");
-  d.style.opacity=1;
-  e.style.opacity=1;
+  d.style.opacity=1; e.style.opacity=1;
 
   setInterval(()=>{
     d.classList.add("doctrine-red");
@@ -234,8 +225,12 @@ function start(){
 /* sections */
 function sections(){
   type(t-cyber,"[ CYBERNETIC SYSTEMS ]",30,()=>{
-    type(c-cyber,
-"Core_001: 89%\nCore_002: 92%\nStatus: Suboptimal\nRuntime: 19y\nFirmware: 2006");
+    c-cyber.innerHTML=
+`Core_001: <span id="core1">89</span>%  
+Core_002: <span id="core2">92</span>%  
+Status: Suboptimal  
+Runtime: 19y  
+Firmware: 2006`;
   });
 
   setTimeout(()=>type(t-tc,"[ TC UNIT ]",30,()=>{
@@ -243,11 +238,18 @@ function sections(){
   }),700);
 
   setTimeout(()=>type(t-frame,"[ FRAME & SENSORS ]",30,()=>{
-    type(c-frame,"Optic_001: 52%\nOptic_002: 78%\nHydraulics failing\nMobility delay +0.41s");
+    c-frame.innerHTML=
+`Optic_001: <span id="optic1">52</span>%  
+Optic_002: <span id="optic2">78</span>%  
+Hydraulics: failing  
+Mobility delay: +<span id="mobility">0.41</span>s`;
   }),1400);
 
   setTimeout(()=>type(t-chess,"[ CHESS OPERATIONS ]",30,()=>{
-    type(c-chess,"Targeting accuracy: 94%\nOpening files partial\nEndgame protocol intact");
+    c-chess.innerHTML=
+`Targeting accuracy: <span id="accuracy">94</span>%  
+Opening files: partial  
+Endgame protocol: intact`;
   }),2100);
 
   setTimeout(()=>type(t-log,"[ ARCHIVED DEPLOYMENT LOG ]",30,()=>{
@@ -255,22 +257,39 @@ function sections(){
   }),2800);
 }
 
-/* telemetry */
+/* telemetry + numeric flicker */
+function flicker(el){
+  el.classList.add("flicker-num");
+  setTimeout(()=>el.classList.remove("flicker-num"),120);
+}
+
 function telemetry(){
   setInterval(()=>{
-    sync.style.width=(60+Math.random()*30)+"%";
-    mental.style.width=(50+Math.random()*40)+"%";
-    pressure.style.width=(40+Math.random()*50)+"%";
+    const rand=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
 
-    const p=parseInt(pressure.style.width);
-    const s=document.getElementById("eva-status");
+    [["core1",87,91],["core2",90,94],["optic1",50,54],["optic2",76,80],["accuracy",93,95]]
+    .forEach(([id,min,max])=>{
+      const el=document.getElementById(id);
+      if(el){ el.textContent=rand(min,max); flicker(el); }
+    });
 
-    s.className="";
-    if(p>85){s.textContent="STATUS: DANGER";s.classList.add("danger")}
-    else if(p>70){s.textContent="STATUS: CAUTION";s.classList.add("caution")}
-    else s.textContent="STATUS: NOMINAL";
+    const mob=document.getElementById("mobility");
+    if(mob){ mob.textContent=(0.38+Math.random()*0.08).toFixed(2); flicker(mob); }
+
+    const s=60+Math.random()*30;
+    const m=45+Math.random()*40;
+    const p=50+Math.random()*40;
+    sync.style.width=s+"%";
+    mental.style.width=m+"%";
+    pressure.style.width=p+"%";
+
+    const st=document.getElementById("eva-status");
+    st.className="";
+    if(p>85){st.textContent="STATUS: DANGER";st.classList.add("danger")}
+    else if(p>70){st.textContent="STATUS: CAUTION";st.classList.add("caution")}
+    else st.textContent="STATUS: NOMINAL";
   },1600);
 }
 </script>
 </body>
-</html>
+                                                               </html>
