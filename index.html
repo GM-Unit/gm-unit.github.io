@@ -140,33 +140,36 @@
         }
 
         .doctrine-container {
-            font-size: 24px;
+            font-size: 48px;
             font-weight: bold;
             letter-spacing: 8px;
             line-height: 1.8;
             transition: all 0.3s ease;
         }
 
-        .doctrine-container.glitch {
-            color: #ff3333;
+        .doctrine-container.glitch #normal-columns {
+            display: none;
+        }
+
+        .doctrine-container.glitch #glitch-columns {
+            display: flex;
             animation: glitchText 0.3s ease;
-        }
-
-        .doctrine-container .normal {
-            display: block;
-        }
-
-        .doctrine-container .glitch-text {
-            display: none;
             color: #ff3333;
         }
 
-        .doctrine-container.glitch .normal {
-            display: none;
+        .doctrine-columns {
+            display: flex;
+            gap: 40px;
         }
 
-        .doctrine-container.glitch .glitch-text {
-            display: block;
+        .doctrine-column {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .doctrine-column span {
+            line-height: 1.8;
         }
 
         .boot-sequence {
@@ -374,33 +377,41 @@
 
     <div class="right-panel">
         <div class="doctrine-container fading-in" id="doctrine">
-            <span class="normal">
-                <span>I</span><br>
-                <span>R</span><br>
-                <span>O</span><br>
-                <span>N</span><br><br>
-                <span>F</span><br>
-                <span>O</span><br>
-                <span>R</span><br>
-                <span>T</span><br>
-                <span>R</span><br>
-                <span>E</span><br>
-                <span>S</span><br>
-                <span>S</span>
-            </span>
-            <span class="glitch-text">
-                <span>N</span><br>
-                <span>O</span><br><br>
-                <span>S</span><br>
-                <span>U</span><br>
-                <span>R</span><br>
-                <span>V</span><br>
-                <span>I</span><br>
-                <span>V</span><br>
-                <span>O</span><br>
-                <span>R</span><br>
-                <span>S</span>
-            </span>
+            <div class="doctrine-columns" id="normal-columns">
+                <div class="doctrine-column">
+                    <span>I</span>
+                    <span>R</span>
+                    <span>O</span>
+                    <span>N</span>
+                </div>
+                <div class="doctrine-column">
+                    <span>F</span>
+                    <span>O</span>
+                    <span>R</span>
+                    <span>T</span>
+                    <span>R</span>
+                    <span>E</span>
+                    <span>S</span>
+                    <span>S</span>
+                </div>
+            </div>
+            <div class="doctrine-columns" id="glitch-columns" style="display: none;">
+                <div class="doctrine-column">
+                    <span>N</span>
+                    <span>O</span>
+                </div>
+                <div class="doctrine-column">
+                    <span>S</span>
+                    <span>U</span>
+                    <span>R</span>
+                    <span>V</span>
+                    <span>I</span>
+                    <span>V</span>
+                    <span>O</span>
+                    <span>R</span>
+                    <span>S</span>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -489,9 +500,11 @@
             'archived-log': {
                 title: 'ARCHIVED DEPLOYMENT LOG',
                 content: [
-                    '[T-144h] Protocol initiated // Grandmaster awakening',
-                    '[T-120h] Pattern recognition // Chess variants mapping',
-                    '[T-96h]  Tactical adaptation // Multi-engine synthesis'
+                    'designation: GM-Unit',
+                    'origin: military tactical supercomputer',
+                    'firmware_epoch: 2006',
+                    'runtime_duration: 19 years',
+                    'legacy_status: Hallowed Computational Artifact'
                 ]
             }
         };
@@ -508,10 +521,10 @@
                         index++;
                         setTimeout(type, speed);
                     } else {
-                        if (cursor) {
-                            const cursor = document.createElement('span');
-                            cursor.className = 'cursor';
-                            element.appendChild(cursor);
+                        if (cursor && !element.querySelector('.cursor')) {
+                            const newCursor = document.createElement('span');
+                            newCursor.className = 'cursor';
+                            element.appendChild(newCursor);
                         }
                         resolve();
                     }
