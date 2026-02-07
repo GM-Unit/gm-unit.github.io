@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>GM-Unit Terminal</title>
     <style>
         :root {
@@ -724,6 +724,9 @@
             const bootScreen = getElement('bootScreen');
             if (!bootScreen) return;
 
+            // Show boot screen by adding visible class
+            bootScreen.classList.add('visible');
+
             for (let i = 0; i < bootMessages.length; i++) {
                 const line = document.createElement('div');
                 line.className = 'boot-line';
@@ -763,3 +766,4 @@
         });
     </script>
 </body>
+</html>
