@@ -723,6 +723,7 @@
         async function startBootSequence() {
             const bootScreen = getElement('bootScreen');
             if (!bootScreen) return;
+            bootScreen.classlist.add('visible');
 
             for (let i = 0; i < bootMessages.length; i++) {
                 const line = document.createElement('div');
