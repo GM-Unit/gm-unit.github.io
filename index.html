@@ -164,28 +164,40 @@
             white-space: pre-wrap;
         }
 
-        /* Right Panel - EVA & Iron Fortress */
+        /* Right Panel: container to anchor banner and EVA side by side, bottom aligned */
         .right-panel {
             display: flex;
             flex-direction: row;
-            align-items: flex-start;
+            align-items: flex-end; /* Bottom align children */
             padding-top: 1rem;
             gap: 1.5rem;
+
+            /* Make sure right panel uses full height */
+            min-height: max-content;
+            height: auto;
         }
 
+        /* Iron Fortress container - vertical banner */
         .iron-fortress-container {
             font-size: var(--font-size-large);
             line-height: 1.2;
             opacity: 0;
             transition: opacity 1s ease;
             text-align: center;
-            height: auto;
-            max-height: 400px;
+            height: 330px; /* Increased vertical footprint */
+            max-height: 330px;
             white-space: nowrap;
+
             display: flex !important;
             flex-direction: row !important;
             gap: 1.2rem !important;
             opacity: 1 !important;
+
+            /* align self bottom so it aligns with EVA panel bottom */
+            align-self: flex-end;
+            /* padding bottom for up to 2 letters space */
+            padding-bottom: calc(var(--font-size-large) * 2);
+            box-sizing: content-box;
         }
 
         .iron-fortress-container.visible {
@@ -233,8 +245,9 @@
             padding: 1.5rem;
             min-width: 320px;
             max-width: 400px;
-            opacity: 0;
-            transition: opacity 1s ease;
+
+            /* Ensure it uses natural height and bottom-align with banner */
+            align-self: flex-end;
         }
 
         .eva-panel.visible {
@@ -384,6 +397,8 @@
 
             .iron-fortress-container {
                 font-size: var(--font-size-mobile);
+                height: auto !important;
+                padding-bottom: 0 !important;
             }
 
             .eva-panel {
@@ -444,13 +459,6 @@
             color: rgba(0, 255, 65, 0.5) !important;
         }
 
-        /* Flicker class for subtle brief flickers */
-        .flicker {
-            opacity: var(--flicker-opacity);
-            transform: translate(0, 0);
-            transition: none !important;
-        }
-
     </style>
 </head>
 <body>
@@ -495,7 +503,7 @@
         <!-- Right Panel -->
         <div class="right-panel">
             <div class="iron-fortress-container" id="ironFortress">
-                <!-- Two vertical word elements inserted here by JS -->
+                <!-- Two vertical word columns inserted via JS -->
             </div>
 
             <div class="eva-panel" id="evaPanel">
@@ -547,6 +555,8 @@
     </div>
 
     <script>
+        // Existing SYSTEM_DATA, bootMessages, updateTelemetry, updateEVAStatus etc. omitted for brevity — kept identical
+
         const SYSTEM_DATA = {
             cybernetic: {
                 title: "CYBERNETIC LINK ESTABLISHED",
@@ -618,8 +628,10 @@
         function showElement(elementId, delay = 0) {
             return new Promise(resolve => {
                 setTimeout(() => {
-                    const elem = getElement(elementId);
-                    if (elem) elem.classList.add('visible');
+                    const element = getElement(elementId);
+                    if (element) {
+                        element.classList.add('visible');
+                    }
                     resolve();
                 }, delay);
             });
@@ -690,31 +702,32 @@
 
         function updateEVAStatus(status) {
             const statusElement = getElement('evaStatus');
-            if (!statusElement) return;
-            statusElement.classList.remove('status-nominal', 'status-caution', 'status-danger');
-            statusElement.classList.add(`status-${status.toLowerCase()}`);
-            statusElement.textContent = status;
+            if (statusElement) {
+                statusElement.classList.remove('status-nominal', 'status-caution', 'status-danger');
+                statusElement.classList.add(`status-${status.toLowerCase()}`);
+                statusElement.textContent = status;
+            }
         }
 
-        // --- IRON FORTRESS text glitch with flicker tuning ---
+        // IRON FORTRESS vertical text glitch implementation (unchanged glitch logic)
 
-        const container = getElement('ironFortress');
+        const ironFortressContainer = getElement('ironFortress');
 
-        const normalLeft = "IRON";
-        const normalRight = "FORTRESS";
-        const glitchLeft = "NO";
-        const glitchRight = "SURVIVORS";
-
-        // Create two vertical word elements once
+        // Create word elements
         const leftWordEl = document.createElement('div');
         leftWordEl.className = 'iron-fortress-word';
-        container.appendChild(leftWordEl);
+        ironFortressContainer.appendChild(leftWordEl);
 
         const rightWordEl = document.createElement('div');
         rightWordEl.className = 'iron-fortress-word';
-        container.appendChild(rightWordEl);
+        ironFortressContainer.appendChild(rightWordEl);
 
-        // Set vertical columns of letters
+        const normalLeft = "IRON";
+        const normalRight = "FORTRESS";
+
+        const glitchLeft = "NO";
+        const glitchRight = "SURVIVORS";
+
         function setVerticalText(el, text) {
             el.textContent = "";
             for (const c of text) {
@@ -724,8 +737,26 @@
             }
         }
 
-        // Flicker helper: flicker the container with small random flicks (opacity and translate)
-        // count: number of flickers; intensity: max translate px; duration per flicker ms
+        function setNormal() {
+            leftWordEl.classList.remove('glitch');
+            rightWordEl.classList.remove('glitch');
+            setVerticalText(leftWordEl, normalLeft);
+            setVerticalText(rightWordEl, normalRight);
+            ironFortressContainer.style.color = "";
+        }
+
+        function setGlitch() {
+            leftWordEl.classList.add('glitch');
+            rightWordEl.classList.add('glitch');
+            setVerticalText(leftWordEl, glitchLeft);
+            setVerticalText(rightWordEl, glitchRight);
+            ironFortressContainer.style.color = "var(--terminal-red)";
+        }
+
+        // Flicker helper as implemented before (not changed here)
+
+        // Glitch cycle with randomness etc. — unchanged
+
         function flickerElement(el, count, duration, callback) {
             if (!count || count <= 0) {
                 if (callback) callback();
@@ -735,7 +766,6 @@
 
             function doFlicker() {
                 if (flickered >= count) {
-                    // reset style
                     el.style.opacity = '';
                     el.style.transform = '';
                     el.style.transition = '';
@@ -744,7 +774,6 @@
                 }
                 flickered++;
 
-                // Random intensity: opacity 0.6 to 1, translateX/Y within ±1 px
                 const opacity = 0.6 + Math.random() * 0.4;
                 const tx = (Math.random() * 2 - 1).toFixed(2);
                 const ty = (Math.random() * 2 - 1).toFixed(2);
@@ -753,16 +782,13 @@
                 el.style.opacity = opacity;
                 el.style.transform = `translate(${tx}px, ${ty}px)`;
 
-                // flicker length: random between 20 to 60 ms
                 const flickerDuration = 20 + Math.random() * 40;
 
                 setTimeout(() => {
-                    // reset to normal
                     el.style.transition = `opacity 10ms linear`;
                     el.style.opacity = '';
                     el.style.transform = '';
 
-                    // pause before next flicker: random 30-80ms
                     const pause = 30 + Math.random() * 50;
                     setTimeout(doFlicker, pause);
                 }, flickerDuration);
@@ -771,46 +797,20 @@
             doFlicker();
         }
 
-        // Set normal text, no glitch, no color override
-        function setNormal() {
-            leftWordEl.classList.remove('glitch');
-            rightWordEl.classList.remove('glitch');
-            setVerticalText(leftWordEl, normalLeft);
-            setVerticalText(rightWordEl, normalRight);
-            container.style.color = "";
-        }
-
-        // Set glitch text with red and animation
-        function setGlitch() {
-            leftWordEl.classList.add('glitch');
-            rightWordEl.classList.add('glitch');
-            setVerticalText(leftWordEl, glitchLeft);
-            setVerticalText(rightWordEl, glitchRight);
-            container.style.color = "var(--terminal-red)";
-        }
-
-        // The full glitch cycle with flicker before/during/after glitch as required
         function glitchCycle() {
-            // flicker count phases 0-3 random flickers per phase
             function randomFlickerCount() {
                 return Math.floor(Math.random() * 4);
             }
-            // flicker duration range per flicker handled in flickerElement
 
-            // Flicker before glitch
-            flickerElement(container, randomFlickerCount(), 20 + Math.random() * 40, () => {
+            flickerElement(ironFortressContainer, randomFlickerCount(), 20 + Math.random() * 40, () => {
                 setGlitch();
-                // Flicker during glitch (in parallel)
-                flickerElement(container, randomFlickerCount(), 20 + Math.random() * 40);
+                flickerElement(ironFortressContainer, randomFlickerCount(), 20 + Math.random() * 40);
 
-                // glitch duration 120-250ms
                 const glitchDuration = 120 + Math.random() * 130;
 
                 setTimeout(() => {
                     setNormal();
-                    // Flicker after glitch
-                    flickerElement(container, randomFlickerCount(), 20 + Math.random() * 40, () => {
-                        // Schedule next glitch 6–12 secs random
+                    flickerElement(ironFortressContainer, randomFlickerCount(), 20 + Math.random() * 40, () => {
                         const nextDelay = 6000 + Math.random() * 6000;
                         setTimeout(glitchCycle, nextDelay);
                     });
@@ -850,7 +850,6 @@
             showElement('ironFortress', 0);
 
             setNormal();
-            // Start glitch cycle with first delay randomized between 6-12s
             setTimeout(glitchCycle, 6000 + Math.random() * 6000);
 
             await new Promise(r => setTimeout(r, 500));
