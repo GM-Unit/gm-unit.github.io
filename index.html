@@ -179,42 +179,45 @@
             opacity: 0;
             transition: opacity 1s ease;
             text-align: center;
-            writing-mode: vertical-rl;
-            transform: none;
             height: auto;
             max-height: 400px;
             white-space: nowrap;
+
+            /* FIX: use flex row layout with gap for two columns */
+            display: flex !important;
+            flex-direction: row !important;
+            gap: 1.2rem !important;
+            opacity: 1 !important; /* force visible */
         }
 
         .iron-fortress-container.visible {
             opacity: 1;
         }
 
-        .iron-fortress-text {
-            display: inline-block;
-            letter-spacing: 0.5rem;
-        }
-
-        .vertical-text {
-            display: inline-block;
-            writing-mode: vertical-lr;
+        /* Each vertical word container */
+        .iron-fortress-word {
+            /* vertical stacking top to bottom */
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            /* preserve upright letters */
+            writing-mode: horizontal-tb;
             text-orientation: upright;
-            letter-spacing: 0.2em;
-            whitespace: nowrap;
-            frontweight: bold;
-            text-align: center;
-            width: auto;
+            letter-spacing: 0.25em;
+            user-select: none;
+            white-space: nowrap;
+            min-width: 1.5em;
+            font-weight: normal;
+            color: inherit;
         }
 
-        .no-survivors {
-            color: var(--terminal-red);
-            text-shadow: 0 0 10px var(--terminal-red), 0 0 20px var(--terminal-red);
+        /* Letter styling: each letter block on own line */
+        .iron-fortress-word span {
+            display: block;
+            line-height: 1;
         }
 
-        .no-survivors.glitching {
-            animation: glitch 0.65s ease-in-out;
-        }
-
+        /* Glitch effect */
         @keyframes glitch {
             0% { transform: translate(0); }
             20% { transform: translate(-3px, 3px); }
@@ -224,15 +227,10 @@
             100% { transform: translate(0); }
         }
 
-        .no-survivors.glitching .char {
-            animation: charGlitch 0.1s ease-in-out infinite;
-        }
-
-        @keyframes charGlitch {
-            0%, 100% { opacity: 1; transform: translateX(0); }
-            25% { opacity: 0.8; transform: translateX(-2px); }
-            50% { opacity: 1; transform: translateX(2px); }
-            75% { opacity: 0.9; transform: translateX(-1px); }
+        .glitch {
+            animation: glitch 0.65s ease-in-out infinite;
+            color: var(--terminal-red) !important;
+            text-shadow: 0 0 10px var(--terminal-red), 0 0 20px var(--terminal-red);
         }
 
         /* EVA Panel */
@@ -452,6 +450,7 @@
         .dim {
             color: rgba(0, 255, 65, 0.5) !important;
         }
+
     </style>
 </head>
 <body>
@@ -496,7 +495,9 @@
         <!-- Right Panel -->
         <div class="right-panel">
             <div class="iron-fortress-container" id="ironFortress">
-                <!-- Iron Fortress / No Survivors text will be inserted here -->
+                <!-- Two vertical columns inserted by JS -->
+                <div class="iron-fortress-word" id="leftWord"></div>
+                <div class="iron-fortress-word" id="rightWord"></div>
             </div>
 
             <div class="eva-panel" id="evaPanel">
@@ -548,6 +549,8 @@
     </div>
 
     <script>
+        // Existing data and functions kept as requested - only text vertical columns glitch code added
+
         const SYSTEM_DATA = {
             cybernetic: {
                 title: "CYBERNETIC LINK ESTABLISHED",
@@ -700,31 +703,59 @@
             }
         }
 
-        function generateIronFortressText() {
-            const container = getElement('ironFortress');
-            if (!container) return;
+        // --- IRON FORTRESS GLITCH IMPLEMENTATION ---
 
-            const phrases = [
-                { text: 'IRON FORTRESS', class: 'iron-fortress-text' },
-                { text: 'NO SURVIVORS', class: 'no-survivors' }
-            ];
+        const leftWordEl = getElement('leftWord');
+        const rightWordEl = getElement('rightWord');
+        const ironFortressContainer = getElement('ironFortress');
 
-            container.innerHTML = phrases.map((phrase, index) => {
-                const chars = phrase.text.split('').map((char, charIndex) => 
-                    `<span class="char" style="animation-delay: ${charIndex * 0.05}s">${char}</span>`
-                ).join('');
+        const normalLeft = "IRON";
+        const normalRight = "FORTRESS";
+        const glitchLeft = "NO";
+        const glitchRight = "SURVIVORS";
 
-                return `<div class="${phrase.class}" style="margin: ${index === 0 ? '0 0 1.5rem 0' : '0'};">
-                    <div class="vertical-text">${chars}</div>
-                </div>`;
-            }).join('');
+        function setVerticalText(element, text) {
+            element.textContent = "";
+            for (const char of text) {
+                const span = document.createElement('span');
+                span.textContent = char;
+                element.appendChild(span);
+            }
         }
+
+        function setNormal() {
+            leftWordEl.classList.remove('glitch');
+            rightWordEl.classList.remove('glitch');
+            setVerticalText(leftWordEl, normalLeft);
+            setVerticalText(rightWordEl, normalRight);
+            ironFortressContainer.style.color = ""; // reset color to default
+        }
+
+        function setGlitch() {
+            setVerticalText(leftWordEl, glitchLeft);
+            setVerticalText(rightWordEl, glitchRight);
+            leftWordEl.classList.add('glitch');
+            rightWordEl.classList.add('glitch');
+            ironFortressContainer.style.color = "var(--terminal-red)";
+        }
+
+        function glitchCycle() {
+            const nextGlitchDelay = 3000 + Math.random() * 7000;
+            setTimeout(() => {
+                setGlitch();
+                setTimeout(() => {
+                    setNormal();
+                    glitchCycle();
+                }, 1500); // glitch duration 1.5 seconds
+            }, nextGlitchDelay);
+        }
+
+        // --- BOOT SEQUENCE START ---
 
         async function startBootSequence() {
             const bootScreen = getElement('bootScreen');
             if (!bootScreen) return;
 
-            // Show boot screen by adding visible class
             bootScreen.classList.add('visible');
 
             for (let i = 0; i < bootMessages.length; i++) {
@@ -750,8 +781,11 @@
             }
 
             await new Promise(r => setTimeout(r, 800));
-            generateIronFortressText();
             showElement('ironFortress', 0);
+
+            // Set normal IRON / FORTRESS text and start glitch loop
+            setNormal();
+            glitchCycle();
 
             await new Promise(r => setTimeout(r, 500));
             showElement('evaPanel', 0);
