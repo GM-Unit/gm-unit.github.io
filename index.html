@@ -276,16 +276,20 @@
         .eva-panel {
             background: rgba(0, 59, 0, 0.3);
             border: 1px solid var(--terminal-dim);
-            padding: 1.5rem;
+            padding: 1.5rem 1.5rem 2.5rem; /* bottom padding increased for vertical capacity */
             width: 240px;
             max-width: 240px;
-            height: 360px; /* match banner height */
+            min-height: 360px; /* fixed min-height matching banner height plus stable vertical space */
             opacity: 1;
             transition: opacity 1s ease;
             align-self: flex-start;
             user-select: none;
             filter: grayscale(0.6) brightness(0.5);
             pointer-events: none;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
         }
 
         .eva-panel.active {
@@ -300,6 +304,7 @@
             letter-spacing: 3px;
             border-bottom: 1px solid var(--terminal-dim);
             padding-bottom: 0.5rem;
+            flex-shrink: 0;
         }
 
         .eva-section {
@@ -391,7 +396,8 @@
             padding: 0.75rem;
             background: rgba(0, 59, 0, 0.3);
             border: 1px solid var(--terminal-dim);
-            margin-top: 0.5rem;
+            margin-top: auto; /* stick to bottom */
+            flex-shrink: 0;
         }
 
         .status-nominal {
@@ -480,6 +486,7 @@
                 height: auto;
                 filter: grayscale(0.6) brightness(0.5);
                 pointer-events: none;
+                box-sizing: border-box;
                 transition: filter 1s ease;
             }
 
@@ -669,7 +676,8 @@
         typeText(contentEl, section.content, 30);
     }
 
-    // Telemetry update will run only when rightPanelActive is true
+    let rightPanelActive = false;
+
     function updateTelemetry() {
         if(!rightPanelActive) return; 
 
@@ -720,8 +728,6 @@
         el.classList.add(`status-${status.toLowerCase()}`);
         el.textContent = status;
     }
-
-    // Banner setup
 
     const ironFortressContainer = getElement('ironFortress');
     const leftWordEl = document.createElement('div');
@@ -794,7 +800,6 @@
     }
 
     let glitchInterval = null;
-    let rightPanelActive = false;
 
     function glitchCycle(){
         if(!rightPanelActive) return;
@@ -804,7 +809,6 @@
             setGlitch();
             flickerElement(ironFortressContainer, randomCount(), 20 + Math.random()*40);
 
-            // Independent jitter movement during glitch - random small jitter every 30ms
             const maxJitter = 3;
             const start = Date.now();
             const dur = 120 + Math.random()*130;
@@ -826,23 +830,18 @@
         });
     }
 
-    function oneTimeFlicker(cb){
-        flickerElement(ironFortressContainer, 1, 50, cb);
-    }
-
     async function startBootSequence(){
-        // Show bootScreen immediately (space reserved by CSS)
         const bootScreen = getElement('bootScreen');
         if(!bootScreen) return;
 
         bootScreen.classList.add('visible');
 
-        // Add all boot lines upfront but hidden, just set text content progressively to avoid layout change
+        // Add all boot lines upfront but hidden, just set text content progressively
         const bootLines = [];
         for(let i=0; i<bootMessages.length; i++){
             const line = document.createElement('div');
             line.className = 'boot-line';
-            line.textContent = ""; // initially empty but line exists to reserve vertical height
+            line.textContent = "";
             bootScreen.appendChild(line);
             bootLines.push(line);
         }
@@ -857,7 +856,6 @@
         await new Promise(r => setTimeout(r, 600));
         bootScreen.style.display = 'none';
 
-        // Show system sections container (space reserved by CSS)
         getElement('systemSections').classList.add('visible');
 
         const sections = ['cybernetic','tcunit','frame','chess','deployment'];
@@ -869,13 +867,6 @@
         ironFortressContainer.classList.add('visible');
         setNormal();
 
-        activateRightPanel();
-    }
-
-    function activateRightPanel(){
-        if(rightPanelActive) return;
-        rightPanelActive = true;
-
         const rightPanel = getElement('rightPanel');
         const evaPanel = getElement('evaPanel');
 
@@ -885,17 +876,18 @@
         rightPanel.setAttribute('aria-hidden', 'false');
         evaPanel.setAttribute('aria-hidden', 'false');
 
-        oneTimeFlicker(() => {
+        rightPanelActive = true;
+
+        // Single subtle flicker on banner then start glitch loop and telemetry
+        flickerElement(ironFortressContainer, 1, 50, () => {
             glitchCycle();
-            telemetryInterval = setInterval(updateTelemetry, 800);
+            setInterval(updateTelemetry, 800);
         });
     }
 
-    // Initialize banner text immediately, no glitch
+    // Initialize vertical banner words with normal text immediately
     setVerticalText(leftWordEl, normalLeft);
     setVerticalText(rightWordEl, normalRight);
-
-    let telemetryInterval = null;
 
     document.addEventListener('DOMContentLoaded', startBootSequence);
     window.addEventListener('beforeunload', () => console.log('GM-Unit Terminal session ended'));
