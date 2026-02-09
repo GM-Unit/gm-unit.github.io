@@ -183,6 +183,18 @@
             padding-bottom: 2em;
             box-sizing: border-box;
             overflow: visible;
+            /* Powered-off styling initially */
+            opacity: 0.4;
+            pointer-events: none;
+            user-select: none;
+            filter: brightness(0.4) grayscale(0.6);
+            transition: opacity 1s ease, filter 1s ease;
+        }
+
+        .right-panel.active {
+            opacity: 1;
+            pointer-events: auto;
+            filter: none;
         }
 
         /* Banner container: only banner moves independently */
@@ -202,6 +214,8 @@
             padding-bottom: calc(var(--font-size-banner) * 2 / 1.2);
             box-sizing: content-box;
             will-change: transform;
+            color: inherit;
+            opacity: 1;
         }
 
         .iron-fortress-container.visible {
@@ -250,17 +264,18 @@
             padding: 1.5rem;
             min-width: 320px;
             max-width: 400px;
-            opacity: 0;
+            opacity: 1;
             transition: opacity 1s ease;
             align-self: flex-start;
             user-select: none;
             flex-shrink: 0;
             position: relative;
-            /* Stationary: no transform during glitches */
+            /* Controlled via .active on parent */
+            filter: grayscale(0.6) brightness(0.5);
         }
 
-        .eva-panel.visible {
-            opacity: 1;
+        .eva-panel.active {
+            filter: none;
         }
 
         .eva-title {
@@ -416,6 +431,18 @@
                 height: auto;
                 gap: 1rem;
                 margin-top: 1rem;
+                /* Override powered-off defaults on mobile */
+                opacity: 0.4;
+                pointer-events: none;
+                user-select: none;
+                filter: brightness(0.4) grayscale(0.6);
+                transition: opacity 1s ease, filter 1s ease;
+            }
+
+            .right-panel.active {
+                opacity: 1;
+                pointer-events: auto;
+                filter: none;
             }
 
             .iron-fortress-container {
@@ -434,6 +461,12 @@
                 opacity: 1 !important;
                 position: static !important;
                 top: auto !important;
+                filter: grayscale(0.6) brightness(0.5);
+                transition: filter 1s ease;
+            }
+
+            .eva-panel.active {
+                filter: none;
             }
         }
 
@@ -485,7 +518,7 @@
         </div>
 
         <!-- Right Panel -->
-        <div class="right-panel">
+        <div class="right-panel" id="rightPanel">
             <div class="iron-fortress-container" id="ironFortress"></div>
 
             <div class="eva-panel" id="evaPanel">
@@ -537,7 +570,7 @@
     </div>
 
 <script>
-    // Existing code, modified glitch logic below remains intact
+    // Data and boot messages remain unchanged
     const SYSTEM_DATA = {
         cybernetic: {
             title: "CYBERNETIC LINK ESTABLISHED",
@@ -619,6 +652,9 @@
     }
 
     function updateTelemetry() {
+        // Updates telemetry values only in active state
+        if(!rightPanelActive) return;
+
         const coreIds = ['core_001', 'core_002', 'OPTIC_A01', 'OPTIC_A02'];
         coreIds.forEach(id => {
             const el = getElement(id);
@@ -739,14 +775,18 @@
         doFlicker();
     }
 
+    let glitchInterval = null;
+    let rightPanelActive = false;
+
     function glitchCycle(){
+        if(!rightPanelActive) return; // no glitch before activation
+
         function randomCount(){ return Math.floor(Math.random()*4); }
         flickerElement(ironFortressContainer, randomCount(), 20 + Math.random()*40, () => {
             setGlitch();
             flickerElement(ironFortressContainer, randomCount(), 20 + Math.random()*40);
 
             // Independent jitter movement during glitch - random small jitter every 30ms
-            let glitchInterval = null;
             const maxJitter = 3;
             const start = Date.now();
             const dur = 120 + Math.random()*130;
@@ -768,10 +808,18 @@
         });
     }
 
+    function oneTimeFlicker(cb){
+        // Single subtle flicker on ironFortressContainer for activation moment
+        flickerElement(ironFortressContainer, 1, 50, cb);
+    }
+
     async function startBootSequence(){
         const bootScreen = getElement('bootScreen');
         if(!bootScreen) return;
+
         bootScreen.classList.add('visible');
+
+        // Boot messages typed instantly with blinking cursor style (no typing animation to keep simple)
         for(let i=0; i<bootMessages.length; i++){
             const line = document.createElement('div');
             line.className = 'boot-line';
@@ -791,20 +839,41 @@
             await typeSection(sections[i], i * 800, 600);
         }
         await new Promise(r => setTimeout(r, 800));
+
         ironFortressContainer.classList.add('visible');
         setNormal();
-        setTimeout(glitchCycle, 6000 + Math.random()*6000);
 
-        const evaPanel = getElement('evaPanel');
-        if(evaPanel){
-            evaPanel.style.opacity = '1';
-            evaPanel.classList.add('visible');
-        }
-
-        setInterval(updateTelemetry, 800);
+        // SINGLE activation moment (BOOT -> OPERATIONAL)
+        activateRightPanel();
     }
 
+    function activateRightPanel(){
+        if(rightPanelActive) return;
+        rightPanelActive = true;
+        const rightPanel = getElement('rightPanel');
+        const evaPanel = getElement('evaPanel');
+
+        // Remove powered-off styling on right-panel container & EVA panel simultaneously
+        rightPanel.classList.add('active');
+        evaPanel.classList.add('active');
+
+        // Single subtle flicker on banner
+        oneTimeFlicker(() => {
+            // after flicker complete start full glitch loop and telemetry updates
+            glitchCycle();
+            // Start telemetry updates
+            telemetryInterval = setInterval(updateTelemetry, 800);
+        });
+    }
+
+    // Initialize vertical banner words with normal text immediately
+    setVerticalText(leftWordEl, normalLeft);
+    setVerticalText(rightWordEl, normalRight);
+
+    // Start boot sequence on DOM ready
+    let telemetryInterval = null;
     document.addEventListener('DOMContentLoaded', startBootSequence);
+
     window.addEventListener('beforeunload', () => console.log('GM-Unit Terminal session ended'));
 </script>
 </body>
