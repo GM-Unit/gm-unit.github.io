@@ -24,15 +24,20 @@
             box-sizing: border-box;
         }
 
-        body {
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
             background-color: var(--terminal-dark);
             color: var(--terminal-green);
             font-family: 'Courier New', monospace;
-            min-height: 100vh;
             overflow-x: hidden;
-            line-height: 1.6;
+        }
+
+        body {
             display: flex;
-            height: 100vh;
+            min-height: 100vh;
+            overflow: hidden;
         }
 
         /* Flicker Overlay */
@@ -81,29 +86,39 @@
             z-index: 999;
         }
 
-        /* Container Layout */
+        /* Layout - fixed widths for stable columns */
         .terminal-container {
             display: flex;
             flex-direction: row;
+            width: 1024px; /* Fixed width container prevents reflow */
+            max-width: 100vw;
             height: 100vh;
             padding: 2rem;
             box-sizing: border-box;
-            width: 100%;
-            overflow: hidden;
+            margin: 0 auto;
         }
 
-        /* Left Panel: scrollable */
+        /* LEFT PANEL fixed */
         .left-panel {
-            max-width: 600px;
+            width: 600px; /* fixed width to prevent reflow */
             flex-shrink: 0;
+            height: 100%;
             overflow-y: auto;
             padding-right: 1rem;
+            padding-left: 0;
+            /* force layout space for boot & content */
+            display: flex;
+            flex-direction: column;
         }
 
+        /* boot-screen always occupying space, but text content scrolls */
         .boot-screen {
-            margin-bottom: 2rem;
+            min-height: 12em; /* reserve enough vertical space */
             opacity: 0;
             transition: opacity 0.5s ease;
+            flex-shrink: 0;
+            flex-grow: 0;
+            overflow-y: auto;
         }
 
         .boot-screen.visible {
@@ -133,6 +148,8 @@
         .system-sections {
             opacity: 0;
             transition: opacity 1s ease;
+            flex-grow: 1;
+            overflow-y: auto;
         }
 
         .system-sections.visible {
@@ -162,6 +179,7 @@
             border-left: 2px solid var(--terminal-dim);
             min-height: 1.6em;
             white-space: pre-wrap;
+            overflow-wrap: break-word;
         }
 
         .section-content.typing {
@@ -169,24 +187,22 @@
             white-space: pre-wrap;
         }
 
-        /* Right Panel container: flex row, top aligned, banner left, EVA panel right */
+        /* RIGHT PANEL fixed width and full height with flex layout */
         .right-panel {
+            width: 360px; /* fixed width to prevent reflow */
             flex-shrink: 0;
             display: flex;
-            flex-direction: row; /* side by side horizontal */
-            align-items: flex-start; /* top align banner and EVA */
+            flex-direction: row;
+            align-items: flex-start;
             gap: 1.5rem;
-            width: calc(100% - 600px - 2rem);
-            max-width: 420px;
-            position: sticky;
-            top: 2vh; /* ~2% viewport top */
+            height: 100%;
             padding-bottom: 2em;
             box-sizing: border-box;
-            overflow: visible;
-            /* Powered-off styling initially */
-            opacity: 0.4;
-            pointer-events: none;
+            position: sticky;
+            top: 2vh;
             user-select: none;
+            opacity: 0.4; /* powered off initial style */
+            pointer-events: none;
             filter: brightness(0.4) grayscale(0.6);
             transition: opacity 1s ease, filter 1s ease;
         }
@@ -197,7 +213,7 @@
             filter: none;
         }
 
-        /* Banner container: only banner moves independently */
+        /* Banner container - vertical words side-by-side */
         .iron-fortress-container {
             font-size: var(--font-size-banner);
             line-height: 1.2;
@@ -205,24 +221,23 @@
             height: 360px;
             max-height: 360px;
             white-space: nowrap;
-
             display: flex !important;
             flex-direction: row !important;
             gap: 1.2rem !important;
-
             align-self: flex-start;
             padding-bottom: calc(var(--font-size-banner) * 2 / 1.2);
             box-sizing: content-box;
             will-change: transform;
+            user-select: none;
             color: inherit;
             opacity: 1;
+            transition: none !important;
         }
 
         .iron-fortress-container.visible {
             opacity: 1;
         }
 
-        /* Words vertical arrangement */
         .iron-fortress-word {
             display: flex;
             flex-direction: column;
@@ -257,25 +272,25 @@
             text-shadow: 0 0 10px var(--terminal-red), 0 0 20px var(--terminal-red);
         }
 
-        /* EVA Panel: full stationary, right to banner, top aligned */
+        /* EVA Panel */
         .eva-panel {
             background: rgba(0, 59, 0, 0.3);
             border: 1px solid var(--terminal-dim);
             padding: 1.5rem;
-            min-width: 320px;
-            max-width: 400px;
+            width: 240px;
+            max-width: 240px;
+            height: 360px; /* match banner height */
             opacity: 1;
             transition: opacity 1s ease;
             align-self: flex-start;
             user-select: none;
-            flex-shrink: 0;
-            position: relative;
-            /* Controlled via .active on parent */
             filter: grayscale(0.6) brightness(0.5);
+            pointer-events: none;
         }
 
         .eva-panel.active {
             filter: none;
+            pointer-events: auto;
         }
 
         .eva-title {
@@ -411,12 +426,13 @@
             .terminal-container {
                 flex-direction: column;
                 padding: 1rem;
+                width: 100%;
             }
 
             .left-panel {
-                max-width: 100%;
-                overflow-y: visible;
-                height: auto;
+                width: 100%;
+                max-height: 40vh;
+                overflow-y: auto;
                 padding-right: 0;
             }
 
@@ -431,7 +447,7 @@
                 height: auto;
                 gap: 1rem;
                 margin-top: 1rem;
-                /* Override powered-off defaults on mobile */
+
                 opacity: 0.4;
                 pointer-events: none;
                 user-select: none;
@@ -461,12 +477,15 @@
                 opacity: 1 !important;
                 position: static !important;
                 top: auto !important;
+                height: auto;
                 filter: grayscale(0.6) brightness(0.5);
+                pointer-events: none;
                 transition: filter 1s ease;
             }
 
             .eva-panel.active {
                 filter: none;
+                pointer-events: auto;
             }
         }
 
@@ -518,10 +537,10 @@
         </div>
 
         <!-- Right Panel -->
-        <div class="right-panel" id="rightPanel">
+        <div class="right-panel" id="rightPanel" aria-hidden="true">
             <div class="iron-fortress-container" id="ironFortress"></div>
 
-            <div class="eva-panel" id="evaPanel">
+            <div class="eva-panel" id="evaPanel" aria-hidden="true">
                 <div class="eva-title">EVA TELEMETRY</div>
 
                 <div class="telemetry-grid">
@@ -570,7 +589,6 @@
     </div>
 
 <script>
-    // Data and boot messages remain unchanged
     const SYSTEM_DATA = {
         cybernetic: {
             title: "CYBERNETIC LINK ESTABLISHED",
@@ -651,9 +669,9 @@
         typeText(contentEl, section.content, 30);
     }
 
+    // Telemetry update will run only when rightPanelActive is true
     function updateTelemetry() {
-        // Updates telemetry values only in active state
-        if(!rightPanelActive) return;
+        if(!rightPanelActive) return; 
 
         const coreIds = ['core_001', 'core_002', 'OPTIC_A01', 'OPTIC_A02'];
         coreIds.forEach(id => {
@@ -703,7 +721,7 @@
         el.textContent = status;
     }
 
-    // Banner vertical words & glitch effect logic (with independent banner movement)
+    // Banner setup
 
     const ironFortressContainer = getElement('ironFortress');
     const leftWordEl = document.createElement('div');
@@ -779,7 +797,7 @@
     let rightPanelActive = false;
 
     function glitchCycle(){
-        if(!rightPanelActive) return; // no glitch before activation
+        if(!rightPanelActive) return;
 
         function randomCount(){ return Math.floor(Math.random()*4); }
         flickerElement(ironFortressContainer, randomCount(), 20 + Math.random()*40, () => {
@@ -809,29 +827,37 @@
     }
 
     function oneTimeFlicker(cb){
-        // Single subtle flicker on ironFortressContainer for activation moment
         flickerElement(ironFortressContainer, 1, 50, cb);
     }
 
     async function startBootSequence(){
+        // Show bootScreen immediately (space reserved by CSS)
         const bootScreen = getElement('bootScreen');
         if(!bootScreen) return;
 
         bootScreen.classList.add('visible');
 
-        // Boot messages typed instantly with blinking cursor style (no typing animation to keep simple)
+        // Add all boot lines upfront but hidden, just set text content progressively to avoid layout change
+        const bootLines = [];
         for(let i=0; i<bootMessages.length; i++){
             const line = document.createElement('div');
             line.className = 'boot-line';
-            line.textContent = bootMessages[i];
+            line.textContent = ""; // initially empty but line exists to reserve vertical height
             bootScreen.appendChild(line);
+            bootLines.push(line);
+        }
+
+        // Reveal boot lines text progressively
+        for(let i=0; i<bootMessages.length; i++){
             await new Promise(r => setTimeout(r, 300 + Math.random()*200));
+            bootLines[i].textContent = bootMessages[i];
         }
         await new Promise(r => setTimeout(r, 500));
         bootScreen.classList.add('fading');
         await new Promise(r => setTimeout(r, 600));
         bootScreen.style.display = 'none';
 
+        // Show system sections container (space reserved by CSS)
         getElement('systemSections').classList.add('visible');
 
         const sections = ['cybernetic','tcunit','frame','chess','deployment'];
@@ -843,37 +869,35 @@
         ironFortressContainer.classList.add('visible');
         setNormal();
 
-        // SINGLE activation moment (BOOT -> OPERATIONAL)
         activateRightPanel();
     }
 
     function activateRightPanel(){
         if(rightPanelActive) return;
         rightPanelActive = true;
+
         const rightPanel = getElement('rightPanel');
         const evaPanel = getElement('evaPanel');
 
-        // Remove powered-off styling on right-panel container & EVA panel simultaneously
         rightPanel.classList.add('active');
         evaPanel.classList.add('active');
 
-        // Single subtle flicker on banner
+        rightPanel.setAttribute('aria-hidden', 'false');
+        evaPanel.setAttribute('aria-hidden', 'false');
+
         oneTimeFlicker(() => {
-            // after flicker complete start full glitch loop and telemetry updates
             glitchCycle();
-            // Start telemetry updates
             telemetryInterval = setInterval(updateTelemetry, 800);
         });
     }
 
-    // Initialize vertical banner words with normal text immediately
+    // Initialize banner text immediately, no glitch
     setVerticalText(leftWordEl, normalLeft);
     setVerticalText(rightWordEl, normalRight);
 
-    // Start boot sequence on DOM ready
     let telemetryInterval = null;
-    document.addEventListener('DOMContentLoaded', startBootSequence);
 
+    document.addEventListener('DOMContentLoaded', startBootSequence);
     window.addEventListener('beforeunload', () => console.log('GM-Unit Terminal session ended'));
 </script>
 </body>
