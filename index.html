@@ -14,7 +14,8 @@
             --flicker-opacity: 0.15;
             --font-size-base: 14px;
             --font-size-title: 18px;
-            --font-size-large: 46px;
+            /* UPDATED FONT SIZE for banner and glitch scaling */
+            --font-size-banner: 70px;
             --font-size-mobile: 22px;
         }
 
@@ -31,6 +32,7 @@
             min-height: 100vh;
             overflow-x: hidden;
             line-height: 1.6;
+            display: flex; /* allow right panel fixed */
         }
 
         /* Flicker Overlay */
@@ -79,20 +81,23 @@
             z-index: 999;
         }
 
-        /* Container Layout */
+        /* Container Layout changed to flex for left/right split with independent scroll and fixed right */
         .terminal-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
+            display: flex;
+            flex-direction: row;
+            height: 100vh;
             padding: 2rem;
-            min-height: 100vh;
-            position: relative;
-            z-index: 1;
+            box-sizing: border-box;
+            width: 100%;
+            overflow: hidden; /* prevent horizontal scroll */
         }
 
-        /* Left Panel - Boot & Sections */
+        /* Left Panel: scrollable independent vertical */
         .left-panel {
             max-width: 600px;
+            flex-shrink: 0;
+            overflow-y: auto;
+            padding-right: 1rem;
         }
 
         .boot-screen {
@@ -164,39 +169,40 @@
             white-space: pre-wrap;
         }
 
-        /* Right Panel: container to anchor banner and EVA side by side, bottom aligned */
+        /* Right Panel: fixed size, no scroll, anchored to right, bottom-aligned children */
         .right-panel {
+            flex-shrink: 0;
             display: flex;
             flex-direction: row;
-            align-items: flex-end; /* Bottom align children */
-            padding-top: 1rem;
+            align-items: flex-end; /* bottom align banner and EVA panel */
             gap: 1.5rem;
-
-            /* Make sure right panel uses full height */
-            min-height: max-content;
-            height: auto;
+            height: 100%;
+            /* Take remaining horizontal space but constrained */
+            width: calc(100% - 600px - 2rem); /* minus left max width and padding */
+            max-width: 420px;
+            position: sticky;
+            top: 2rem;
+            padding-bottom: 2em; /* space for bottom extension */
+            box-sizing: border-box;
         }
 
-        /* Iron Fortress container - vertical banner */
+        /* Iron Fortress container banner */
         .iron-fortress-container {
-            font-size: var(--font-size-large);
+            font-size: var(--font-size-banner);
             line-height: 1.2;
             opacity: 0;
             transition: opacity 1s ease;
             text-align: center;
-            height: 330px; /* Increased vertical footprint */
-            max-height: 330px;
+            height: 360px; /* Larger vertical footprint */
+            max-height: 360px;
             white-space: nowrap;
 
             display: flex !important;
             flex-direction: row !important;
             gap: 1.2rem !important;
             opacity: 1 !important;
-
-            /* align self bottom so it aligns with EVA panel bottom */
             align-self: flex-end;
-            /* padding bottom for up to 2 letters space */
-            padding-bottom: calc(var(--font-size-large) * 2);
+            padding-bottom: calc(var(--font-size-banner) * 2 / 1.2); /* ~ two letters space */
             box-sizing: content-box;
         }
 
@@ -245,9 +251,12 @@
             padding: 1.5rem;
             min-width: 320px;
             max-width: 400px;
-
-            /* Ensure it uses natural height and bottom-align with banner */
+            opacity: 0;
+            transition: opacity 1s ease;
             align-self: flex-end;
+            /* fix size so stable */
+            flex-shrink: 0;
+            user-select: none;
         }
 
         .eva-panel.visible {
@@ -385,29 +394,43 @@
         /* Mobile Responsiveness */
         @media (max-width: 900px) {
             .terminal-container {
-                grid-template-columns: 1fr;
-                gap: 1rem;
+                flex-direction: column;
                 padding: 1rem;
-            }
-
-            .right-panel {
-                align-items: center;
-                order: -1;
-            }
-
-            .iron-fortress-container {
-                font-size: var(--font-size-mobile);
-                height: auto !important;
-                padding-bottom: 0 !important;
-            }
-
-            .eva-panel {
-                min-width: 100%;
-                max-width: 400px;
             }
 
             .left-panel {
                 max-width: 100%;
+                overflow-y: visible;
+                height: auto;
+                padding-right: 0;
+            }
+
+            .right-panel {
+                width: 100%;
+                max-width: none;
+                justify-content: center;
+                align-items: center;
+                padding-bottom: 0;
+                position: relative;
+                top: 0;
+                height: auto;
+                gap: 1rem;
+                margin-top: 1rem;
+            }
+
+            .iron-fortress-container {
+                font-size: 40px;
+                height: auto;
+                max-height: none;
+                padding-bottom: 0;
+            }
+
+            .eva-panel {
+                min-width: auto;
+                max-width: 100%;
+                width: 100%;
+                padding: 1rem;
+                opacity: 1 !important;
             }
         }
 
@@ -415,50 +438,10 @@
             :root {
                 --font-size-base: 12px;
                 --font-size-title: 14px;
-                --font-size-large: 18px;
+                --font-size-banner: 32px;
                 --font-size-mobile: 16px;
             }
-
-            .eva-panel {
-                padding: 1rem;
-            }
-
-            .telemetry-grid {
-                grid-template-columns: 1fr;
-            }
         }
-
-        /* Scrollbar Styling */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--terminal-dark);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--terminal-dim);
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--terminal-green);
-        }
-
-        /* Utility Classes */
-        .hidden {
-            display: none !important;
-        }
-
-        .faded {
-            opacity: 0.3 !important;
-        }
-
-        .dim {
-            color: rgba(0, 255, 65, 0.5) !important;
-        }
-
     </style>
 </head>
 <body>
@@ -468,9 +451,7 @@
     <div class="terminal-container">
         <!-- Left Panel -->
         <div class="left-panel">
-            <div class="boot-screen" id="bootScreen">
-                <!-- Boot content will be inserted here -->
-            </div>
+            <div class="boot-screen" id="bootScreen"></div>
 
             <div class="system-sections" id="systemSections">
                 <div class="section" data-section="cybernetic">
@@ -502,11 +483,9 @@
 
         <!-- Right Panel -->
         <div class="right-panel">
-            <div class="iron-fortress-container" id="ironFortress">
-                <!-- Two vertical word columns inserted via JS -->
-            </div>
+            <div class="iron-fortress-container" id="ironFortress"></div>
 
-            <div class="eva-panel" id="evaPanel">
+            <div class="eva-panel" id="evaPanel" style="opacity:0; pointer-events:none;">
                 <div class="eva-title">EVA TELEMETRY</div>
 
                 <div class="telemetry-grid">
@@ -554,315 +533,259 @@
         </div>
     </div>
 
-    <script>
-        // Existing SYSTEM_DATA, bootMessages, updateTelemetry, updateEVAStatus etc. omitted for brevity — kept identical
-
-        const SYSTEM_DATA = {
-            cybernetic: {
-                title: "CYBERNETIC LINK ESTABLISHED",
-                content: "Pilot-to-EVA neural synchronization complete.\nSignal latency: negligible\nEncryption: AES-256\nBandwidth: 1000 Mbps\nProtocol: TTCN-3"
-            },
-            tcunit: {
-                title: "TC-UNIT STATUS: ONLINE",
-                content: "Unit ID: GM-007-FORT\nFirmware v4.2.1\nBoot sequence: SUCCESS\nMemory allocation: 256TB\nProcess count: 24"
-            },
-            frame: {
-                title: "FRAME INTEGRITY: 100%",
-                content: "Carbon-reinforced alloy structure\nImpact resistance: 99.9%\nJoint servos: NOMINAL\nCORE_003: STANDBY\nShield emitters: ACTIVE"
-            },
-            chess: {
-                title: "CHESS INTERFACE",
-                content: "Engine: Stockfish 16\nELO rating: 3500\nMode:Unknown MASTER\nAnalysis: ACTIVE"
-            },
-            deployment: {
-                title: "IN DEPTH ANALYSIS",
-                content: "GM-Unit Epoch: 2006\nTerrain: Urban/ruins\nRuntime: 19 years\nObjectives: SEEK & DESTROY\nTITLE: IRON FORTRESS"
-            }
-        };
-
-        const bootMessages = [
-            "INITIALIZING GM-UNIT TERMINAL...",
-            "LOADING KERNEL MODULES...",
-            "MOUNTING VIRTUAL FILE SYSTEMS...",
-            "ESTABLISHING SECURE CONNECTION...",
-            "VERIFYING PILOT CREDENTIALS...",
-            "SYNCING NEURAL INTERFACE...",
-            "LOADING EVA TELEMETRY...",
-            "INITIATING CHESS SUBSYSTEM...",
-            "CALIBRATING SENSORS...",
-            "SYSTEM READY."
-        ];
-
-        function getElement(elementId) {
-            return document.getElementById(elementId);
+<script>
+    /* Existing data and functions preserved */
+    const SYSTEM_DATA = {
+        cybernetic: {
+            title: "CYBERNETIC LINK ESTABLISHED",
+            content: "Pilot-to-EVA neural synchronization complete.\nSignal latency: negligible\nEncryption: AES-256\nBandwidth: 1000 Mbps\nProtocol: TTCN-3"
+        },
+        tcunit: {
+            title: "TC-UNIT STATUS: ONLINE",
+            content: "Unit ID: GM-007-FORT\nFirmware v4.2.1\nBoot sequence: SUCCESS\nMemory allocation: 256TB\nProcess count: 24"
+        },
+        frame: {
+            title: "FRAME INTEGRITY: 100%",
+            content: "Carbon-reinforced alloy structure\nImpact resistance: 99.9%\nJoint servos: NOMINAL\nCORE_003: STANDBY\nShield emitters: ACTIVE"
+        },
+        chess: {
+            title: "CHESS INTERFACE",
+            content: "Engine: Stockfish 16\nELO rating: 3500\nMode:Unknown MASTER\nAnalysis: ACTIVE"
+        },
+        deployment: {
+            title: "IN DEPTH ANALYSIS",
+            content: "GM-Unit Epoch: 2006\nTerrain: Urban/ruins\nRuntime: 19 years\nObjectives: SEEK & DESTROY\nTITLE: IRON FORTRESS"
         }
+    };
 
-        function typeText(element, text, speed = 50, onComplete = null) {
-            if (!text) {
-                if (onComplete) onComplete();
-                return;
-            }
+    const bootMessages = [
+        "INITIALIZING GM-UNIT TERMINAL...",
+        "LOADING KERNEL MODULES...",
+        "MOUNTING VIRTUAL FILE SYSTEMS...",
+        "ESTABLISHING SECURE CONNECTION...",
+        "VERIFYING PILOT CREDENTIALS...",
+        "SYNCING NEURAL INTERFACE...",
+        "LOADING EVA TELEMETRY...",
+        "INITIATING CHESS SUBSYSTEM...",
+        "CALIBRATING SENSORS...",
+        "SYSTEM READY."
+    ];
 
-            element.classList.add('typing');
-            let index = 0;
-
-            function type() {
-                if (index < text.length) {
-                    element.textContent = text.substring(0, index + 1);
-                    index++;
-
-                    const char = text.charAt(index);
-                    const isNewline = char === '\n';
-                    const delay = isNewline ? 200 : speed;
-
-                    setTimeout(type, delay);
-                } else {
-                    element.classList.remove('typing');
-                    if (onComplete) onComplete();
-                }
-            }
-
-            type();
-        }
-
-        function showElement(elementId, delay = 0) {
-            return new Promise(resolve => {
-                setTimeout(() => {
-                    const element = getElement(elementId);
-                    if (element) {
-                        element.classList.add('visible');
-                    }
-                    resolve();
-                }, delay);
-            });
-        }
-
-        async function typeSection(sectionName, titleDelay = 0, contentDelay = 500) {
-            const section = SYSTEM_DATA[sectionName];
-
-            await showElement(`title-${sectionName}`, titleDelay);
-            await new Promise(r => setTimeout(r, 300));
-
-            const titleElement = getElement(`title-${sectionName}`);
-            titleElement.textContent = section.title;
-            titleElement.classList.add('typed');
-
-            await new Promise(r => setTimeout(r, contentDelay));
-
-            const contentElement = getElement(`content-${sectionName}`);
-            typeText(contentElement, section.content, 30);
-        }
-
-        function updateTelemetry() {
-            const coreValues = ['core_001', 'core_002', 'OPTIC_A01', 'OPTIC_A02'];
-            coreValues.forEach(id => {
-                const element = getElement(id);
-                if (element) {
-                    const currentValue = parseInt(element.textContent);
-                    const change = Math.random() > 0.5 ? 1 : -1;
-                    const newValue = Math.max(85, Math.min(100, currentValue + change));
-                    element.textContent = newValue + '%';
-                    element.classList.add('flickering');
-                    setTimeout(() => element.classList.remove('flickering'), 150);
-                }
-            });
-
-            const syncBar = getElement('syncBar');
-            if (syncBar) {
-                const currentWidth = parseFloat(syncBar.style.width) || 85;
-                const newWidth = Math.max(70, Math.min(100, currentWidth + (Math.random() * 4 - 2)));
-                syncBar.style.width = newWidth + '%';
-            }
-
-            const stabilityBar = getElement('stabilityBar');
-            if (stabilityBar) {
-                const currentWidth = parseFloat(stabilityBar.style.width) || 92;
-                const newWidth = Math.max(80, Math.min(100, currentWidth + (Math.random() * 3 - 1.5)));
-                stabilityBar.style.width = newWidth + '%';
-            }
-
-            const pressureBar = getElement('pressureBar');
-            if (pressureBar) {
-                const currentWidth = parseFloat(pressureBar.style.width) || 15;
-                const newWidth = Math.max(5, Math.min(50, currentWidth + (Math.random() * 6 - 3)));
-                pressureBar.style.width = newWidth + '%';
-
-                pressureBar.classList.remove('warning', 'danger');
-                if (newWidth > 35) {
-                    pressureBar.classList.add('danger');
-                    updateEVAStatus('DANGER');
-                } else if (newWidth > 25) {
-                    pressureBar.classList.add('warning');
-                    updateEVAStatus('CAUTION');
-                } else {
-                    updateEVAStatus('NOMINAL');
-                }
+    function getElement(id) {
+        return document.getElementById(id);
+    }
+    function typeText(el, text, speed=50, cb=null) {
+        if (!text) { cb && cb(); return; }
+        el.classList.add('typing');
+        let i = 0;
+        function type() {
+            if(i < text.length) {
+                el.textContent = text.substring(0,i+1);
+                i++;
+                let delay = (text.charAt(i) === '\n') ? 200 : speed;
+                setTimeout(type, delay);
+            } else {
+                el.classList.remove('typing');
+                cb && cb();
             }
         }
-
-        function updateEVAStatus(status) {
-            const statusElement = getElement('evaStatus');
-            if (statusElement) {
-                statusElement.classList.remove('status-nominal', 'status-caution', 'status-danger');
-                statusElement.classList.add(`status-${status.toLowerCase()}`);
-                statusElement.textContent = status;
-            }
-        }
-
-        // IRON FORTRESS vertical text glitch implementation (unchanged glitch logic)
-
-        const ironFortressContainer = getElement('ironFortress');
-
-        // Create word elements
-        const leftWordEl = document.createElement('div');
-        leftWordEl.className = 'iron-fortress-word';
-        ironFortressContainer.appendChild(leftWordEl);
-
-        const rightWordEl = document.createElement('div');
-        rightWordEl.className = 'iron-fortress-word';
-        ironFortressContainer.appendChild(rightWordEl);
-
-        const normalLeft = "IRON";
-        const normalRight = "FORTRESS";
-
-        const glitchLeft = "NO";
-        const glitchRight = "SURVIVORS";
-
-        function setVerticalText(el, text) {
-            el.textContent = "";
-            for (const c of text) {
-                const span = document.createElement('span');
-                span.textContent = c;
-                el.appendChild(span);
-            }
-        }
-
-        function setNormal() {
-            leftWordEl.classList.remove('glitch');
-            rightWordEl.classList.remove('glitch');
-            setVerticalText(leftWordEl, normalLeft);
-            setVerticalText(rightWordEl, normalRight);
-            ironFortressContainer.style.color = "";
-        }
-
-        function setGlitch() {
-            leftWordEl.classList.add('glitch');
-            rightWordEl.classList.add('glitch');
-            setVerticalText(leftWordEl, glitchLeft);
-            setVerticalText(rightWordEl, glitchRight);
-            ironFortressContainer.style.color = "var(--terminal-red)";
-        }
-
-        // Flicker helper as implemented before (not changed here)
-
-        // Glitch cycle with randomness etc. — unchanged
-
-        function flickerElement(el, count, duration, callback) {
-            if (!count || count <= 0) {
-                if (callback) callback();
-                return;
-            }
-            let flickered = 0;
-
-            function doFlicker() {
-                if (flickered >= count) {
-                    el.style.opacity = '';
-                    el.style.transform = '';
-                    el.style.transition = '';
-                    if (callback) callback();
-                    return;
-                }
-                flickered++;
-
-                const opacity = 0.6 + Math.random() * 0.4;
-                const tx = (Math.random() * 2 - 1).toFixed(2);
-                const ty = (Math.random() * 2 - 1).toFixed(2);
-
-                el.style.transition = `none`;
-                el.style.opacity = opacity;
-                el.style.transform = `translate(${tx}px, ${ty}px)`;
-
-                const flickerDuration = 20 + Math.random() * 40;
-
-                setTimeout(() => {
-                    el.style.transition = `opacity 10ms linear`;
-                    el.style.opacity = '';
-                    el.style.transform = '';
-
-                    const pause = 30 + Math.random() * 50;
-                    setTimeout(doFlicker, pause);
-                }, flickerDuration);
-            }
-
-            doFlicker();
-        }
-
-        function glitchCycle() {
-            function randomFlickerCount() {
-                return Math.floor(Math.random() * 4);
-            }
-
-            flickerElement(ironFortressContainer, randomFlickerCount(), 20 + Math.random() * 40, () => {
-                setGlitch();
-                flickerElement(ironFortressContainer, randomFlickerCount(), 20 + Math.random() * 40);
-
-                const glitchDuration = 120 + Math.random() * 130;
-
-                setTimeout(() => {
-                    setNormal();
-                    flickerElement(ironFortressContainer, randomFlickerCount(), 20 + Math.random() * 40, () => {
-                        const nextDelay = 6000 + Math.random() * 6000;
-                        setTimeout(glitchCycle, nextDelay);
-                    });
-                }, glitchDuration);
-            });
-        }
-
-        async function startBootSequence() {
-            const bootScreen = getElement('bootScreen');
-            if (!bootScreen) return;
-
-            bootScreen.classList.add('visible');
-
-            for (let i = 0; i < bootMessages.length; i++) {
-                const line = document.createElement('div');
-                line.className = 'boot-line';
-                line.textContent = bootMessages[i];
-                bootScreen.appendChild(line);
-
-                await new Promise(r => setTimeout(r, 300 + Math.random() * 200));
-            }
-
-            await new Promise(r => setTimeout(r, 500));
-            bootScreen.classList.add('fading');
-
-            await new Promise(r => setTimeout(r, 600));
-            bootScreen.style.display = 'none';
-
-            getElement('systemSections').classList.add('visible');
-
-            const sections = ['cybernetic', 'tcunit', 'frame', 'chess', 'deployment'];
-            for (let i = 0; i < sections.length; i++) {
-                await typeSection(sections[i], i * 800, 600);
-            }
-
-            await new Promise(r => setTimeout(r, 800));
-            showElement('ironFortress', 0);
-
-            setNormal();
-            setTimeout(glitchCycle, 6000 + Math.random() * 6000);
-
-            await new Promise(r => setTimeout(r, 500));
-            showElement('evaPanel', 0);
-
-            setInterval(updateTelemetry, 800);
-        }
-
-        document.addEventListener('DOMContentLoaded', startBootSequence);
-
-        window.addEventListener('beforeunload', () => {
-            console.log('GM-Unit Terminal session ended');
+        type();
+    }
+    function showElement(id, delay=0) {
+        return new Promise(r => {
+            setTimeout(() => {
+                let el = getElement(id);
+                if(el) el.classList.add('visible');
+                r();
+            }, delay);
         });
-    </script>
+    }
+    async function typeSection(name, titleDelay=0, contentDelay=500) {
+        const section = SYSTEM_DATA[name];
+        await showElement(`title-${name}`, titleDelay);
+        await new Promise(r=>setTimeout(r,300));
+        const titleEl = getElement(`title-${name}`);
+        titleEl.textContent = section.title;
+        titleEl.classList.add('typed');
+        await new Promise(r=>setTimeout(r,contentDelay));
+        const contentEl = getElement(`content-${name}`);
+        typeText(contentEl, section.content, 30);
+    }
+    function updateTelemetry() {
+        const cores = ['core_001', 'core_002', 'OPTIC_A01', 'OPTIC_A02'];
+        cores.forEach(id=>{
+            const el=getElement(id);
+            if(el){
+                const cur = parseInt(el.textContent);
+                const change = Math.random()>0.5 ? 1 : -1;
+                const nw = Math.max(85, Math.min(100, cur+change));
+                el.textContent = nw + '%';
+                el.classList.add('flickering');
+                setTimeout(()=>el.classList.remove('flickering'),150);
+            }
+        });
+        const sync = getElement('syncBar');
+        if(sync) {
+            const cur = parseFloat(sync.style.width)||85;
+            const nw = Math.max(70, Math.min(100, cur+(Math.random()*4-2)));
+            sync.style.width = nw + '%';
+        }
+        const stability = getElement('stabilityBar');
+        if(stability) {
+            const cur = parseFloat(stability.style.width)||92;
+            const nw = Math.max(80, Math.min(100, cur+(Math.random()*3-1.5)));
+            stability.style.width = nw + '%';
+        }
+        const pressure = getElement('pressureBar');
+        if(pressure) {
+            const cur = parseFloat(pressure.style.width)||15;
+            const nw = Math.max(5, Math.min(50, cur+(Math.random()*6-3)));
+            pressure.style.width = nw + '%';
+
+            pressure.classList.remove('warning','danger');
+            if(nw > 35) updateEVAStatus('DANGER');
+            else if(nw > 25) updateEVAStatus('CAUTION');
+            else updateEVAStatus('NOMINAL');
+
+            if(nw > 35) pressure.classList.add('danger');
+            else if(nw > 25) pressure.classList.add('warning');
+        }
+    }
+    function updateEVAStatus(status) {
+        const el = getElement('evaStatus');
+        if(!el) return;
+        el.classList.remove('status-nominal','status-caution','status-danger');
+        el.classList.add(`status-${status.toLowerCase()}`);
+        el.textContent = status;
+    }
+
+    const ironFortressContainer = getElement('ironFortress');
+
+    // Create vertical words, only once
+    const leftWordEl = document.createElement('div');
+    leftWordEl.className = 'iron-fortress-word';
+    const rightWordEl = document.createElement('div');
+    rightWordEl.className = 'iron-fortress-word';
+    ironFortressContainer.appendChild(leftWordEl);
+    ironFortressContainer.appendChild(rightWordEl);
+
+    const normalLeft = "IRON";
+    const normalRight = "FORTRESS";
+    const glitchLeft = "NO";
+    const glitchRight = "SURVIVORS";
+
+    function setVerticalText(el, text) {
+        el.textContent = "";
+        for(const c of text){
+            const span = document.createElement('span');
+            span.textContent = c;
+            el.appendChild(span);
+        }
+    }
+    function setNormal(){
+        leftWordEl.classList.remove('glitch');
+        rightWordEl.classList.remove('glitch');
+        setVerticalText(leftWordEl, normalLeft);
+        setVerticalText(rightWordEl, normalRight);
+        ironFortressContainer.style.color = "";
+    }
+    function setGlitch(){
+        leftWordEl.classList.add('glitch');
+        rightWordEl.classList.add('glitch');
+        setVerticalText(leftWordEl, glitchLeft);
+        setVerticalText(rightWordEl, glitchRight);
+        ironFortressContainer.style.color = "var(--terminal-red)";
+    }
+
+    function flickerElement(el,count,dur,cb){
+        if(!count||count<=0){ cb&&cb(); return; }
+        let flickered=0;
+        function doFlicker(){
+            if(flickered>=count){
+                el.style.opacity='';
+                el.style.transform='';
+                el.style.transition='';
+                cb&&cb();
+                return;
+            }
+            flickered++;
+            const opacity = 0.6 + Math.random()*0.4;
+            const tx = (Math.random()*2 -1).toFixed(2);
+            const ty = (Math.random()*2 -1).toFixed(2);
+            el.style.transition = 'none';
+            el.style.opacity = opacity;
+            el.style.transform = `translate(${tx}px, ${ty}px)`;
+            const flickerDuration = 20 + Math.random()*40;
+            setTimeout(()=>{
+                el.style.transition = 'opacity 10ms linear';
+                el.style.opacity = '';
+                el.style.transform = '';
+                const pause = 30 + Math.random()*50;
+                setTimeout(doFlicker,pause);
+            },flickerDuration);
+        }
+        doFlicker();
+    }
+
+    function glitchCycle(){
+        function randomCount(){ return Math.floor(Math.random()*4); }
+        flickerElement(ironFortressContainer, randomCount(), 20 + Math.random()*40, () => {
+            setGlitch();
+            flickerElement(ironFortressContainer, randomCount(), 20 + Math.random()*40);
+            const dur = 120 + Math.random()*130;
+            setTimeout(() => {
+                setNormal();
+                flickerElement(ironFortressContainer, randomCount(), 20 + Math.random()*40, () => {
+                    setTimeout(glitchCycle, 6000 + Math.random()*6000);
+                });
+            }, dur);
+        });
+    }
+
+    async function startBootSequence() {
+        const bootScreen = getElement('bootScreen');
+        if(!bootScreen) return;
+        bootScreen.classList.add('visible');
+        for(let i=0; i<bootMessages.length; i++){
+            const line = document.createElement('div');
+            line.className = 'boot-line';
+            line.textContent = bootMessages[i];
+            bootScreen.appendChild(line);
+            await new Promise(r=>setTimeout(r, 300+Math.random()*200));
+        }
+        await new Promise(r=>setTimeout(r, 500));
+        bootScreen.classList.add('fading');
+        await new Promise(r=>setTimeout(r, 600));
+        bootScreen.style.display = 'none';
+
+        getElement('systemSections').classList.add('visible');
+
+        const sections = ['cybernetic','tcunit','frame','chess','deployment'];
+        for(let i=0; i<sections.length; i++){
+            await typeSection(sections[i], i * 800, 600);
+        }
+        await new Promise(r=>setTimeout(r, 800));
+
+        // Show banner and start glitch
+        ironFortressContainer.classList.add('visible');
+        setNormal();
+        setTimeout(glitchCycle, 6000 + Math.random()*6000);
+
+        // Show EVA panel only AFTER boot finishes and left panel fully visible
+        const evaPanel = getElement('evaPanel');
+        if(evaPanel){
+            // Remove inline opacity and pointer-events for fade in
+            evaPanel.style.transition = 'opacity 1s ease';
+            evaPanel.style.opacity = '1';
+            evaPanel.style.pointerEvents = 'auto';
+            evaPanel.classList.add('visible');
+        }
+
+        setInterval(updateTelemetry, 800);
+    }
+
+    document.addEventListener('DOMContentLoaded', startBootSequence);
+    window.addEventListener('beforeunload', () => console.log('GM-Unit Terminal session ended'));
+</script>
 </body>
 </html>
