@@ -169,24 +169,23 @@
             white-space: pre-wrap;
         }
 
-        /* Right Panel container: vertical top 2% offset, anchored */
+        /* Right Panel container: flex row, top aligned, banner left, EVA panel right */
         .right-panel {
             flex-shrink: 0;
             display: flex;
-            flex-direction: column;
-            align-items: flex-start;
+            flex-direction: row; /* side by side horizontal */
+            align-items: flex-start; /* top align banner and EVA */
             gap: 1.5rem;
             width: calc(100% - 600px - 2rem);
             max-width: 420px;
             position: sticky;
             top: 2vh; /* ~2% viewport top */
-            height: auto;
-            box-sizing: border-box;
             padding-bottom: 2em;
+            box-sizing: border-box;
             overflow: visible;
         }
 
-        /* Banner container: only banner moves on glitch with flicker */
+        /* Banner container: only banner moves independently */
         .iron-fortress-container {
             font-size: var(--font-size-banner);
             line-height: 1.2;
@@ -202,8 +201,7 @@
             align-self: flex-start;
             padding-bottom: calc(var(--font-size-banner) * 2 / 1.2);
             box-sizing: content-box;
-            /* will move independently for glitch */
-            /* no opacity transition to avoid flicker with EVA, handled via JS */
+            will-change: transform;
         }
 
         .iron-fortress-container.visible {
@@ -245,7 +243,7 @@
             text-shadow: 0 0 10px var(--terminal-red), 0 0 20px var(--terminal-red);
         }
 
-        /* EVA Panel: full stationary and aligned below banner */
+        /* EVA Panel: full stationary, right to banner, top aligned */
         .eva-panel {
             background: rgba(0, 59, 0, 0.3);
             border: 1px solid var(--terminal-dim);
@@ -256,8 +254,9 @@
             transition: opacity 1s ease;
             align-self: flex-start;
             user-select: none;
-            position: sticky;
-            top: calc(2vh + 360px + 1.5rem); /* top offset + banner height + gap */
+            flex-shrink: 0;
+            position: relative;
+            /* Stationary: no transform during glitches */
         }
 
         .eva-panel.visible {
@@ -538,7 +537,7 @@
     </div>
 
 <script>
-    // Data and helper functions unchanged
+    // Existing code, modified glitch logic below remains intact
     const SYSTEM_DATA = {
         cybernetic: {
             title: "CYBERNETIC LINK ESTABLISHED",
@@ -578,6 +577,7 @@
     function getElement(id) {
         return document.getElementById(id);
     }
+
     function typeText(el, text, speed=50, cb=null) {
         if (!text) { cb && cb(); return; }
         el.classList.add('typing');
@@ -595,6 +595,7 @@
         }
         type();
     }
+
     function showElement(id, delay=0) {
         return new Promise(r => {
             setTimeout(() => {
@@ -604,6 +605,7 @@
             }, delay);
         });
     }
+
     async function typeSection(name, titleDelay=0, contentDelay=500) {
         const section = SYSTEM_DATA[name];
         await showElement(`title-${name}`, titleDelay);
@@ -615,47 +617,49 @@
         const contentEl = getElement(`content-${name}`);
         typeText(contentEl, section.content, 30);
     }
+
     function updateTelemetry() {
-        const cores = ['core_001', 'core_002', 'OPTIC_A01', 'OPTIC_A02'];
-        cores.forEach(id=>{
-            const el=getElement(id);
+        const coreIds = ['core_001', 'core_002', 'OPTIC_A01', 'OPTIC_A02'];
+        coreIds.forEach(id => {
+            const el = getElement(id);
             if(el){
                 const cur = parseInt(el.textContent);
-                const change = Math.random()>0.5 ? 1 : -1;
-                const nw = Math.max(85, Math.min(100, cur+change));
+                const change = Math.random() > 0.5 ? 1 : -1;
+                const nw = Math.max(85, Math.min(100, cur + change));
                 el.textContent = nw + '%';
                 el.classList.add('flickering');
-                setTimeout(()=>el.classList.remove('flickering'),150);
+                setTimeout(() => el.classList.remove('flickering'), 150);
             }
         });
-        const sync = getElement('syncBar');
-        if(sync) {
-            const cur = parseFloat(sync.style.width)||85;
-            const nw = Math.max(70, Math.min(100, cur+(Math.random()*4-2)));
-            sync.style.width = nw + '%';
-        }
-        const stability = getElement('stabilityBar');
-        if(stability) {
-            const cur = parseFloat(stability.style.width)||92;
-            const nw = Math.max(80, Math.min(100, cur+(Math.random()*3-1.5)));
-            stability.style.width = nw + '%';
-        }
-        const pressure = getElement('pressureBar');
-        if(pressure) {
-            const cur = parseFloat(pressure.style.width)||15;
-            const nw = Math.max(5, Math.min(50, cur+(Math.random()*6-3)));
-            pressure.style.width = nw + '%';
 
-            pressure.classList.remove('warning','danger');
-            if(nw > 35) updateEVAStatus('DANGER');
-            else if(nw > 25) updateEVAStatus('CAUTION');
+        const syncBar = getElement('syncBar');
+        if(syncBar){
+            const cur = parseFloat(syncBar.style.width) || 85;
+            const nw = Math.max(70, Math.min(100, cur + (Math.random()*4 - 2)));
+            syncBar.style.width = nw + '%';
+        }
+
+        const stabilityBar = getElement('stabilityBar');
+        if(stabilityBar){
+            const cur = parseFloat(stabilityBar.style.width) || 92;
+            const nw = Math.max(80, Math.min(100, cur + (Math.random()*3 - 1.5)));
+            stabilityBar.style.width = nw + '%';
+        }
+
+        const pressureBar = getElement('pressureBar');
+        if(pressureBar){
+            const cur = parseFloat(pressureBar.style.width) || 15;
+            const nw = Math.max(5, Math.min(50, cur + (Math.random()*6 - 3)));
+            pressureBar.style.width = nw + '%';
+
+            pressureBar.classList.remove('warning','danger');
+            if(nw > 35) pressureBar.classList.add('danger'), updateEVAStatus('DANGER');
+            else if(nw > 25) pressureBar.classList.add('warning'), updateEVAStatus('CAUTION');
             else updateEVAStatus('NOMINAL');
-
-            if(nw > 35) pressure.classList.add('danger');
-            else if(nw > 25) pressure.classList.add('warning');
         }
     }
-    function updateEVAStatus(status) {
+
+    function updateEVAStatus(status){
         const el = getElement('evaStatus');
         if(!el) return;
         el.classList.remove('status-nominal','status-caution','status-danger');
@@ -663,24 +667,23 @@
         el.textContent = status;
     }
 
-    // Banner vertical letters and glitch
+    // Banner vertical words & glitch effect logic (with independent banner movement)
 
     const ironFortressContainer = getElement('ironFortress');
-
-    // Create word elements once
     const leftWordEl = document.createElement('div');
     leftWordEl.className = 'iron-fortress-word';
     const rightWordEl = document.createElement('div');
     rightWordEl.className = 'iron-fortress-word';
+
     ironFortressContainer.appendChild(leftWordEl);
     ironFortressContainer.appendChild(rightWordEl);
 
-    const normalLeft = "IRON";
+    const normalLeft  = "IRON";
     const normalRight = "FORTRESS";
-    const glitchLeft = "NO";
+    const glitchLeft  = "NO";
     const glitchRight = "SURVIVORS";
 
-    function setVerticalText(el, text) {
+    function setVerticalText(el, text){
         el.textContent = "";
         for(const c of text){
             const span = document.createElement('span');
@@ -695,7 +698,7 @@
         setVerticalText(leftWordEl, normalLeft);
         setVerticalText(rightWordEl, normalRight);
         ironFortressContainer.style.color = "";
-        ironFortressContainer.style.transform = ""; // reset movement after glitch
+        ironFortressContainer.style.transform = "";
     }
 
     function setGlitch(){
@@ -707,14 +710,14 @@
     }
 
     function flickerElement(el,count,dur,cb){
-        if(!count||count<=0){ cb&&cb(); return; }
+        if(!count || count<=0){ cb && cb(); return; }
         let flickered=0;
         function doFlicker(){
-            if(flickered>=count){
-                el.style.opacity='';
-                el.style.transform='';
-                el.style.transition='';
-                cb&&cb();
+            if(flickered >= count){
+                el.style.opacity = '';
+                el.style.transform = '';
+                el.style.transition = '';
+                cb && cb();
                 return;
             }
             flickered++;
@@ -725,13 +728,13 @@
             el.style.opacity = opacity;
             el.style.transform = `translate(${tx}px, ${ty}px)`;
             const flickerDuration = 20 + Math.random()*40;
-            setTimeout(()=>{
-                el.style.transition = 'opacity 10ms linear';
+            setTimeout(() => {
+                el.style.transition='opacity 10ms linear';
                 el.style.opacity = '';
                 el.style.transform = '';
                 const pause = 30 + Math.random()*50;
-                setTimeout(doFlicker,pause);
-            },flickerDuration);
+                setTimeout(doFlicker, pause);
+            }, flickerDuration);
         }
         doFlicker();
     }
@@ -742,9 +745,7 @@
             setGlitch();
             flickerElement(ironFortressContainer, randomCount(), 20 + Math.random()*40);
 
-            // Glitch movement animation implemented with transform jitter; Override CSS glitch animation remove to isolate banner movement
-
-            // Random jitter movement during glitch:
+            // Independent jitter movement during glitch - random small jitter every 30ms
             let glitchInterval = null;
             const maxJitter = 3;
             const start = Date.now();
@@ -767,7 +768,7 @@
         });
     }
 
-    async function startBootSequence() {
+    async function startBootSequence(){
         const bootScreen = getElement('bootScreen');
         if(!bootScreen) return;
         bootScreen.classList.add('visible');
@@ -776,11 +777,11 @@
             line.className = 'boot-line';
             line.textContent = bootMessages[i];
             bootScreen.appendChild(line);
-            await new Promise(r=>setTimeout(r, 300+Math.random()*200));
+            await new Promise(r => setTimeout(r, 300 + Math.random()*200));
         }
-        await new Promise(r=>setTimeout(r, 500));
+        await new Promise(r => setTimeout(r, 500));
         bootScreen.classList.add('fading');
-        await new Promise(r=>setTimeout(r, 600));
+        await new Promise(r => setTimeout(r, 600));
         bootScreen.style.display = 'none';
 
         getElement('systemSections').classList.add('visible');
@@ -789,7 +790,7 @@
         for(let i=0; i<sections.length; i++){
             await typeSection(sections[i], i * 800, 600);
         }
-        await new Promise(r=>setTimeout(r, 800));
+        await new Promise(r => setTimeout(r, 800));
         ironFortressContainer.classList.add('visible');
         setNormal();
         setTimeout(glitchCycle, 6000 + Math.random()*6000);
